@@ -1,49 +1,20 @@
-# رفيق المعلم الذكي 1.5
+<div align="center">
+<img width="1200" height="475" alt="GHBanner" src="https://github.com/user-attachments/assets/0aa67016-6eaf-458a-adb2-6e31a0763ed6" />
+</div>
 
-تطبيق تعليمي تفاعلي متكامل لمساعدة المعلمين في التخطيط للدروس وإنشاء الاختبارات وتحليل النصوص وغير ذلك الكثير باستخدام الذكاء الاصطناعي.
+# Run and deploy your AI Studio app
 
-## إعداد المشروع وتشغيله محلياً
+This contains everything you need to run your app locally.
 
-اتبع الخطوات التالية لإعداد المشروع وتشغيله على جهازك المحلي.
+View your app in AI Studio: https://ai.studio/apps/drive/1J2YM7od8zItuKnAgOakpvS_E5OPBe6pg
 
-### المتطلبات
+## Run Locally
 
-- [Node.js](https://nodejs.org/) (إصدار 18 أو أحدث)
-- [npm](https://www.npmjs.com/) (يأتي مع Node.js)
+**Prerequisites:**  Node.js
 
-### خطوات الإعداد
 
-1.  **استنساخ المستودع (أو تحميل الملفات):**
-    
-    إذا كان لديك `git`، يمكنك استنساخ المستودع. وإلا، قم بتنزيل وفك ضغط الملفات في مجلد جديد.
-    
-2.  **إنشاء ملف البيئة:**
-    
-    -   قم بإنشاء ملف جديد في المجلد الرئيسي للمشروع باسم `.env.local`.
-    -   افتح الملف وأضف السطر التالي:
-        
-        ```
-        GEMINI_API_KEY="YOUR_GEMINI_API_KEY_HERE"
-        ```
-    
-    -   استبدل `"YOUR_GEMINI_API_KEY_HERE"` بمفتاح Gemini API الخاص بك. يمكنك الحصول على مفتاح من [Google AI Studio](https://aistudio.google.com/).
-    
-3.  **تثبيت الاعتماديات:**
-    
-    افتح الطرفية (Terminal) في مجلد المشروع وقم بتشغيل الأمر التالي:
-    
-    ```bash
-    npm install
-    ```
-    
-4.  **تشغيل خادم التطوير:**
-    
-    بعد انتهاء التثبيت، قم بتشغيل الأمر التالي لبدء التطبيق:
-    
-    ```bash
-    npm run dev
-    ```
-    
-5.  **فتح التطبيق:**
-    
-    ستعرض الطرفية عنوان URL محلي (عادةً `http://localhost:5173`). افتح هذا الرابط في متصفحك لرؤية التطبيق.
+1. Install dependencies:
+   `npm install`
+2. Set the `GEMINI_API_KEY` in [.env.local](.env.local) to your Gemini API key
+3. Run the app:
+   `npm run dev`
