@@ -1,16 +1,25 @@
 import { GoogleGenAI, Modality } from "@google/genai";
 
-const API_KEY = process.env.API_KEY;
+let ai: GoogleGenAI | null = null;
 
-if (!API_KEY) {
-  console.warn("API_KEY environment variable is not set. Gemini API calls will fail.");
-}
+const getAiClient = (): GoogleGenAI => {
+    if (ai) {
+        return ai;
+    }
+    const API_KEY = process.env.API_KEY;
+    if (!API_KEY) {
+        console.error("API_KEY environment variable is not set.");
+        throw new Error("API Key is not configured. Please contact support.");
+    }
+    ai = new GoogleGenAI({ apiKey: API_KEY });
+    return ai;
+};
 
-const ai = new GoogleGenAI({ apiKey: API_KEY! });
 
 export const performSearch = async (query: string) => {
   try {
-    const response = await ai.models.generateContent({
+    const client = getAiClient();
+    const response = await client.models.generateContent({
       model: "gemini-2.5-flash",
       contents: query,
       config: {
@@ -26,7 +35,8 @@ export const performSearch = async (query: string) => {
 
 export const innovateWithGemini = async (prompt: string) => {
     try {
-        const response = await ai.models.generateContent({
+        const client = getAiClient();
+        const response = await client.models.generateContent({
             model: "gemini-2.5-pro",
             contents: prompt,
             config: {
@@ -42,8 +52,9 @@ export const innovateWithGemini = async (prompt: string) => {
 
 export const analyzeLiteraryText = async (text: string, prompt: string) => {
     try {
+        const client = getAiClient();
         const fullPrompt = `${prompt}\n\nالنص المراد تحليله:\n\`\`\`\n${text}\n\`\`\``;
-        const response = await ai.models.generateContent({
+        const response = await client.models.generateContent({
             model: "gemini-2.5-pro",
             contents: fullPrompt
         });
@@ -58,6 +69,7 @@ const SOLVE_QUESTIONS_PROMPT = `You are an expert educational assistant. Your ta
 
 export const analyzeImageAndSolve = async (imageBase64: string, mimeType: string) => {
     try {
+        const client = getAiClient();
         const imagePart = {
             inlineData: {
                 mimeType,
@@ -67,7 +79,7 @@ export const analyzeImageAndSolve = async (imageBase64: string, mimeType: string
         const textPart = {
             text: SOLVE_QUESTIONS_PROMPT,
         };
-        const response = await ai.models.generateContent({
+        const response = await client.models.generateContent({
             model: 'gemini-2.5-flash',
             contents: { parts: [imagePart, textPart] },
         });
@@ -82,7 +94,8 @@ export const analyzeImageAndSolve = async (imageBase64: string, mimeType: string
 export const solveQuestionsFromText = async (text: string) => {
     const fullPrompt = `${SOLVE_QUESTIONS_PROMPT}\n\nالنص المراد تحليله:\n\`\`\`\n${text}\n\`\`\``;
     try {
-        const response = await ai.models.generateContent({
+        const client = getAiClient();
+        const response = await client.models.generateContent({
             model: 'gemini-2.5-flash',
             contents: fullPrompt,
         });
@@ -104,7 +117,8 @@ export const fillLessonPlanFromText = async (pastedText: string) => {
         ---
     `;
     try {
-        const response = await ai.models.generateContent({
+        const client = getAiClient();
+        const response = await client.models.generateContent({
             model: 'gemini-2.5-flash',
             contents: prompt,
             config: {
@@ -120,7 +134,8 @@ export const fillLessonPlanFromText = async (pastedText: string) => {
 
 export const startChat = (prompt: string) => {
     try {
-        return ai.models.generateContentStream({
+        const client = getAiClient();
+        return client.models.generateContentStream({
             model: 'gemini-2.5-flash',
             contents: prompt,
         });
@@ -132,9 +147,10 @@ export const startChat = (prompt: string) => {
 
 export const analyzeImageGeneral = async (imageBase64: string, mimeType: string, prompt: string) => {
     try {
+        const client = getAiClient();
         const imagePart = { inlineData: { mimeType, data: imageBase64 } };
         const textPart = { text: prompt };
-        const response = await ai.models.generateContent({
+        const response = await client.models.generateContent({
             model: 'gemini-2.5-flash',
             contents: { parts: [imagePart, textPart] },
         });
@@ -147,7 +163,8 @@ export const analyzeImageGeneral = async (imageBase64: string, mimeType: string,
 
 export const generateSpeech = async (text: string) => {
     try {
-        const response = await ai.models.generateContent({
+        const client = getAiClient();
+        const response = await client.models.generateContent({
             model: "gemini-2.5-flash-preview-tts",
             contents: [{ parts: [{ text }] }],
             config: {
