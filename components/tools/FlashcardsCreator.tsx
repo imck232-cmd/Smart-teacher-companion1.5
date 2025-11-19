@@ -54,6 +54,7 @@ const FlashcardsCreator: React.FC<{ onBack: () => void }> = ({ onBack }) => {
   const [inputText, setInputText] = useState('');
   const [cards, setCards] = useState<string[]>([]);
   const [isProcessing, setIsProcessing] = useState(false);
+  const [isExporting, setIsExporting] = useState(false);
   
   // UI Toggle States
   const [showFrameSelector, setShowFrameSelector] = useState(false);
@@ -72,6 +73,24 @@ const FlashcardsCreator: React.FC<{ onBack: () => void }> = ({ onBack }) => {
     const lines = inputText.split('\n').map(line => line.trim()).filter(line => line.length > 0);
     setCards(lines);
     setIsProcessing(false);
+  };
+
+  // Helper for robust html2canvas capture
+  const captureElement = async (elementId: string) => {
+    const element = document.getElementById(elementId);
+    if (!element) return null;
+
+    // Wait for fonts to load to prevent layout shifts or missing text
+    await document.fonts.ready;
+
+    return await html2canvas(element, { 
+        scale: 2, // Good quality for mobile without crashing
+        useCORS: true, // Needed for fonts and external images
+        allowTaint: true,
+        backgroundColor: '#ffffff', // Force white background prevents black bg on Android
+        logging: false,
+        imageTimeout: 0, // Wait for images
+    });
   };
 
   // --- Export Functions ---
@@ -97,31 +116,45 @@ const FlashcardsCreator: React.FC<{ onBack: () => void }> = ({ onBack }) => {
   }
 
   const handleExportSingleImage = async (index: number) => {
-    const element = document.getElementById(`card-${index}`);
-    if (element) {
-      const canvas = await html2canvas(element, { scale: 2, useCORS: true });
-      const data = canvas.toDataURL('image/png');
-      const link = document.createElement('a');
-      link.href = data;
-      link.download = `card_${index + 1}.png`;
-      link.click();
+    setIsExporting(true);
+    try {
+        const canvas = await captureElement(`card-${index}`);
+        if (canvas) {
+            const data = canvas.toDataURL('image/png');
+            const link = document.createElement('a');
+            link.href = data;
+            link.download = `card_${index + 1}.png`;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+    } catch (error) {
+        console.error("Export failed", error);
+        alert("حدث خطأ أثناء تصدير الصورة. يرجى المحاولة مرة أخرى.");
+    } finally {
+        setIsExporting(false);
     }
   };
 
   const handleExportSinglePdf = async (index: number) => {
-    const element = document.getElementById(`card-${index}`);
-    if (element) {
-      const canvas = await html2canvas(element, { scale: 2, useCORS: true });
-      const imgData = canvas.toDataURL('image/png');
-      
-      const pdf = new jspdf.jsPDF({
-        orientation: 'landscape',
-        unit: 'px',
-        format: [canvas.width, canvas.height]
-      });
-      
-      pdf.addImage(imgData, 'PNG', 0, 0, canvas.width, canvas.height);
-      pdf.save(`card_${index + 1}.pdf`);
+    setIsExporting(true);
+    try {
+        const canvas = await captureElement(`card-${index}`);
+        if (canvas) {
+            const imgData = canvas.toDataURL('image/png');
+            const pdf = new jspdf.jsPDF({
+                orientation: 'landscape',
+                unit: 'px',
+                format: [canvas.width, canvas.height]
+            });
+            pdf.addImage(imgData, 'PNG', 0, 0, canvas.width, canvas.height);
+            pdf.save(`card_${index + 1}.pdf`);
+        }
+    } catch (error) {
+        console.error("PDF Export failed", error);
+        alert("حدث خطأ أثناء تصدير PDF.");
+    } finally {
+        setIsExporting(false);
     }
   };
 
@@ -149,42 +182,52 @@ const FlashcardsCreator: React.FC<{ onBack: () => void }> = ({ onBack }) => {
 
   const handleExportAllPdf = async () => {
     if (cards.length === 0) return;
+    setIsExporting(true);
     
-    const pdf = new jspdf.jsPDF({
-        orientation: 'landscape',
-        unit: 'mm',
-        format: 'a4'
-    });
+    try {
+        // Wait for fonts specifically before starting the batch process
+        await document.fonts.ready;
+        
+        const pdf = new jspdf.jsPDF({
+            orientation: 'landscape',
+            unit: 'mm',
+            format: 'a4'
+        });
 
-    for (let i = 0; i < cards.length; i++) {
-        const element = document.getElementById(`card-${i}`);
-        if (element) {
-            if (i > 0) pdf.addPage();
+        for (let i = 0; i < cards.length; i++) {
+            const canvas = await captureElement(`card-${i}`);
+            if (canvas) {
+                if (i > 0) pdf.addPage();
 
-            const canvas = await html2canvas(element, { scale: 2, useCORS: true });
-            const imgData = canvas.toDataURL('image/png');
-            
-            const pdfWidth = pdf.internal.pageSize.getWidth();
-            const pdfHeight = pdf.internal.pageSize.getHeight();
-            
-            const imgProps = pdf.getImageProperties(imgData);
-            const ratio = imgProps.width / imgProps.height;
-            
-            let w = pdfWidth - 20;
-            let h = w / ratio;
-            
-            if (h > pdfHeight - 20) {
-                h = pdfHeight - 20;
-                w = h * ratio;
+                const imgData = canvas.toDataURL('image/png');
+                
+                const pdfWidth = pdf.internal.pageSize.getWidth();
+                const pdfHeight = pdf.internal.pageSize.getHeight();
+                
+                const imgProps = pdf.getImageProperties(imgData);
+                const ratio = imgProps.width / imgProps.height;
+                
+                let w = pdfWidth - 20;
+                let h = w / ratio;
+                
+                if (h > pdfHeight - 20) {
+                    h = pdfHeight - 20;
+                    w = h * ratio;
+                }
+                
+                const x = (pdfWidth - w) / 2;
+                const y = (pdfHeight - h) / 2;
+
+                pdf.addImage(imgData, 'PNG', x, y, w, h);
             }
-            
-            const x = (pdfWidth - w) / 2;
-            const y = (pdfHeight - h) / 2;
-
-            pdf.addImage(imgData, 'PNG', x, y, w, h);
         }
+        pdf.save('all_flashcards.pdf');
+    } catch (error) {
+        console.error("Batch PDF Export failed", error);
+        alert("حدث خطأ أثناء التصدير الجماعي.");
+    } finally {
+        setIsExporting(false);
     }
-    pdf.save('all_flashcards.pdf');
   }
 
   // --- Frame Definitions ---
@@ -617,8 +660,12 @@ const FlashcardsCreator: React.FC<{ onBack: () => void }> = ({ onBack }) => {
       {cards.length > 0 && (
         <div className="mb-8 flex flex-wrap gap-4 justify-center neumorphic-inset p-4">
              <h3 className="w-full text-center font-bold text-lg mb-2">تصدير الكل</h3>
-             <button onClick={handleExportAllPdf} className="neumorphic-button bg-red-600 text-white px-4 py-2 text-sm">
-                <i className="fas fa-file-pdf ml-2"></i> PDF
+             <button 
+                onClick={handleExportAllPdf} 
+                disabled={isExporting}
+                className="neumorphic-button bg-red-600 text-white px-4 py-2 text-sm disabled:opacity-50"
+            >
+                <i className={`fas ${isExporting ? 'fa-spinner fa-spin' : 'fa-file-pdf'} ml-2`}></i> PDF
              </button>
              <button onClick={handleExportAllTxt} className="neumorphic-button bg-gray-600 text-white px-4 py-2 text-sm">
                 <i className="fas fa-file-alt ml-2"></i> TXT
@@ -676,15 +723,17 @@ const FlashcardsCreator: React.FC<{ onBack: () => void }> = ({ onBack }) => {
                 </button>
                 <button 
                     onClick={() => handleExportSingleImage(index)}
-                    className="neumorphic-button px-4 py-2 bg-blue-100 text-blue-800 text-sm font-semibold hover:bg-blue-200"
+                    disabled={isExporting}
+                    className="neumorphic-button px-4 py-2 bg-blue-100 text-blue-800 text-sm font-semibold hover:bg-blue-200 disabled:opacity-50"
                 >
-                    <i className="fas fa-image ml-2"></i> صورة
+                    <i className={`fas ${isExporting ? 'fa-spinner fa-spin' : 'fa-image'} ml-2`}></i> صورة
                 </button>
                 <button 
                     onClick={() => handleExportSinglePdf(index)}
-                    className="neumorphic-button px-4 py-2 bg-red-100 text-red-800 text-sm font-semibold hover:bg-red-200"
+                    disabled={isExporting}
+                    className="neumorphic-button px-4 py-2 bg-red-100 text-red-800 text-sm font-semibold hover:bg-red-200 disabled:opacity-50"
                 >
-                    <i className="fas fa-file-pdf ml-2"></i> PDF
+                    <i className={`fas ${isExporting ? 'fa-spinner fa-spin' : 'fa-file-pdf'} ml-2`}></i> PDF
                 </button>
                  <button 
                     onClick={() => handleExportSingleExcel(cardText, index)}
