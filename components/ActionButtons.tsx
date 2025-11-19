@@ -32,24 +32,32 @@ const ActionButtons: React.FC<ActionButtonsProps> = ({ textToCopy, elementIdToPr
     }
   };
   
-  const handleDownloadImage = async () => {
+  const handleDownloadImage = async (e: React.MouseEvent) => {
+    e.preventDefault(); e.stopPropagation();
     const input = document.getElementById(elementIdToPrint);
     if (!input || isDownloading) return;
     
     setIsDownloading(true);
     try {
-        await document.fonts.ready;
+        // Race condition for fonts to avoid indefinite hanging on Android
+        await Promise.race([
+            document.fonts.ready,
+            new Promise(resolve => setTimeout(resolve, 500))
+        ]);
+
         // Optimize for mobile devices to prevent crashes with large canvases
         const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+        const scale = isMobile ? 1.5 : 2.5;
         
         const canvas = await html2canvas(input, {
-            scale: isMobile ? 2.0 : 2.5,
+            scale: scale,
             useCORS: true,
             allowTaint: true,
             backgroundColor: '#ffffff',
             logging: false,
         });
         
+        // Use toBlob for better memory management on Android
         canvas.toBlob((blob: Blob | null) => {
             if (blob) {
                 const url = URL.createObjectURL(blob);
@@ -70,7 +78,8 @@ const ActionButtons: React.FC<ActionButtonsProps> = ({ textToCopy, elementIdToPr
     }
   };
 
-  const handleDownloadPdf = async () => {
+  const handleDownloadPdf = async (e: React.MouseEvent) => {
+    e.preventDefault(); e.stopPropagation();
     const input = document.getElementById(elementIdToPrint);
     if (!input || isDownloading) return;
     
@@ -78,12 +87,16 @@ const ActionButtons: React.FC<ActionButtonsProps> = ({ textToCopy, elementIdToPr
 
     try {
         // Wait for fonts to ensure rendering is correct
-        await document.fonts.ready;
+        await Promise.race([
+            document.fonts.ready,
+            new Promise(resolve => setTimeout(resolve, 500))
+        ]);
 
         const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+        const scale = isMobile ? 1.5 : 2.5;
 
         const canvas = await html2canvas(input, {
-            scale: isMobile ? 2.0 : 2.5, // Optimized for mobile
+            scale: scale, // Optimized for mobile
             useCORS: true,
             allowTaint: true,
             backgroundColor: '#ffffff', // Fix for black background on Android
