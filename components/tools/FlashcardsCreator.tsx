@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useRef } from 'react';
 import ToolHeader from '../ToolHeader';
 
 // Make jspdf and html2canvas available from the window object
@@ -57,7 +57,9 @@ const FlashcardsCreator: React.FC<{ onBack: () => void }> = ({ onBack }) => {
   // Specific export state to prevent double clicks/simultaneous actions
   // Format: { type: 'image' | 'pdf' | 'batch' | null, index: number | null }
   const [exportAction, setExportAction] = useState<{ type: string | null, index: number | null }>({ type: null, index: null });
-  const isExporting = exportAction.type !== null;
+  
+  // Synchronous ref to block clicks immediately (faster than state update)
+  const isExportingRef = useRef(false);
 
   // UI Toggle States
   const [showFrameSelector, setShowFrameSelector] = useState(false);
@@ -82,18 +84,15 @@ const FlashcardsCreator: React.FC<{ onBack: () => void }> = ({ onBack }) => {
     const element = document.getElementById(elementId);
     if (!element) return null;
 
-    // Race condition for font loading: Wait max 1s, otherwise proceed
-    // This prevents Android from hanging if a font is slow to report ready
-    await Promise.race([
-        document.fonts.ready,
-        new Promise(resolve => setTimeout(resolve, 500))
-    ]);
+    // Fast font check
+    await document.fonts.ready.catch(() => {});
 
-    // Detect mobile to optimize scale for speed and stability
+    // Detect mobile
     const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
     
-    // Reduced scale for mobile (1.5) for significant speed boost while maintaining readability
-    const scale = isMobile ? 1.5 : 2.5;
+    // Optimization: Use scale 1.0 for mobile to prevent memory crash
+    // Desktop can use 2.0 for crisp text
+    const scale = isMobile ? 1.0 : 2.0;
 
     return await html2canvas(element, { 
         scale: scale,
@@ -101,14 +100,27 @@ const FlashcardsCreator: React.FC<{ onBack: () => void }> = ({ onBack }) => {
         allowTaint: true,
         backgroundColor: '#ffffff',
         logging: false,
-        imageTimeout: 1000,
+        imageTimeout: 0, // Disable timeout
         removeContainer: true,
+        ignoreElements: (node: any) => node.classList?.contains('export-ignore'),
     });
+  };
+
+  const setExportState = (type: string | null, index: number | null) => {
+      if (type === null) {
+          isExportingRef.current = false;
+          setExportAction({ type: null, index: null });
+      } else {
+          isExportingRef.current = true;
+          setExportAction({ type, index });
+      }
   };
 
   // --- Export Functions ---
   const handleExportSingleTxt = (e: React.MouseEvent, text: string, index: number) => {
     e.preventDefault(); e.stopPropagation();
+    if (isExportingRef.current) return;
+    
     const element = document.createElement("a");
     const file = new Blob([text], {type: 'text/plain'});
     element.href = URL.createObjectURL(file);
@@ -120,6 +132,8 @@ const FlashcardsCreator: React.FC<{ onBack: () => void }> = ({ onBack }) => {
 
   const handleExportSingleExcel = (e: React.MouseEvent, text: string, index: number) => {
     e.preventDefault(); e.stopPropagation();
+    if (isExportingRef.current) return;
+
     const csvContent = `\uFEFFContent\n"${text.replace(/"/g, '""')}"`;
     const element = document.createElement("a");
     const file = new Blob([csvContent], {type: 'text/csv;charset=utf-8;'});
@@ -134,36 +148,41 @@ const FlashcardsCreator: React.FC<{ onBack: () => void }> = ({ onBack }) => {
     e.preventDefault(); 
     e.stopPropagation();
     
-    // Strict check to prevent simultaneous actions
-    if (isExporting) return;
+    // Strict check using Ref for immediate blocking
+    if (isExportingRef.current) return;
     
-    setExportAction({ type: 'image', index });
+    setExportState('image', index);
     
     try {
-        // Small delay to allow UI to update (spinner)
-        await new Promise(resolve => setTimeout(resolve, 50));
+        // Yield to UI
+        await new Promise(resolve => setTimeout(resolve, 0));
 
         const canvas = await captureElement(`card-${index}`);
         if (canvas) {
-            // Use JPEG for Android speed (faster encoding)
+            const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+            // Use JPEG on mobile for speed and lower memory
+            const mimeType = isMobile ? 'image/jpeg' : 'image/png';
+            const quality = isMobile ? 0.8 : 1.0;
+            const extension = isMobile ? 'jpg' : 'png';
+
             canvas.toBlob((blob: Blob | null) => {
                 if (blob) {
                     const url = URL.createObjectURL(blob);
                     const link = document.createElement('a');
                     link.href = url;
-                    link.download = `card_${index + 1}.jpg`; // jpg is faster
+                    link.download = `card_${index + 1}.${extension}`; 
                     document.body.appendChild(link);
                     link.click();
                     document.body.removeChild(link);
                     URL.revokeObjectURL(url); 
                 }
-            }, 'image/jpeg', 0.95);
+            }, mimeType, quality);
         }
     } catch (error) {
         console.error("Export failed", error);
         alert("حدث خطأ أثناء تصدير الصورة.");
     } finally {
-        setExportAction({ type: null, index: null });
+        setExportState(null, null);
     }
   };
 
@@ -171,17 +190,16 @@ const FlashcardsCreator: React.FC<{ onBack: () => void }> = ({ onBack }) => {
     e.preventDefault();
     e.stopPropagation();
 
-    // Strict check to prevent simultaneous actions
-    if (isExporting) return;
+    if (isExportingRef.current) return;
 
-    setExportAction({ type: 'pdf', index });
+    setExportState('pdf', index);
 
     try {
-        await new Promise(resolve => setTimeout(resolve, 50));
+        await new Promise(resolve => setTimeout(resolve, 0));
 
         const canvas = await captureElement(`card-${index}`);
         if (canvas) {
-            const imgData = canvas.toDataURL('image/jpeg', 0.95); // Use JPEG for PDF too for speed
+            const imgData = canvas.toDataURL('image/jpeg', 0.75);
             const pdf = new jspdf.jsPDF({
                 orientation: 'landscape',
                 unit: 'px',
@@ -194,12 +212,14 @@ const FlashcardsCreator: React.FC<{ onBack: () => void }> = ({ onBack }) => {
         console.error("PDF Export failed", error);
         alert("حدث خطأ أثناء تصدير PDF.");
     } finally {
-        setExportAction({ type: null, index: null });
+        setExportState(null, null);
     }
   };
 
   const handleExportAllTxt = (e: React.MouseEvent) => {
       e.preventDefault(); e.stopPropagation();
+      if (isExportingRef.current) return;
+
       const content = cards.join('\n\n-------------------------\n\n');
       const element = document.createElement("a");
       const file = new Blob([content], {type: 'text/plain'});
@@ -212,6 +232,8 @@ const FlashcardsCreator: React.FC<{ onBack: () => void }> = ({ onBack }) => {
 
   const handleExportAllExcel = (e: React.MouseEvent) => {
     e.preventDefault(); e.stopPropagation();
+    if (isExportingRef.current) return;
+
     const csvContent = `\uFEFFID,Content\n` + cards.map((c, i) => `${i+1},"${c.replace(/"/g, '""')}"`).join('\n');
     const element = document.createElement("a");
     const file = new Blob([csvContent], {type: 'text/csv;charset=utf-8;'});
@@ -224,9 +246,9 @@ const FlashcardsCreator: React.FC<{ onBack: () => void }> = ({ onBack }) => {
 
   const handleExportAllPdf = async (e: React.MouseEvent) => {
     e.preventDefault(); e.stopPropagation();
-    if (cards.length === 0 || isExporting) return;
+    if (cards.length === 0 || isExportingRef.current) return;
     
-    setExportAction({ type: 'batch', index: -1 });
+    setExportState('batch', -1);
     
     try {
         const pdf = new jspdf.jsPDF({
@@ -235,16 +257,16 @@ const FlashcardsCreator: React.FC<{ onBack: () => void }> = ({ onBack }) => {
             format: 'a4'
         });
 
-        // Batch processing with yields to main thread for Android responsiveness
         for (let i = 0; i < cards.length; i++) {
-            // Force UI update
-            if (i > 0) await new Promise(resolve => setTimeout(resolve, 10));
+            // CRITICAL: Yield to main thread to prevent "App Not Responding" on Android
+            await new Promise(resolve => setTimeout(resolve, 0));
 
             const canvas = await captureElement(`card-${i}`);
             if (canvas) {
                 if (i > 0) pdf.addPage();
 
-                const imgData = canvas.toDataURL('image/jpeg', 0.90); // Compress slightly more for batch
+                // Low quality JPEG for batch to save size/memory
+                const imgData = canvas.toDataURL('image/jpeg', 0.70);
                 
                 const pdfWidth = pdf.internal.pageSize.getWidth();
                 const pdfHeight = pdf.internal.pageSize.getHeight();
@@ -271,7 +293,7 @@ const FlashcardsCreator: React.FC<{ onBack: () => void }> = ({ onBack }) => {
         console.error("Batch PDF Export failed", error);
         alert("حدث خطأ أثناء التصدير الجماعي.");
     } finally {
-        setExportAction({ type: null, index: null });
+        setExportState(null, null);
     }
   }
 
@@ -780,7 +802,7 @@ const FlashcardsCreator: React.FC<{ onBack: () => void }> = ({ onBack }) => {
              <h3 className="w-full text-center font-bold text-lg mb-2">تصدير الكل</h3>
              <button 
                 onClick={handleExportAllPdf} 
-                disabled={isExporting}
+                disabled={exportAction.type !== null}
                 className="neumorphic-button bg-red-600 text-white px-4 py-2 text-sm disabled:opacity-50"
             >
                 <i className={`fas ${exportAction.type === 'batch' ? 'fa-spinner fa-spin' : 'fa-file-pdf'} ml-2`}></i> PDF
@@ -835,27 +857,29 @@ const FlashcardsCreator: React.FC<{ onBack: () => void }> = ({ onBack }) => {
             <div className="mt-4 flex flex-wrap justify-center gap-3">
                 <button 
                     onClick={(e) => handleExportSingleTxt(e, cardText, index)}
-                    className="neumorphic-button px-4 py-2 bg-gray-200 text-gray-800 text-sm font-semibold hover:bg-gray-300"
+                    disabled={exportAction.type !== null}
+                    className="neumorphic-button px-4 py-2 bg-gray-200 text-gray-800 text-sm font-semibold hover:bg-gray-300 disabled:opacity-50"
                 >
                     <i className="fas fa-file-alt ml-2"></i> TXT
                 </button>
                 <button 
                     onClick={(e) => handleExportSingleImage(e, index)}
-                    disabled={isExporting}
+                    disabled={exportAction.type !== null}
                     className="neumorphic-button px-4 py-2 bg-blue-100 text-blue-800 text-sm font-semibold hover:bg-blue-200 disabled:opacity-50"
                 >
                     <i className={`fas ${exportAction.type === 'image' && exportAction.index === index ? 'fa-spinner fa-spin' : 'fa-image'} ml-2`}></i> صورة
                 </button>
                 <button 
                     onClick={(e) => handleExportSinglePdf(e, index)}
-                    disabled={isExporting}
+                    disabled={exportAction.type !== null}
                     className="neumorphic-button px-4 py-2 bg-red-100 text-red-800 text-sm font-semibold hover:bg-red-200 disabled:opacity-50"
                 >
                     <i className={`fas ${exportAction.type === 'pdf' && exportAction.index === index ? 'fa-spinner fa-spin' : 'fa-file-pdf'} ml-2`}></i> PDF
                 </button>
                  <button 
                     onClick={(e) => handleExportSingleExcel(e, cardText, index)}
-                    className="neumorphic-button px-4 py-2 bg-green-100 text-green-800 text-sm font-semibold hover:bg-green-200"
+                    disabled={exportAction.type !== null}
+                    className="neumorphic-button px-4 py-2 bg-green-100 text-green-800 text-sm font-semibold hover:bg-green-200 disabled:opacity-50"
                 >
                     <i className="fas fa-file-excel ml-2"></i> Excel
                 </button>

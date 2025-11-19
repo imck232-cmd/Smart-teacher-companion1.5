@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 
 // Make jspdf and html2canvas available from the window object
 declare const jspdf: any;
@@ -13,6 +13,7 @@ interface ActionButtonsProps {
 const ActionButtons: React.FC<ActionButtonsProps> = ({ textToCopy, elementIdToPrint }) => {
   const [copyStatus, setCopyStatus] = useState('نسخ');
   const [isDownloading, setIsDownloading] = useState(false);
+  const isDownloadingRef = useRef(false);
 
   const handleCopy = () => {
     navigator.clipboard.writeText(textToCopy);
@@ -31,23 +32,30 @@ const ActionButtons: React.FC<ActionButtonsProps> = ({ textToCopy, elementIdToPr
       }
     }
   };
+
+  const setDownloadState = (state: boolean) => {
+      isDownloadingRef.current = state;
+      setIsDownloading(state);
+  }
   
   const handleDownloadImage = async (e: React.MouseEvent) => {
     e.preventDefault(); e.stopPropagation();
-    const input = document.getElementById(elementIdToPrint);
-    if (!input || isDownloading) return;
     
-    setIsDownloading(true);
+    if (isDownloadingRef.current) return;
+
+    const input = document.getElementById(elementIdToPrint);
+    if (!input) return;
+    
+    setDownloadState(true);
+
     try {
-        // Race condition for fonts to avoid indefinite hanging on Android
         await Promise.race([
             document.fonts.ready,
             new Promise(resolve => setTimeout(resolve, 500))
         ]);
 
-        // Optimize for mobile devices to prevent crashes with large canvases
         const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-        const scale = isMobile ? 1.5 : 2.5;
+        const scale = isMobile ? 1.0 : 2.5; // Optimization for Android
         
         const canvas = await html2canvas(input, {
             scale: scale,
@@ -57,53 +65,56 @@ const ActionButtons: React.FC<ActionButtonsProps> = ({ textToCopy, elementIdToPr
             logging: false,
         });
         
-        // Use toBlob for better memory management on Android
+        // Use JPEG for speed on mobile
         canvas.toBlob((blob: Blob | null) => {
             if (blob) {
                 const url = URL.createObjectURL(blob);
                 const link = document.createElement('a');
                 link.href = url;
-                link.download = 'exported_content.png';
+                link.download = 'exported_content.jpg'; // jpg is safer for mobile
                 document.body.appendChild(link);
                 link.click();
                 document.body.removeChild(link);
                 URL.revokeObjectURL(url);
             }
-        }, 'image/png');
+        }, 'image/jpeg', 0.8);
     } catch (error) {
         console.error("Image generation failed", error);
         alert("حدث خطأ أثناء تحميل الصورة.");
     } finally {
-        setIsDownloading(false);
+        setDownloadState(false);
     }
   };
 
   const handleDownloadPdf = async (e: React.MouseEvent) => {
     e.preventDefault(); e.stopPropagation();
-    const input = document.getElementById(elementIdToPrint);
-    if (!input || isDownloading) return;
     
-    setIsDownloading(true);
+    if (isDownloadingRef.current) return;
+
+    const input = document.getElementById(elementIdToPrint);
+    if (!input) return;
+    
+    setDownloadState(true);
 
     try {
-        // Wait for fonts to ensure rendering is correct
         await Promise.race([
             document.fonts.ready,
             new Promise(resolve => setTimeout(resolve, 500))
         ]);
 
         const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-        const scale = isMobile ? 1.5 : 2.5;
+        const scale = isMobile ? 1.0 : 2.0;
 
         const canvas = await html2canvas(input, {
-            scale: scale, // Optimized for mobile
+            scale: scale,
             useCORS: true,
             allowTaint: true,
-            backgroundColor: '#ffffff', // Fix for black background on Android
+            backgroundColor: '#ffffff',
             logging: false,
         });
 
-        const imgData = canvas.toDataURL('image/png');
+        // Compress image data for faster PDF generation
+        const imgData = canvas.toDataURL('image/jpeg', 0.75);
         const pdf = new jspdf.jsPDF({
           orientation: 'portrait',
           unit: 'pt',
@@ -114,13 +125,13 @@ const ActionButtons: React.FC<ActionButtonsProps> = ({ textToCopy, elementIdToPr
         const pdfWidth = pdf.internal.pageSize.getWidth();
         const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
         
-        pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
+        pdf.addImage(imgData, 'JPEG', 0, 0, pdfWidth, pdfHeight);
         pdf.save('document.pdf');
     } catch (error) {
         console.error("PDF generation failed", error);
         alert("حدث خطأ أثناء تحميل ملف PDF.");
     } finally {
-        setIsDownloading(false);
+        setDownloadState(false);
     }
   };
 

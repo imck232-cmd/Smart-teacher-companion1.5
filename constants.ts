@@ -2,6 +2,9 @@
 // Fix: Define ToolKey here to avoid circular dependency
 export type ToolKey =
   | 'search'
+  | 'aiTools'
+  | 'createAIPrompts'
+  | 'curriculumExamples'
   | 'addNote'
   | 'summarizeLesson'
   | 'solveBookQuestions'
@@ -27,9 +30,9 @@ export type ToolKey =
   | 'yourTasks'
   | 'classSchedule'
   | 'importantDates'
-  | 'createAIPrompts'
   | 'innovate'
   | 'archives'
+  | 'creativeIdeas'
   | 'chatBot'
   | 'imageAnalyzer'
   | 'textToSpeechInternal'
@@ -43,8 +46,9 @@ interface Tool {
 
 export const tools: Tool[] = [
   { key: 'search', label: 'البحث العام', icon: 'fas fa-search' },
-  { key: 'chatBot', label: 'المحادثة الفورية', icon: 'fas fa-comments' },
-  { key: 'imageAnalyzer', label: 'تحليل الصور', icon: 'fas fa-camera-retro' },
+  { key: 'aiTools', label: 'أدوات الذكاء الاصطناعي', icon: 'fas fa-robot' },
+  { key: 'createAIPrompts', label: 'إنشاء أوامر للذكاء الاصطناعي', icon: 'fas fa-magic' },
+  { key: 'curriculumExamples', label: 'أمثلة عملية من واقع المناهج الدراسية', icon: 'fas fa-chalkboard-teacher' },
   { key: 'createFlashcards', label: 'البطاقات التعليمية', icon: 'fas fa-clone' },
   { key: 'addNote', label: 'إضافة ملاحظة', icon: 'fas fa-sticky-note' },
   { key: 'summarizeLesson', label: 'تلخيص درس', icon: 'fas fa-file-alt' },
@@ -72,9 +76,11 @@ export const tools: Tool[] = [
   { key: 'yourTasks', label: 'مهامك', icon: 'fas fa-tasks' },
   { key: 'classSchedule', label: 'جدول الحصص', icon: 'fas fa-table' },
   { key: 'importantDates', label: 'تواريخ تهمك', icon: 'fas fa-calendar-day' },
-  { key: 'createAIPrompts', label: 'إنشاء أوامر للذكاء الاصطناعي', icon: 'fas fa-magic' },
   { key: 'innovate', label: 'ابتكر', icon: 'fas fa-lightbulb' },
   { key: 'archives', label: 'المحفوظات', icon: 'fas fa-archive' },
+  { key: 'creativeIdeas', label: 'اطلق العنان لأبداعك', icon: 'fas fa-rocket' },
+  { key: 'chatBot', label: 'المحادثة الفورية', icon: 'fas fa-comments' },
+  { key: 'imageAnalyzer', label: 'تحليل الصور', icon: 'fas fa-camera-retro' },
 ];
 
 interface ExternalLink {
@@ -83,6 +89,22 @@ interface ExternalLink {
 }
 
 export const externalLinkTools: Record<ToolKey, { title: string; links: ExternalLink[] }> = {
+    aiTools: { 
+        title: 'أدوات الذكاء الاصطناعي', 
+        links: [{ name: 'أدوات الذكاء الاصطناعي', url: 'https://artificial-intelligence-tools.vercel.app/' }] 
+    },
+    createAIPrompts: {
+        title: 'إنشاء أوامر للذكاء الاصطناعي',
+        links: [{ name: 'مولد الأوامر', url: 'https://prompt-generation1-3.vercel.app/' }]
+    },
+    curriculumExamples: {
+        title: 'أمثلة عملية من واقع المناهج الدراسية',
+        links: [
+            { name: 'دروس القراءة للصف الثالث الثانوي', url: 'https://reding22.vercel.app/' },
+            { name: 'رفيقك في الاسئلة الفقهية', url: 'https://rfigkfegh.eqsdyn.net/' },
+            { name: 'مختبرك الإلكتروني', url: 'https://your-electronic-laboratory-isvc.vercel.app/' }
+        ]
+    },
     createStory: { title: 'إنشاء قصة لدرس', links: [{ name: 'CapCut', url: 'https://www.capcut.com/' }] },
     createVideoSummary: { title: 'إنشاء ملخص فيديو لدرس', links: [{ name: 'NotebookLM', url: 'https://notebooklm.google/' }] },
     createPowerpoint: {

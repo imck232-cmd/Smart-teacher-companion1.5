@@ -18,6 +18,7 @@ import ChatBot from './components/tools/ChatBot';
 import ImageAnalyzer from './components/tools/ImageAnalyzer';
 import TextToSpeechTool from './components/tools/TextToSpeechTool';
 import FlashcardsCreator from './components/tools/FlashcardsCreator';
+import CreativeIdeas from './components/tools/CreativeIdeas';
 import { themes, Theme } from './themes';
 import Sidebar from './components/Sidebar';
 import ScrollToTopButton from './components/ScrollToTopButton';
@@ -213,6 +214,8 @@ const App: React.FC = () => {
         return <LessonPlanner onBack={handleGoHome} />;
       case 'archives':
         return <Archives onBack={handleGoHome} />;
+      case 'creativeIdeas':
+        return <CreativeIdeas onBack={handleGoHome} />;
       case 'chatBot':
         return <ChatBot onBack={handleGoHome} />;
       case 'imageAnalyzer':
