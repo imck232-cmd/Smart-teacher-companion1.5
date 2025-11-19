@@ -80,15 +80,23 @@ const FlashcardsCreator: React.FC<{ onBack: () => void }> = ({ onBack }) => {
     if (!element) return null;
 
     // Wait for fonts to load to prevent layout shifts or missing text
-    await document.fonts.ready;
+    // Only wait if we haven't already confirmed readiness to save time
+    if (document.fonts.status !== 'loaded') {
+         await document.fonts.ready;
+    }
 
+    // Detect mobile to optimize scale
+    const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+    
+    // Use specific settings for Android stability
     return await html2canvas(element, { 
-        scale: 2, // Good quality for mobile without crashing
+        scale: isMobile ? 2.0 : 2.5, // Slightly reduced scale for mobile speed/stability
         useCORS: true, // Needed for fonts and external images
         allowTaint: true,
         backgroundColor: '#ffffff', // Force white background prevents black bg on Android
-        logging: false,
+        logging: false, // Disable logging for performance
         imageTimeout: 0, // Wait for images
+        removeContainer: true,
     });
   };
 
@@ -115,17 +123,24 @@ const FlashcardsCreator: React.FC<{ onBack: () => void }> = ({ onBack }) => {
   }
 
   const handleExportSingleImage = async (index: number) => {
+    if (isExporting) return;
     setIsExporting(true);
     try {
         const canvas = await captureElement(`card-${index}`);
         if (canvas) {
-            const data = canvas.toDataURL('image/png');
-            const link = document.createElement('a');
-            link.href = data;
-            link.download = `card_${index + 1}.png`;
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
+            // Use toBlob instead of toDataURL for better memory management on Android
+            canvas.toBlob((blob: Blob | null) => {
+                if (blob) {
+                    const url = URL.createObjectURL(blob);
+                    const link = document.createElement('a');
+                    link.href = url;
+                    link.download = `card_${index + 1}.png`;
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+                    URL.revokeObjectURL(url); // Clean up memory
+                }
+            }, 'image/png');
         }
     } catch (error) {
         console.error("Export failed", error);
@@ -136,6 +151,7 @@ const FlashcardsCreator: React.FC<{ onBack: () => void }> = ({ onBack }) => {
   };
 
   const handleExportSinglePdf = async (index: number) => {
+    if (isExporting) return;
     setIsExporting(true);
     try {
         const canvas = await captureElement(`card-${index}`);
@@ -180,7 +196,7 @@ const FlashcardsCreator: React.FC<{ onBack: () => void }> = ({ onBack }) => {
   }
 
   const handleExportAllPdf = async () => {
-    if (cards.length === 0) return;
+    if (cards.length === 0 || isExporting) return;
     setIsExporting(true);
     
     try {
@@ -193,7 +209,13 @@ const FlashcardsCreator: React.FC<{ onBack: () => void }> = ({ onBack }) => {
             format: 'a4'
         });
 
+        // Process sequentially but yield to main thread to prevent UI freeze on mobile
         for (let i = 0; i < cards.length; i++) {
+            // Yield to main thread every 3 cards with 0ms timeout for maximum speed while preventing freeze
+            if (i > 0 && i % 3 === 0) {
+                await new Promise(resolve => setTimeout(resolve, 0));
+            }
+
             const canvas = await captureElement(`card-${i}`);
             if (canvas) {
                 if (i > 0) pdf.addPage();
