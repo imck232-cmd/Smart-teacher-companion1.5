@@ -18,36 +18,35 @@ interface FrameStyle {
 }
 
 const fontOptions = [
-    { name: 'نسخ (Droid Naskh)', value: "'Noto Naskh Arabic', serif" },
-    { name: 'كتيبة (Katibeh)', value: "'Katibeh', serif" },
-    { name: 'بالو (Baloo Bhaijaan 2)', value: "'Baloo Bhaijaan 2', sans-serif" },
-    { name: 'وزير (Vazirmatn)', value: "'Vazirmatn', sans-serif" },
-    { name: 'جولزار (Gulzar)', value: "'Gulzar', serif" },
-    { name: 'عين الحياة (Ain Al Hayat)', value: "'Aref Ruqaa', serif" },
-    { name: 'كوفي (Noto Kufi)', value: "'Noto Kufi Arabic', sans-serif" },
-    { name: 'مدى (Mada)', value: "'Mada', sans-serif" },
-    { name: 'رقاص (Rakkas)', value: "'Rakkas', serif" },
-    { name: 'لاليزار (Lalezar)', value: "'Lalezar', cursive" },
-    { name: 'عارف رقعة (Aref Ruqaa)', value: "'Aref Ruqaa', serif" },
-    { name: 'ريم كوفي (Reem Kufi)', value: "'Reem Kufi', sans-serif" },
-    { name: 'شهرزاد (Scheherazade New)', value: "'Scheherazade New', serif" },
-    { name: 'ليمونادة (Lemonada)', value: "'Lemonada', cursive" },
-    { name: 'إسكندرية (Alexandria)', value: "'Alexandria', sans-serif" },
-    { name: 'مرحي (Marhey)', value: "'Marhey', sans-serif" },
-    { name: 'قاهري (Qahiri)', value: "'Qahiri', sans-serif" },
-    { name: 'كوفام (Kufam)', value: "'Kufam', sans-serif" },
-    { name: 'ميرزا (Mirza)', value: "'Mirza', serif" },
-    { name: 'أميري (Amiri)', value: "'Amiri', serif" },
-    { name: 'لطيف (Lateef)', value: "'Lateef', serif" },
-    { name: 'تجوال (Tajawal)', value: "'Tajawal', sans-serif" },
-    { name: 'المسيري (El Messiri)', value: "'El Messiri', sans-serif" },
-    { name: 'بلاكا (Blaka)', value: "'Blaka', cursive" },
-    { name: 'ريدكس (Readex Pro)', value: "'Readex Pro', sans-serif" },
-    { name: 'IBM Arabic', value: "'IBM Plex Sans Arabic', sans-serif" },
-    { name: 'المراعي (Almarai)', value: "'Almarai', sans-serif" },
-    { name: 'تشانجا (Changa)', value: "'Changa', sans-serif" },
-    { name: 'هرمتان (Harmattan)', value: "'Harmattan', sans-serif" },
-    { name: 'كايرو (Cairo)', value: "'Cairo', sans-serif" },
+    { name: 'افتراضي (Cairo)', value: "'Cairo', sans-serif" },
+    { name: 'نسخ (Naskh)', value: "'Noto Naskh Arabic', serif" },
+    { name: 'رقعة (Aref Ruqaa)', value: "'Aref Ruqaa', serif" },
+    { name: 'كوفي (Kufi)', value: "'Noto Kufi Arabic', sans-serif" },
+    { name: 'ديواني (Reem Kufi)', value: "'Reem Kufi', sans-serif" },
+    { name: 'ثلث (Amiri)', value: "'Amiri', serif" },
+    { name: 'عريض (Baloo)', value: "'Baloo Bhaijaan 2', sans-serif" },
+    { name: 'حديث (Vazirmatn)', value: "'Vazirmatn', sans-serif" },
+    { name: 'فني (Gulzar)', value: "'Gulzar', serif" },
+    { name: 'عنوان (Lalezar)', value: "'Lalezar', cursive" },
+    { name: 'بسيط (Mada)', value: "'Mada', sans-serif" },
+    { name: 'زخرفي (Rakkas)', value: "'Rakkas', serif" },
+    { name: 'قصص (Scheherazade)', value: "'Scheherazade New', serif" },
+    { name: 'مرح (Lemonada)', value: "'Lemonada', cursive" },
+    { name: 'هندسي (Alexandria)', value: "'Alexandria', sans-serif" },
+    { name: 'حر (Marhey)', value: "'Marhey', sans-serif" },
+    { name: 'يدوي (Qahiri)', value: "'Qahiri', sans-serif" },
+    { name: 'كوفي قديم (Kufam)', value: "'Kufam', sans-serif" },
+    { name: 'تراثي (Mirza)', value: "'Mirza', serif" },
+    { name: 'ناعم (Lateef)', value: "'Lateef', serif" },
+    { name: 'شاشة (Tajawal)', value: "'Tajawal', sans-serif" },
+    { name: 'أنيق (El Messiri)', value: "'El Messiri', sans-serif" },
+    { name: 'سميك (Blaka)', value: "'Blaka', cursive" },
+    { name: 'عصري (Readex Pro)', value: "'Readex Pro', sans-serif" },
+    { name: 'تقني (IBM Plex)', value: "'IBM Plex Sans Arabic', sans-serif" },
+    { name: 'واضح (Almarai)', value: "'Almarai', sans-serif" },
+    { name: 'مستقبلي (Changa)', value: "'Changa', sans-serif" },
+    { name: 'نصوص (Harmattan)', value: "'Harmattan', sans-serif" },
+    { name: 'كاتبة (Katibeh)', value: "'Katibeh', serif" },
 ];
 
 const FlashcardsCreator: React.FC<{ onBack: () => void }> = ({ onBack }) => {
@@ -360,7 +359,6 @@ const FlashcardsCreator: React.FC<{ onBack: () => void }> = ({ onBack }) => {
         ),
         containerStyle: { backgroundColor: '#1c1917', color: '#fefce8', boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.5)' },
     },
-    // --- New Frames (10) ---
     {
         id: 'geometric',
         name: 'هندسي',
@@ -431,100 +429,175 @@ const FlashcardsCreator: React.FC<{ onBack: () => void }> = ({ onBack }) => {
         ),
         containerStyle: { backgroundColor: '#1e3a8a', color: 'white' }
     },
+    // --- 10 New Added Frames ---
     {
-        id: 'mosaic',
-        name: 'فسيفساء',
-        previewColor: '#fff',
-        defaultColor: '#000',
-        defaultFont: "'Reem Kufi', sans-serif",
+        id: 'puzzle',
+        name: 'أحجية',
+        previewColor: '#f0f9ff',
+        defaultColor: '#0369a1',
+        defaultFont: "'Baloo Bhaijaan 2', sans-serif",
         render: () => (
             <>
-                <div className="absolute top-0 left-0 w-full h-4 bg-gradient-to-r from-red-500 via-green-500 to-blue-500"></div>
-                <div className="absolute bottom-0 left-0 w-full h-4 bg-gradient-to-r from-blue-500 via-green-500 to-red-500"></div>
-                <div className="absolute left-0 top-0 h-full w-4 bg-gradient-to-b from-red-500 via-yellow-500 to-blue-500"></div>
-                <div className="absolute right-0 top-0 h-full w-4 bg-gradient-to-b from-blue-500 via-yellow-500 to-red-500"></div>
+                <div className="absolute top-0 left-1/4 w-8 h-8 -mt-4 bg-white rounded-full border-t-2 border-sky-300"></div>
+                <div className="absolute bottom-0 right-1/4 w-8 h-8 -mb-4 bg-sky-50 rounded-full border-b-2 border-sky-300"></div>
+                <div className="absolute left-0 top-1/2 w-8 h-8 -ml-4 bg-white rounded-full border-l-2 border-sky-300"></div>
+                <div className="absolute right-0 top-1/2 w-8 h-8 -mr-4 bg-sky-50 rounded-full border-r-2 border-sky-300"></div>
+                <div className="absolute inset-0 border-4 border-sky-200 rounded-xl pointer-events-none"></div>
             </>
         ),
-        containerStyle: { backgroundColor: '#fff', padding: '16px' }
+        containerStyle: { backgroundColor: '#f0f9ff', borderRadius: '16px' }
     },
     {
-        id: 'film-strip',
-        name: 'سينما',
-        previewColor: '#000',
-        defaultColor: '#fff',
+        id: 'stars',
+        name: 'نجوم',
+        previewColor: '#312e81',
+        defaultColor: '#fbbf24',
         defaultFont: "'Lalezar', cursive",
         render: () => (
             <>
-                <div className="absolute top-0 left-0 w-full h-8 bg-black flex justify-between items-center px-2">
-                     {[...Array(10)].map((_, i) => <div key={i} className="w-4 h-5 bg-white rounded-sm"></div>)}
+                <div className="absolute inset-0 bg-indigo-900 rounded-lg overflow-hidden">
+                    <div className="absolute top-2 left-4 text-yellow-400 text-xs">★</div>
+                    <div className="absolute top-10 right-10 text-white text-xs opacity-50">✦</div>
+                    <div className="absolute bottom-5 left-10 text-white text-xs opacity-30">.</div>
+                    <div className="absolute top-1/2 left-2 text-yellow-200 text-lg">★</div>
+                    <div className="absolute bottom-2 right-4 text-yellow-400 text-sm">★</div>
+                    <div className="absolute top-4 right-1/2 text-white text-xs opacity-40">.</div>
                 </div>
-                <div className="absolute bottom-0 left-0 w-full h-8 bg-black flex justify-between items-center px-2">
-                     {[...Array(10)].map((_, i) => <div key={i} className="w-4 h-5 bg-white rounded-sm"></div>)}
-                </div>
+                <div className="absolute inset-1 border border-indigo-500/50 rounded-lg pointer-events-none"></div>
             </>
         ),
-        containerStyle: { backgroundColor: '#1f2937', color: 'white', padding: '32px 0' }
+        containerStyle: { backgroundColor: '#312e81', color: '#fbbf24', borderRadius: '8px' }
     },
     {
-        id: 'leaves',
-        name: 'طبيعة',
-        previewColor: '#ecfccb',
-        defaultColor: '#365314',
-        defaultFont: "'Harmattan', sans-serif",
-        render: () => (
-            <>
-                 <div className="absolute inset-0 border-2 border-lime-500 rounded-2xl"></div>
-                 <i className="fas fa-leaf text-lime-600 absolute -top-3 -left-2 text-2xl transform -rotate-45 bg-[#ecfccb]"></i>
-                 <i className="fas fa-leaf text-lime-600 absolute top-10 -right-3 text-xl transform rotate-90 bg-[#ecfccb]"></i>
-                 <i className="fas fa-seedling text-lime-600 absolute bottom-2 right-10 text-2xl bg-[#ecfccb]"></i>
-            </>
-        ),
-        containerStyle: { backgroundColor: '#ecfccb', borderRadius: '16px' }
-    },
-    {
-        id: 'neon-blue',
-        name: 'نيون أزرق',
+        id: 'circuit',
+        name: 'إلكتروني',
         previewColor: '#000',
-        defaultColor: '#60a5fa',
-        defaultFont: "'Cairo', sans-serif",
+        defaultColor: '#22d3ee',
+        defaultFont: "'Share Tech Mono', monospace",
         render: () => (
             <>
-                <div className="absolute inset-0 bg-black"></div>
-                <div className="absolute inset-2 border-2 border-blue-500 shadow-[0_0_15px_#3b82f6] rounded-lg"></div>
-                <div className="absolute top-0 left-1/2 -translate-x-1/2 w-20 h-1 bg-blue-500 shadow-[0_0_10px_#3b82f6]"></div>
+                <div className="absolute inset-0 border-2 border-cyan-500/50 bg-gray-900"></div>
+                <div className="absolute top-0 left-10 h-4 w-[1px] bg-cyan-500"></div>
+                <div className="absolute top-4 left-10 w-2 h-2 rounded-full bg-cyan-500"></div>
+                
+                <div className="absolute bottom-0 right-10 h-8 w-[1px] bg-cyan-500"></div>
+                <div className="absolute bottom-8 right-10 w-2 h-2 rounded-full bg-cyan-500"></div>
+                
+                <div className="absolute left-0 top-10 w-6 h-[1px] bg-cyan-500"></div>
+                <div className="absolute left-6 top-10 w-2 h-2 rounded-full bg-cyan-500"></div>
             </>
         ),
-        containerStyle: { overflow: 'hidden', borderRadius: '8px' }
+        containerStyle: { backgroundColor: '#111827', color: '#22d3ee', fontFamily: 'monospace' }
     },
     {
-        id: 'sketch',
-        name: 'رسم يدوي',
-        previewColor: '#fff',
-        defaultColor: '#374151',
-        defaultFont: "'Comic Neue', cursive",
-        render: () => (
-            <>
-                <div className="absolute inset-0 border-2 border-gray-800" style={{ borderRadius: '2px 255px 3px 25px / 255px 5px 225px 5px' }}></div>
-                <div className="absolute inset-1 border-2 border-gray-800" style={{ borderRadius: '255px 15px 225px 15px / 15px 225px 15px 255px' }}></div>
-                <i className="fas fa-pencil-alt absolute -bottom-2 -right-2 text-gray-600 transform -rotate-12"></i>
-            </>
-        ),
-        containerStyle: { backgroundColor: '#fff' }
-    },
-    {
-        id: 'gradient-border',
-        name: 'تدرج',
-        previewColor: '#fff',
-        defaultColor: '#000',
+        id: 'origami',
+        name: 'أوريجامي',
+        previewColor: '#fafaf9',
+        defaultColor: '#44403c',
         defaultFont: "'Tajawal', sans-serif",
         render: () => (
             <>
-               <div className="absolute inset-0 p-2 bg-gradient-to-br from-purple-400 via-pink-500 to-red-500 rounded-xl">
-                   <div className="h-full w-full bg-white rounded-lg"></div>
-               </div>
+                <div className="absolute top-0 left-0 w-0 h-0 border-t-[40px] border-r-[40px] border-t-stone-300 border-r-transparent"></div>
+                <div className="absolute bottom-0 right-0 w-0 h-0 border-b-[40px] border-l-[40px] border-b-stone-300 border-l-transparent"></div>
+                <div className="absolute inset-4 border border-dashed border-stone-400 pointer-events-none"></div>
             </>
         ),
-        containerStyle: { backgroundColor: 'transparent', padding: '0' }
+        containerStyle: { backgroundColor: '#fafaf9', boxShadow: '2px 2px 5px rgba(0,0,0,0.1)' }
+    },
+    {
+        id: 'watercolor',
+        name: 'ألوان مائية',
+        previewColor: '#fff',
+        defaultColor: '#be185d',
+        defaultFont: "'Amiri', serif",
+        render: () => (
+            <>
+                 <div className="absolute inset-0 rounded-xl opacity-20 pointer-events-none" 
+                 style={{ background: 'radial-gradient(circle at top left, #fbcfe8, transparent), radial-gradient(circle at bottom right, #bae6fd, transparent)' }}></div>
+                 <div className="absolute inset-2 border-4 border-pink-200/50 rounded-lg pointer-events-none"></div>
+                 <i className="fas fa-paint-brush absolute -bottom-2 -right-2 text-pink-300 text-2xl transform -rotate-12 opacity-50"></i>
+            </>
+        ),
+        containerStyle: { backgroundColor: '#fff', borderRadius: '12px' }
+    },
+    {
+        id: 'retro-game',
+        name: 'ألعاب قديمة',
+        previewColor: '#000',
+        defaultColor: '#4ade80',
+        defaultFont: "'Press Start 2P', cursive",
+        render: () => (
+            <>
+                <div className="absolute inset-0 border-4 border-green-500"></div>
+                <div className="absolute top-2 left-2 w-2 h-2 bg-green-500"></div>
+                <div className="absolute top-2 right-2 w-2 h-2 bg-green-500"></div>
+                <div className="absolute bottom-2 left-2 w-2 h-2 bg-green-500"></div>
+                <div className="absolute bottom-2 right-2 w-2 h-2 bg-green-500"></div>
+                <div className="absolute top-0 left-1/2 -translate-x-1/2 bg-black px-2 text-green-500 text-xs font-mono">LEVEL 1</div>
+            </>
+        ),
+        containerStyle: { backgroundColor: '#000', color: '#4ade80' }
+    },
+    {
+        id: 'bookshelf',
+        name: 'مكتبة',
+        previewColor: '#fdf2f8',
+        defaultColor: '#831843',
+        defaultFont: "'Scheherazade New', serif",
+        render: () => (
+            <>
+                <div className="absolute bottom-0 w-full h-4 bg-amber-800 rounded-sm"></div>
+                <div className="absolute left-0 top-0 h-full w-2 bg-amber-800 rounded-sm"></div>
+                <div className="absolute right-0 top-0 h-full w-2 bg-amber-800 rounded-sm"></div>
+                <div className="absolute top-0 w-full h-2 bg-amber-800 rounded-sm"></div>
+                <i className="fas fa-book-open absolute top-2 right-4 text-amber-700/30 text-3xl"></i>
+            </>
+        ),
+        containerStyle: { backgroundColor: '#fffbeb', padding: '12px' }
+    },
+    {
+        id: 'clouds',
+        name: 'غيوم',
+        previewColor: '#ecfeff',
+        defaultColor: '#0e7490',
+        defaultFont: "'Baloo Bhaijaan 2', sans-serif",
+        render: () => (
+            <>
+                 <div className="absolute -top-4 left-10 w-16 h-8 bg-white rounded-full opacity-80"></div>
+                 <div className="absolute -bottom-4 right-10 w-20 h-10 bg-white rounded-full opacity-80"></div>
+                 <div className="absolute top-10 -right-4 w-12 h-12 bg-white rounded-full opacity-60"></div>
+                 <div className="absolute inset-0 border-4 border-cyan-100 rounded-3xl pointer-events-none z-10"></div>
+            </>
+        ),
+        containerStyle: { backgroundColor: '#ecfeff', borderRadius: '24px', overflow: 'hidden' }
+    },
+    {
+        id: 'tribal',
+        name: 'زخرفة',
+        previewColor: '#fff7ed',
+        defaultColor: '#c2410c',
+        defaultFont: "'Reem Kufi', sans-serif",
+        render: () => (
+            <>
+                <div className="absolute top-0 left-0 w-full h-2 bg-orange-500" style={{clipPath: 'polygon(0 0, 10% 100%, 20% 0, 30% 100%, 40% 0, 50% 100%, 60% 0, 70% 100%, 80% 0, 90% 100%, 100% 0)'}}></div>
+                <div className="absolute bottom-0 left-0 w-full h-2 bg-orange-500" style={{clipPath: 'polygon(0 100%, 10% 0, 20% 100%, 30% 0, 40% 100%, 50% 0, 60% 100%, 70% 0, 80% 100%, 90% 0, 100% 100%)'}}></div>
+            </>
+        ),
+        containerStyle: { backgroundColor: '#fff7ed', padding: '20px 0' }
+    },
+    {
+        id: 'minimal-box',
+        name: 'إطار بسيط',
+        previewColor: '#fff',
+        defaultColor: '#111',
+        defaultFont: "'Tajawal', sans-serif",
+        render: () => (
+            <>
+                <div className="absolute top-0 left-0 w-8 h-8 border-t-4 border-l-4 border-black"></div>
+                <div className="absolute bottom-0 right-0 w-8 h-8 border-b-4 border-r-4 border-black"></div>
+            </>
+        ),
+        containerStyle: { backgroundColor: '#fff', padding: '24px' }
     },
   ];
 
@@ -575,7 +648,7 @@ const FlashcardsCreator: React.FC<{ onBack: () => void }> = ({ onBack }) => {
 
         {/* Frame Selector Panel */}
         {showFrameSelector && (
-            <div className="mt-6 grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-5 gap-4 animate-fadeIn">
+            <div className="mt-6 grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-5 gap-4 animate-fadeIn max-h-96 overflow-y-auto p-2">
                 {frames.map(frame => (
                     <button
                         key={frame.id}
@@ -586,7 +659,7 @@ const FlashcardsCreator: React.FC<{ onBack: () => void }> = ({ onBack }) => {
                          <div className="absolute inset-0 opacity-20 pointer-events-none transform scale-50 origin-center">
                              {frame.render()}
                          </div>
-                        <span className={`z-10 font-bold text-sm drop-shadow-sm text-center px-1 ${['elegant-gold', 'chalkboard', 'clipboard', 'space', 'cyber', 'neon-dark', 'art-deco', 'tech-circuit', 'blueprint', 'film-strip', 'neon-blue', 'royal', 'geometric'].includes(frame.id) ? 'text-white' : 'text-gray-800'}`}>{frame.name}</span>
+                        <span className={`z-10 font-bold text-sm drop-shadow-sm text-center px-1 truncate w-full ${['elegant-gold', 'chalkboard', 'clipboard', 'space', 'cyber', 'neon-dark', 'art-deco', 'tech-circuit', 'blueprint', 'film-strip', 'neon-blue', 'royal', 'geometric', 'stars', 'retro-game', 'circuit'].includes(frame.id) ? 'text-white' : 'text-gray-800'}`}>{frame.name}</span>
                     </button>
                 ))}
             </div>
@@ -690,23 +763,24 @@ const FlashcardsCreator: React.FC<{ onBack: () => void }> = ({ onBack }) => {
             >
                  {currentFrame.render()}
 
-                 {/* Content */}
+                 {/* Content - Applied inline style with !important-like specificity by being on the element */}
                  <div 
-                      className="z-10 w-full text-center break-words px-8 font-active" 
+                      className="z-10 w-full text-center break-words px-8" 
                       style={{ 
                           ...currentFrame.textStyle, 
                           color: textColor, 
                           fontSize: `${fontSize}px`,
-                          fontFamily: fontFamily, // Explicitly set font family on the container
                           fontWeight: fontWeight,
-                          lineHeight: '1.4'
+                          lineHeight: '1.4',
+                          // Ensure fontFamily is applied directly here to override any Tailwind or parent styles
+                          fontFamily: fontFamily
                       }}>
                     <h2 style={{ 
                         fontSize: 'inherit', 
                         color: 'inherit', 
-                        fontFamily: fontFamily, // Explicitly set font family on the h2
                         fontWeight: 'inherit', 
-                        margin: 0 
+                        margin: 0,
+                        fontFamily: fontFamily // Double apply to H2 to be safe
                         }} dir="auto">
                         {cardText}
                     </h2>
