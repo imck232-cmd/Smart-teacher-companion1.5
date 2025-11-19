@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
@@ -5,10 +6,21 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>رفيق المعلم الذكي</title>
     
-    <!-- Google Fonts -->
+    <!-- Google Fonts - Split into groups for stability -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;900&family=Reem+Kufi:wght@400..700&family=Amiri:wght@400;700&family=Tajawal:wght@300;400;700&family=Lalezar&family=Changa:wght@300;400;600&display=swap" rel="stylesheet">
+    
+    <!-- Group 1: UI & Primary Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@200..1000&family=Tajawal:wght@200;300;400;500;700;800;900&family=Reem+Kufi:wght@400..700&family=Vazirmatn:wght@100..900&display=swap" rel="stylesheet">
+    
+    <!-- Group 2: Naskh & Serif Styles (Formal/Classic) -->
+    <link href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=Lateef:wght@200;300;400;500;600;700;800&family=Scheherazade+New:wght@400;700&family=Noto+Naskh+Arabic:wght@400..700&family=Mirza:wght@400;500;600;700&family=Katibeh&family=Gulzar&display=swap" rel="stylesheet">
+    
+    <!-- Group 3: Display, Decorative & Kids -->
+    <link href="https://fonts.googleapis.com/css2?family=Alexandria:wght@100..900&family=Almarai:wght@300;400;700;800&family=Changa:wght@200..800&family=El+Messiri:wght@400..700&family=Harmattan:wght@400;700&family=IBM+Plex+Sans+Arabic:wght@100;200;300;400;500;600;700&family=Kufam:wght@400..900&family=Lalezar&family=Lemonada:wght@300..700&family=Mada:wght@200..900&family=Marhey:wght@300..700&family=Noto+Kufi+Arabic:wght@100..900&family=Qahiri&family=Readex+Pro:wght@200..700&family=Blaka&family=Rakkas&family=Aref+Ruqaa:wght@400;700&family=Baloo+Bhaijaan+2:wght@400..800&display=swap" rel="stylesheet">
+
+    <!-- Group 4: Latin & Decorative -->
+    <link href="https://fonts.googleapis.com/css2?family=Comic+Neue:wght@300;400;700&family=Lobster&family=Oswald:wght@200..700&family=Playfair+Display:wght@400..900&family=Rubik:wght@300..900&display=swap" rel="stylesheet">
     
     <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" integrity="sha512-SnH5WK+bZxgPHs44uWIX+LLJAJ9/2PkPKZ5QiAj6Ta86w+fsb2TkcmfRyVX3pBnMFcV7oQPJkl9QevSCWr3W6A==" crossorigin="anonymous" referrerpolicy="no-referrer" />
@@ -61,6 +73,7 @@
 
         body {
             font-family: var(--font-body);
+            font-weight: var(--font-weight-base, 400); /* Controlled via Appearance Settings */
             background-color: rgb(var(--color-base-bg));
             background-image: url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxMDAiIGhlaWdodD0iMTAwIj48ZyBmaWxsPSJub25lIiBzdHJva2U9IiNhYWEiIHN0cm9rZS1vcGFjaXR5PSIwLjMiIHN0cm9rZS13aWR0aD0iMSI+PHBhdGggZD0iTS01MCA1MGgxMDBDNSAwIDAgMCA1MCA1MFoiLz48cGF0aCBkPSJNNTAgMHYxMDBjNTAgMCA1MC01MCA1MC01MFoiLz48cGF0aCBkPSJNNTAgMGgtMTAwQzAgNTAgMCA1MCA1MCA1MFoiLz48cGF0aCBkPSJNMTAwIDUwVjBjLTUwIDAtNTAgNTAtNTAgNTBaIi8+PC9nPjwvc3ZnPg==');
             background-repeat: repeat;
@@ -73,6 +86,15 @@
         h1, h2, h3, h4, h5, h6 {
             font-family: var(--font-heading);
             color: rgb(var(--color-heading-text));
+        }
+        
+        /* Override for inputs to respect Appearance Settings */
+        input, textarea, select {
+            color: var(--color-input-override, rgb(var(--color-base-text)));
+        }
+        input::placeholder, textarea::placeholder {
+            color: var(--color-input-override, rgb(var(--color-base-text)));
+            opacity: 0.6;
         }
         
         .animated-logo {
@@ -215,9 +237,9 @@
 <script type="importmap">
 {
   "imports": {
-    "react": "https://aistudiocdn.com/react@^19.2.0",
-    "react-dom/": "https://aistudiocdn.com/react-dom@^19.2.0/",
-    "react/": "https://aistudiocdn.com/react@^19.2.0/",
+    "react": "https://aistudiocdn.com/react@^18.2.0",
+    "react-dom/": "https://aistudiocdn.com/react-dom@^18.2.0/",
+    "react/": "https://aistudiocdn.com/react@^18.2.0/",
     "@google/genai": "https://aistudiocdn.com/@google/genai@^1.29.1",
     "react-markdown": "https://aistudiocdn.com/react-markdown@^10.1.0",
     "vite": "https://aistudiocdn.com/vite@^7.2.2",

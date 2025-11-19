@@ -132,6 +132,40 @@ export const fillLessonPlanFromText = async (pastedText: string) => {
     }
 };
 
+export const generateExam = async (topic: string, numQuestions: number, questionTypes: string[]) => {
+    const questionTypesString = questionTypes.join(', ');
+    const prompt = `
+        You are an expert in creating educational assessments. Your task is to generate an exam based on the following topic.
+
+        **Topic:**
+        ${topic}
+
+        **Exam Requirements:**
+        - Number of questions: ${numQuestions}
+        - Question types: ${questionTypesString}
+
+        **Instructions:**
+        1. Generate exactly ${numQuestions} questions.
+        2. Distribute the questions among the requested types (${questionTypesString}).
+        3. For multiple-choice questions, provide 4 options (A, B, C, D) and clearly indicate the correct answer.
+        4. For true/false questions, provide a statement.
+        5. For short-answer questions, ask a question that requires a brief written response.
+        6. Format the output clearly using Markdown. Use headings for each question type.
+        7. Provide a separate answer key at the end of the exam.
+    `;
+    try {
+        const client = getAiClient();
+        const response = await client.models.generateContent({
+            model: 'gemini-2.5-flash',
+            contents: prompt
+        });
+        return response;
+    } catch (error) {
+        console.error("Error generating exam:", error);
+        throw error;
+    }
+};
+
 export const startChat = (prompt: string) => {
     try {
         const client = getAiClient();

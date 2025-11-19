@@ -1,3 +1,4 @@
+
 // Fix: Define ToolKey here to avoid circular dependency
 export type ToolKey =
   | 'search'
@@ -31,7 +32,8 @@ export type ToolKey =
   | 'archives'
   | 'chatBot'
   | 'imageAnalyzer'
-  | 'textToSpeechInternal';
+  | 'textToSpeechInternal'
+  | 'createFlashcards';
 
 interface Tool {
   key: ToolKey;
@@ -43,6 +45,7 @@ export const tools: Tool[] = [
   { key: 'search', label: 'البحث العام', icon: 'fas fa-search' },
   { key: 'chatBot', label: 'المحادثة الفورية', icon: 'fas fa-comments' },
   { key: 'imageAnalyzer', label: 'تحليل الصور', icon: 'fas fa-camera-retro' },
+  { key: 'createFlashcards', label: 'البطاقات التعليمية', icon: 'fas fa-clone' },
   { key: 'addNote', label: 'إضافة ملاحظة', icon: 'fas fa-sticky-note' },
   { key: 'summarizeLesson', label: 'تلخيص درس', icon: 'fas fa-file-alt' },
   { key: 'solveBookQuestions', label: 'حل أسئلة الكتاب', icon: 'fas fa-book-open' },

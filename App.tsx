@@ -17,42 +17,111 @@ import ComingSoon from './components/tools/ComingSoon';
 import ChatBot from './components/tools/ChatBot';
 import ImageAnalyzer from './components/tools/ImageAnalyzer';
 import TextToSpeechTool from './components/tools/TextToSpeechTool';
+import FlashcardsCreator from './components/tools/FlashcardsCreator';
 import { themes, Theme } from './themes';
 import Sidebar from './components/Sidebar';
 import ScrollToTopButton from './components/ScrollToTopButton';
 import ThemeSwitcher from './components/ThemeSwitcher';
+import AppearanceSettings from './components/AppearanceSettings';
 
 // A highly compatible, minimal WAV file for the click sound.
 const CLICK_SOUND_DATA_URL = 'data:audio/wav;base64,UklGRjIAAABXQVZFZm10IBIAAAABAAEARKwAAIhYAQACABAAAABkYXRhIAAAAAEA';
 
+// Helper to convert Hex to RGB for Tailwind CSS variables
+const hexToRgb = (hex: string) => {
+    const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+    return result ? `${parseInt(result[1], 16)} ${parseInt(result[2], 16)} ${parseInt(result[3], 16)}` : null;
+};
+
 const App: React.FC = () => {
   const [selectedTool, setSelectedTool] = useState<ToolKey | null>(null);
-  const [theme, setTheme] = useState<Theme>(themes.find(t => t.name === 'الفن الإسلامي') || themes[0]);
+  // Default to 'غابة عميقة' if no theme is saved
+  const [theme, setTheme] = useState<Theme>(themes.find(t => t.name === 'غابة عميقة') || themes[0]);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isScrollButtonVisible, setScrollButtonVisible] = useState(false);
   const [isThemeSwitcherOpen, setIsThemeSwitcherOpen] = useState(false);
+  
+  // Custom Appearance State
+  const [isAppearanceSettingsOpen, setIsAppearanceSettingsOpen] = useState(false);
+  const [customAppearance, setCustomAppearance] = useState({
+      fontFamily: '',
+      textColor: '',
+      fontWeight: '',
+      inputColor: '',
+      cardColor: '',
+  });
+
   const clickSoundRef = useRef<HTMLAudioElement | null>(null);
 
   // Theme loading and application effect
   useEffect(() => {
     const savedThemeName = localStorage.getItem('app-theme-name');
-    const savedTheme = themes.find(t => t.name === savedThemeName) || themes.find(t => t.name === 'الفن الإسلامي') || themes[0];
+    // Logic: Try saved theme -> Try 'غابة عميقة' -> Default to first index
+    const savedTheme = themes.find(t => t.name === savedThemeName) || themes.find(t => t.name === 'غابة عميقة') || themes[0];
     setTheme(savedTheme);
+    
+    // Load custom appearance
+    const savedAppearance = localStorage.getItem('app-custom-appearance');
+    if (savedAppearance) {
+        try {
+            setCustomAppearance(JSON.parse(savedAppearance));
+        } catch (e) {
+            console.error("Failed to parse saved appearance", e);
+        }
+    }
   }, []);
 
   useEffect(() => {
     const root = document.documentElement;
-    // Apply colors
+    // Apply theme colors
     for (const [key, value] of Object.entries(theme.colors)) {
         root.style.setProperty(key, value as string);
     }
-    // Apply fonts
+    // Apply theme fonts
     root.style.setProperty('--font-body', theme.fonts.body);
     root.style.setProperty('--font-heading', theme.fonts.heading);
 
+    // --- Apply Custom Overrides ---
+    // Font Family Override
+    if (customAppearance.fontFamily) {
+         root.style.setProperty('--font-body', customAppearance.fontFamily);
+         root.style.setProperty('--font-heading', customAppearance.fontFamily);
+    }
+    
+    // Text Color Override (Main Text)
+    if (customAppearance.textColor) {
+        const rgb = hexToRgb(customAppearance.textColor);
+        if (rgb) {
+            root.style.setProperty('--color-base-text', rgb);
+            root.style.setProperty('--color-heading-text', rgb);
+        }
+    }
+
+    // Font Weight Override
+    if (customAppearance.fontWeight) {
+         root.style.setProperty('--font-weight-base', customAppearance.fontWeight);
+    } else {
+         root.style.removeProperty('--font-weight-base');
+    }
+
+    // Input/Field Text Color Override
+    if (customAppearance.inputColor) {
+        root.style.setProperty('--color-input-override', customAppearance.inputColor);
+    } else {
+        root.style.removeProperty('--color-input-override');
+    }
+
+    // Tool Card Text/Icon Color Override
+    if (customAppearance.cardColor) {
+        root.style.setProperty('--color-tool-text-override', customAppearance.cardColor);
+    } else {
+        root.style.removeProperty('--color-tool-text-override');
+    }
+
     root.classList.toggle('dark', theme.dark);
     localStorage.setItem('app-theme-name', theme.name);
-  }, [theme]);
+    localStorage.setItem('app-custom-appearance', JSON.stringify(customAppearance));
+  }, [theme, customAppearance]);
 
   // Scroll-to-top button visibility logic
   useEffect(() => {
@@ -104,6 +173,16 @@ const App: React.FC = () => {
   const handleGoHome = () => {
     setSelectedTool(null);
   };
+  
+  const handleResetAppearance = () => {
+      setCustomAppearance({
+          fontFamily: '',
+          textColor: '',
+          fontWeight: '',
+          inputColor: '',
+          cardColor: '',
+      });
+  };
 
   const renderTool = () => {
     if (!selectedTool) {
@@ -140,6 +219,8 @@ const App: React.FC = () => {
         return <ImageAnalyzer onBack={handleGoHome} />;
       case 'textToSpeechInternal':
         return <TextToSpeechTool onBack={handleGoHome} />;
+      case 'createFlashcards':
+        return <FlashcardsCreator onBack={handleGoHome} />;
       default:
         return <ComingSoon toolName={toolTitle} onBack={handleGoHome} />;
     }
@@ -147,8 +228,28 @@ const App: React.FC = () => {
 
   return (
     <div className="flex flex-col min-h-screen font-sans">
-      <Header onToggleThemeSwitcher={() => setIsThemeSwitcherOpen(true)} />
-      {isThemeSwitcherOpen && <ThemeSwitcher currentTheme={theme} onSetTheme={setTheme} onClose={() => setIsThemeSwitcherOpen(false)} />}
+      <Header 
+        onToggleThemeSwitcher={() => setIsThemeSwitcherOpen(true)} 
+        onToggleAppearance={() => setIsAppearanceSettingsOpen(true)}
+      />
+      
+      {isThemeSwitcherOpen && (
+        <ThemeSwitcher 
+            currentTheme={theme} 
+            onSetTheme={setTheme} 
+            onClose={() => setIsThemeSwitcherOpen(false)} 
+        />
+      )}
+      
+      {isAppearanceSettingsOpen && (
+          <AppearanceSettings 
+            settings={customAppearance}
+            onUpdate={setCustomAppearance}
+            onClose={() => setIsAppearanceSettingsOpen(false)}
+            onReset={handleResetAppearance}
+          />
+      )}
+
       <Sidebar 
         isOpen={isSidebarOpen}
         onSelectTool={handleSelectTool}

@@ -2,20 +2,35 @@ import React from 'react';
 
 interface HeaderProps {
     onToggleThemeSwitcher: () => void;
+    onToggleAppearance: () => void;
 }
 
-const Header: React.FC<HeaderProps> = ({ onToggleThemeSwitcher }) => {
+const Header: React.FC<HeaderProps> = ({ onToggleThemeSwitcher, onToggleAppearance }) => {
   const whatsappUrl = "https://wa.me/967780804012";
 
   return (
     <header className="relative shadow-lg py-4 sticky top-0 z-50" style={{ backgroundColor: 'rgb(var(--color-component-bg))' }}>
-       <button 
-            onClick={onToggleThemeSwitcher}
-            className="absolute top-1/2 -translate-y-1/2 left-4 neumorphic-button w-10 h-10 flex items-center justify-center hover:transform-none"
-            aria-label="Change theme"
-        >
-            <i className="fas fa-palette text-icon"></i>
-        </button>
+       
+       {/* Action Buttons Group */}
+       <div className="absolute top-1/2 -translate-y-1/2 left-4 flex gap-3">
+           <button 
+                onClick={onToggleAppearance}
+                className="neumorphic-button w-10 h-10 flex items-center justify-center hover:!transform-none"
+                aria-label="Appearance settings"
+                data-tooltip="تنسيق الخط والألوان"
+            >
+                <i className="fas fa-font text-icon"></i>
+            </button>
+           <button 
+                onClick={onToggleThemeSwitcher}
+                className="neumorphic-button w-10 h-10 flex items-center justify-center hover:!transform-none"
+                aria-label="Change theme"
+                data-tooltip="تغيير السمة"
+            >
+                <i className="fas fa-palette text-icon"></i>
+            </button>
+       </div>
+
       <div className="container mx-auto px-4 text-center text-heading-text">
         <h1 className="text-4xl md:text-5xl font-bold font-heading">
           رفيق المعلم الذكي
