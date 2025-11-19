@@ -80,17 +80,16 @@ const FlashcardsCreator: React.FC<{ onBack: () => void }> = ({ onBack }) => {
     if (!element) return null;
 
     // Wait for fonts to load to prevent layout shifts or missing text
-    // Only wait if we haven't already confirmed readiness to save time
     if (document.fonts.status !== 'loaded') {
          await document.fonts.ready;
     }
 
-    // Detect mobile to optimize scale
+    // Detect mobile to optimize scale for speed and stability
     const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
     
     // Use specific settings for Android stability
     return await html2canvas(element, { 
-        scale: isMobile ? 2.0 : 2.5, // Slightly reduced scale for mobile speed/stability
+        scale: isMobile ? 2.0 : 2.5, // Optimized scale for mobile
         useCORS: true, // Needed for fonts and external images
         allowTaint: true,
         backgroundColor: '#ffffff', // Force white background prevents black bg on Android
@@ -128,7 +127,7 @@ const FlashcardsCreator: React.FC<{ onBack: () => void }> = ({ onBack }) => {
     try {
         const canvas = await captureElement(`card-${index}`);
         if (canvas) {
-            // Use toBlob instead of toDataURL for better memory management on Android
+            // Use toBlob for better memory management on Android
             canvas.toBlob((blob: Blob | null) => {
                 if (blob) {
                     const url = URL.createObjectURL(blob);
@@ -138,13 +137,13 @@ const FlashcardsCreator: React.FC<{ onBack: () => void }> = ({ onBack }) => {
                     document.body.appendChild(link);
                     link.click();
                     document.body.removeChild(link);
-                    URL.revokeObjectURL(url); // Clean up memory
+                    URL.revokeObjectURL(url); 
                 }
             }, 'image/png');
         }
     } catch (error) {
         console.error("Export failed", error);
-        alert("حدث خطأ أثناء تصدير الصورة. يرجى المحاولة مرة أخرى.");
+        alert("حدث خطأ أثناء تصدير الصورة.");
     } finally {
         setIsExporting(false);
     }
@@ -200,7 +199,6 @@ const FlashcardsCreator: React.FC<{ onBack: () => void }> = ({ onBack }) => {
     setIsExporting(true);
     
     try {
-        // Wait for fonts specifically before starting the batch process
         await document.fonts.ready;
         
         const pdf = new jspdf.jsPDF({
@@ -209,9 +207,9 @@ const FlashcardsCreator: React.FC<{ onBack: () => void }> = ({ onBack }) => {
             format: 'a4'
         });
 
-        // Process sequentially but yield to main thread to prevent UI freeze on mobile
+        // Batch processing with yields to main thread for Android responsiveness
         for (let i = 0; i < cards.length; i++) {
-            // Yield to main thread every 3 cards with 0ms timeout for maximum speed while preventing freeze
+            // Yield every 3 cards with 0ms timeout to unblock UI thread instantly
             if (i > 0 && i % 3 === 0) {
                 await new Promise(resolve => setTimeout(resolve, 0));
             }
@@ -451,7 +449,6 @@ const FlashcardsCreator: React.FC<{ onBack: () => void }> = ({ onBack }) => {
         ),
         containerStyle: { backgroundColor: '#1e3a8a', color: 'white' }
     },
-    // --- 10 New Added Frames ---
     {
         id: 'puzzle',
         name: 'أحجية',
@@ -794,7 +791,6 @@ const FlashcardsCreator: React.FC<{ onBack: () => void }> = ({ onBack }) => {
                           fontSize: `${fontSize}px`,
                           fontWeight: fontWeight,
                           lineHeight: '1.4',
-                          // Ensure fontFamily is applied directly here to override any Tailwind or parent styles
                           fontFamily: fontFamily
                       }}>
                     <h2 style={{ 
@@ -802,7 +798,7 @@ const FlashcardsCreator: React.FC<{ onBack: () => void }> = ({ onBack }) => {
                         color: 'inherit', 
                         fontWeight: 'inherit', 
                         margin: 0,
-                        fontFamily: fontFamily // Double apply to H2 to be safe
+                        fontFamily: fontFamily 
                         }} dir="auto">
                         {cardText}
                     </h2>

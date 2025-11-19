@@ -32,9 +32,47 @@ const ActionButtons: React.FC<ActionButtonsProps> = ({ textToCopy, elementIdToPr
     }
   };
   
+  const handleDownloadImage = async () => {
+    const input = document.getElementById(elementIdToPrint);
+    if (!input || isDownloading) return;
+    
+    setIsDownloading(true);
+    try {
+        await document.fonts.ready;
+        // Optimize for mobile devices to prevent crashes with large canvases
+        const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+        
+        const canvas = await html2canvas(input, {
+            scale: isMobile ? 2.0 : 2.5,
+            useCORS: true,
+            allowTaint: true,
+            backgroundColor: '#ffffff',
+            logging: false,
+        });
+        
+        canvas.toBlob((blob: Blob | null) => {
+            if (blob) {
+                const url = URL.createObjectURL(blob);
+                const link = document.createElement('a');
+                link.href = url;
+                link.download = 'exported_content.png';
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                URL.revokeObjectURL(url);
+            }
+        }, 'image/png');
+    } catch (error) {
+        console.error("Image generation failed", error);
+        alert("حدث خطأ أثناء تحميل الصورة.");
+    } finally {
+        setIsDownloading(false);
+    }
+  };
+
   const handleDownloadPdf = async () => {
     const input = document.getElementById(elementIdToPrint);
-    if (!input) return;
+    if (!input || isDownloading) return;
     
     setIsDownloading(true);
 
@@ -42,8 +80,10 @@ const ActionButtons: React.FC<ActionButtonsProps> = ({ textToCopy, elementIdToPr
         // Wait for fonts to ensure rendering is correct
         await document.fonts.ready;
 
+        const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+
         const canvas = await html2canvas(input, {
-            scale: 2,
+            scale: isMobile ? 2.0 : 2.5, // Optimized for mobile
             useCORS: true,
             allowTaint: true,
             backgroundColor: '#ffffff', // Fix for black background on Android
@@ -73,12 +113,19 @@ const ActionButtons: React.FC<ActionButtonsProps> = ({ textToCopy, elementIdToPr
 
 
   return (
-    <div className="flex justify-end space-x-2 mt-4 space-x-reverse">
+    <div className="flex justify-end space-x-2 mt-4 space-x-reverse flex-wrap gap-y-2">
       <button onClick={handleCopy} className="neumorphic-button py-2 px-4 text-sm bg-secondary text-white">
         <i className="fas fa-copy ml-2"></i>{copyStatus}
       </button>
       <button onClick={handlePrint} className="neumorphic-button py-2 px-4 text-sm bg-primary text-white">
         <i className="fas fa-print ml-2"></i>طباعة
+      </button>
+       <button 
+        onClick={handleDownloadImage} 
+        disabled={isDownloading}
+        className="neumorphic-button py-2 px-4 text-sm bg-primary text-white disabled:opacity-50"
+      >
+        <i className={`fas ${isDownloading ? 'fa-spinner fa-spin' : 'fa-image'} ml-2`}></i>صورة
       </button>
       <button 
         onClick={handleDownloadPdf} 
