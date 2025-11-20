@@ -19,6 +19,12 @@ import ImageAnalyzer from './components/tools/ImageAnalyzer';
 import TextToSpeechTool from './components/tools/TextToSpeechTool';
 import FlashcardsCreator from './components/tools/FlashcardsCreator';
 import CreativeIdeas from './components/tools/CreativeIdeas';
+import AddNote from './components/tools/AddNote';
+import SummarizeLesson from './components/tools/SummarizeLesson';
+import SemesterPlanner from './components/tools/SemesterPlanner';
+import ClassSchedule from './components/tools/ClassSchedule';
+import ImportantDates from './components/tools/ImportantDates';
+import MostUsedTools from './components/tools/MostUsedTools';
 import { themes, Theme } from './themes';
 import Sidebar from './components/Sidebar';
 import ScrollToTopButton from './components/ScrollToTopButton';
@@ -35,7 +41,10 @@ const hexToRgb = (hex: string) => {
 };
 
 const App: React.FC = () => {
-  const [selectedTool, setSelectedTool] = useState<ToolKey | null>(null);
+  const [selectedTool, setSelectedTool] = useState<ToolKey | 'mostUsed' | null>(null);
+  // Track last active tool for scroll restoration
+  const [lastActiveTool, setLastActiveTool] = useState<string | null>(null);
+
   // Default to 'غابة عميقة' if no theme is saved
   const [theme, setTheme] = useState<Theme>(themes.find(t => t.name === 'غابة عميقة') || themes[0]);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
@@ -61,13 +70,24 @@ const App: React.FC = () => {
     const savedTheme = themes.find(t => t.name === savedThemeName) || themes.find(t => t.name === 'غابة عميقة') || themes[0];
     setTheme(savedTheme);
     
-    // Load custom appearance
+    // Load custom appearance with strict validation
     const savedAppearance = localStorage.getItem('app-custom-appearance');
     if (savedAppearance) {
         try {
-            setCustomAppearance(JSON.parse(savedAppearance));
+            const parsed = JSON.parse(savedAppearance);
+            if (parsed && typeof parsed === 'object' && !Array.isArray(parsed)) {
+                 setCustomAppearance({
+                     fontFamily: typeof parsed.fontFamily === 'string' ? parsed.fontFamily : '',
+                     textColor: typeof parsed.textColor === 'string' ? parsed.textColor : '',
+                     fontWeight: typeof parsed.fontWeight === 'string' ? parsed.fontWeight : '',
+                     inputColor: typeof parsed.inputColor === 'string' ? parsed.inputColor : '',
+                     cardColor: typeof parsed.cardColor === 'string' ? parsed.cardColor : '',
+                 });
+            }
         } catch (e) {
             console.error("Failed to parse saved appearance", e);
+            // Reset if corrupted
+            localStorage.removeItem('app-custom-appearance');
         }
     }
   }, []);
@@ -158,8 +178,21 @@ const App: React.FC = () => {
     return () => document.removeEventListener('click', playSound);
   }, []);
 
+  // Usage Tracking Logic
+  const trackToolUsage = (key: ToolKey) => {
+      try {
+          const usageData = localStorage.getItem('toolUsage');
+          const parsedData: Record<string, number> = usageData ? JSON.parse(usageData) : {};
+          parsedData[key] = (parsedData[key] || 0) + 1;
+          localStorage.setItem('toolUsage', JSON.stringify(parsedData));
+      } catch (e) {
+          console.error("Failed to track usage", e);
+      }
+  };
 
   const handleSelectTool = (toolKey: ToolKey) => {
+    trackToolUsage(toolKey);
+    setLastActiveTool(toolKey); // Save for return scroll
     setSelectedTool(toolKey);
     setIsSidebarOpen(false); 
   };
@@ -173,6 +206,7 @@ const App: React.FC = () => {
 
   const handleGoHome = () => {
     setSelectedTool(null);
+    // Scroll restoration logic is handled inside Home component via useEffect on mount
   };
   
   const handleResetAppearance = () => {
@@ -187,15 +221,27 @@ const App: React.FC = () => {
 
   const renderTool = () => {
     if (!selectedTool) {
-      return <Home onSelectTool={handleSelectTool} />;
+      return (
+        <Home 
+            onSelectTool={handleSelectTool} 
+            lastActiveTool={lastActiveTool} 
+            onOpenMostUsed={() => setSelectedTool('mostUsed')}
+        />
+      );
+    }
+
+    if (selectedTool === 'mostUsed') {
+        return <MostUsedTools onBack={handleGoHome} onSelectTool={handleSelectTool} />;
+    }
+
+    // Check if it's an external link tool
+    if (Object.keys(externalLinkTools).includes(selectedTool)) {
+        const tool = tools.find(t => t.key === selectedTool);
+        return <ExternalLinksViewer toolKey={selectedTool} onBack={handleGoHome} title={tool ? tool.label : ''} />;
     }
 
     const tool = tools.find(t => t.key === selectedTool);
     const toolTitle = tool ? tool.label : '';
-
-    if (Object.keys(externalLinkTools).includes(selectedTool)) {
-      return <ExternalLinksViewer toolKey={selectedTool} onBack={handleGoHome} title={toolTitle} />;
-    }
 
     switch (selectedTool) {
       case 'search':
@@ -224,6 +270,19 @@ const App: React.FC = () => {
         return <TextToSpeechTool onBack={handleGoHome} />;
       case 'createFlashcards':
         return <FlashcardsCreator onBack={handleGoHome} />;
+      
+      // New Tools
+      case 'addNote':
+          return <AddNote onBack={handleGoHome} />;
+      case 'summarizeLesson':
+          return <SummarizeLesson onBack={handleGoHome} />;
+      case 'createSemesterPlan':
+          return <SemesterPlanner onBack={handleGoHome} />;
+      case 'classSchedule':
+          return <ClassSchedule onBack={handleGoHome} />;
+      case 'importantDates':
+          return <ImportantDates onBack={handleGoHome} />;
+
       default:
         return <ComingSoon toolName={toolTitle} onBack={handleGoHome} />;
     }

@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import ToolHeader from '../ToolHeader';
 
@@ -21,7 +22,15 @@ const TaskManager: React.FC<{ onBack: () => void }> = ({ onBack }) => {
     try {
       const storedTasks = localStorage.getItem('tasks');
       if (storedTasks) {
-        setTasks(JSON.parse(storedTasks));
+        const parsed = JSON.parse(storedTasks);
+        if (Array.isArray(parsed)) {
+             const sanitized = parsed.map((t: any) => ({
+                 id: Number(t.id) || Date.now(),
+                 text: (typeof t.text === 'string' || typeof t.text === 'number') ? String(t.text) : 'مهمة بدون عنوان',
+                 completed: Boolean(t.completed)
+             }));
+             setTasks(sanitized);
+        }
       }
     } catch (error) {
       console.error("Failed to load tasks from localStorage", error);

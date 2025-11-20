@@ -50,6 +50,7 @@ export const tools: Tool[] = [
   { key: 'createAIPrompts', label: 'إنشاء أوامر للذكاء الاصطناعي', icon: 'fas fa-magic' },
   { key: 'curriculumExamples', label: 'أمثلة عملية من واقع المناهج الدراسية', icon: 'fas fa-chalkboard-teacher' },
   { key: 'createFlashcards', label: 'البطاقات التعليمية', icon: 'fas fa-clone' },
+  { key: 'creativeIdeas', label: 'اطلق العنان لأبداعك', icon: 'fas fa-rocket' },
   { key: 'addNote', label: 'إضافة ملاحظة', icon: 'fas fa-sticky-note' },
   { key: 'summarizeLesson', label: 'تلخيص درس', icon: 'fas fa-file-alt' },
   { key: 'solveBookQuestions', label: 'حل أسئلة الكتاب', icon: 'fas fa-book-open' },
@@ -78,7 +79,6 @@ export const tools: Tool[] = [
   { key: 'importantDates', label: 'تواريخ تهمك', icon: 'fas fa-calendar-day' },
   { key: 'innovate', label: 'ابتكر', icon: 'fas fa-lightbulb' },
   { key: 'archives', label: 'المحفوظات', icon: 'fas fa-archive' },
-  { key: 'creativeIdeas', label: 'اطلق العنان لأبداعك', icon: 'fas fa-rocket' },
   { key: 'chatBot', label: 'المحادثة الفورية', icon: 'fas fa-comments' },
   { key: 'imageAnalyzer', label: 'تحليل الصور', icon: 'fas fa-camera-retro' },
 ];

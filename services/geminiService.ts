@@ -166,6 +166,52 @@ export const generateExam = async (topic: string, numQuestions: number, question
     }
 };
 
+export const summarizeText = async (text: string) => {
+    try {
+        const client = getAiClient();
+        const prompt = `قم بتلخيص النص التعليمي التالي بشكل موجز وشامل، مع التركيز على النقاط الرئيسية والمفاهيم الهامة:\n\n${text}`;
+        const response = await client.models.generateContent({
+            model: "gemini-2.5-flash",
+            contents: prompt,
+        });
+        return response;
+    } catch (error) {
+        console.error("Error summarizing text:", error);
+        throw error;
+    }
+};
+
+export const generateSemesterPlan = async (subject: string, grade: string, semester: string, weeks: number) => {
+    try {
+        const client = getAiClient();
+        const prompt = `
+        بصفتك خبيرًا تربويًا ومطور مناهج، قم بإعداد خطة فصلية دراسية شاملة لمادة ${subject} للصف ${grade} للفصل الدراسي ${semester}.
+        عدد الأسابيع الدراسية المتاحة: ${weeks}.
+        
+        المخرجات المطلوبة: جدول منظم يوضح توزيع المنهج على الأسابيع، متضمنًا الأعمدة التالية:
+        - الأسبوع
+        - الوحدة / المحور
+        - الموضوعات التفصيلية للدرس
+        - الأهداف العامة
+        - عدد الحصص المقترح
+        - ملاحظات / أنشطة مقترحة
+        
+        يرجى تنسيق الإجابة باستخدام Markdown (جدول) ليكون جاهزًا للنسخ والطباعة.
+        `;
+        const response = await client.models.generateContent({
+            model: "gemini-2.5-pro", 
+            contents: prompt,
+            config: {
+                thinkingConfig: { thinkingBudget: 2048 }
+            }
+        });
+        return response;
+    } catch (error) {
+        console.error("Error creating semester plan:", error);
+        throw error;
+    }
+};
+
 export const startChat = (prompt: string) => {
     try {
         const client = getAiClient();

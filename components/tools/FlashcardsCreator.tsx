@@ -724,7 +724,7 @@ const FlashcardsCreator: React.FC<{ onBack: () => void }> = ({ onBack }) => {
                         style={{ backgroundColor: frame.previewColor }}
                     >
                          <div className="absolute inset-0 opacity-20 pointer-events-none transform scale-50 origin-center">
-                             {frame.render()}
+                             {frame && typeof frame.render === 'function' ? frame.render() : null}
                          </div>
                         <span className={`z-10 font-bold text-sm drop-shadow-sm text-center px-1 truncate w-full ${['elegant-gold', 'chalkboard', 'clipboard', 'space', 'cyber', 'neon-dark', 'art-deco', 'tech-circuit', 'blueprint', 'film-strip', 'neon-blue', 'royal', 'geometric', 'stars', 'retro-game', 'circuit'].includes(frame.id) ? 'text-white' : 'text-gray-800'}`}>{frame.name}</span>
                     </button>
@@ -828,7 +828,7 @@ const FlashcardsCreator: React.FC<{ onBack: () => void }> = ({ onBack }) => {
                     ...currentFrame.containerStyle
                 }}
             >
-                 {currentFrame.render()}
+                 {currentFrame && typeof currentFrame.render === 'function' ? currentFrame.render() : null}
 
                  {/* Content - Applied inline style with !important-like specificity by being on the element */}
                  <div 
