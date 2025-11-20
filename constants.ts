@@ -2,6 +2,8 @@
 // Fix: Define ToolKey here to avoid circular dependency
 export type ToolKey =
   | 'search'
+  | 'participationLog'
+  | 'gradeSheet'
   | 'aiTools'
   | 'createAIPrompts'
   | 'curriculumExamples'
@@ -46,6 +48,8 @@ interface Tool {
 
 export const tools: Tool[] = [
   { key: 'search', label: 'البحث العام', icon: 'fas fa-search' },
+  { key: 'participationLog', label: 'سجل المشاركات', icon: 'fas fa-list-ol' },
+  { key: 'gradeSheet', label: 'كشف الدرجات', icon: 'fas fa-clipboard-list' },
   { key: 'aiTools', label: 'أدوات الذكاء الاصطناعي', icon: 'fas fa-robot' },
   { key: 'createAIPrompts', label: 'إنشاء أوامر للذكاء الاصطناعي', icon: 'fas fa-magic' },
   { key: 'curriculumExamples', label: 'أمثلة عملية من واقع المناهج الدراسية', icon: 'fas fa-chalkboard-teacher' },

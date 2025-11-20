@@ -25,6 +25,8 @@ import SemesterPlanner from './components/tools/SemesterPlanner';
 import ClassSchedule from './components/tools/ClassSchedule';
 import ImportantDates from './components/tools/ImportantDates';
 import MostUsedTools from './components/tools/MostUsedTools';
+import ParticipationLog from './components/tools/ParticipationLog';
+import GradeSheet from './components/tools/GradeSheet';
 import { themes, Theme } from './themes';
 import Sidebar from './components/Sidebar';
 import ScrollToTopButton from './components/ScrollToTopButton';
@@ -246,6 +248,10 @@ const App: React.FC = () => {
     switch (selectedTool) {
       case 'search':
         return <GeneralSearch onBack={handleGoHome} />;
+      case 'participationLog':
+        return <ParticipationLog onBack={handleGoHome} />;
+      case 'gradeSheet':
+        return <GradeSheet onBack={handleGoHome} />;
       case 'innovate':
         return <Innovate onBack={handleGoHome} />;
       case 'analyzeLiterary':

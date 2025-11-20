@@ -94,7 +94,7 @@ const ClassSchedule: React.FC<{ onBack: () => void }> = ({ onBack }) => {
             </div>
 
             {view === 'weekly' && (
-                <div className="neumorphic-outset p-4 overflow-x-auto">
+                <div className="neumorphic-outset p-4 overflow-x-auto bg-white/90">
                     <table className="w-full min-w-[800px] border-collapse text-center">
                         <thead>
                             <tr>
@@ -107,15 +107,16 @@ const ClassSchedule: React.FC<{ onBack: () => void }> = ({ onBack }) => {
                         <tbody>
                             {days.map(day => (
                                 <tr key={day}>
-                                    <td className="p-3 border border-gray-300 font-bold bg-gray-50">{day}</td>
+                                    <td className="p-3 border border-gray-300 font-bold bg-gray-50 text-black">{day}</td>
                                     {schedule[day]?.map((subject, i) => (
-                                        <td key={i} className="p-1 border border-gray-300">
+                                        <td key={i} className="p-1 border border-gray-300 bg-white">
                                             <input 
                                                 type="text"
                                                 value={typeof subject === 'string' ? subject : ''}
                                                 onChange={(e) => handleCellChange(day, i, e.target.value)}
-                                                className="w-full h-full p-2 text-center bg-transparent focus:bg-yellow-50 focus:outline-none"
+                                                className="w-full h-full p-2 text-center bg-white focus:bg-yellow-50 focus:outline-none text-black font-semibold"
                                                 placeholder="---"
+                                                style={{ color: 'black', backgroundColor: 'white' }}
                                             />
                                         </td>
                                     ))}
@@ -136,9 +137,9 @@ const ClassSchedule: React.FC<{ onBack: () => void }> = ({ onBack }) => {
                         <div className="space-y-3">
                             {todayData.periods.map((subj, i) => (
                                 (typeof subj === 'string' && subj.trim()) ? (
-                                    <div key={i} className="flex items-center justify-between p-4 bg-white/50 rounded-xl shadow-sm border border-gray-100">
-                                        <span className="font-bold text-gray-500 bg-gray-200 w-8 h-8 flex items-center justify-center rounded-full">{i + 1}</span>
-                                        <span className="text-xl font-bold text-gray-800 flex-grow">{subj}</span>
+                                    <div key={i} className="flex items-center justify-between p-4 bg-white rounded-xl shadow-sm border border-gray-200">
+                                        <span className="font-bold text-gray-600 bg-gray-100 w-8 h-8 flex items-center justify-center rounded-full">{i + 1}</span>
+                                        <span className="text-xl font-bold text-black flex-grow">{subj}</span>
                                         <i className="fas fa-book text-primary/50"></i>
                                     </div>
                                 ) : null

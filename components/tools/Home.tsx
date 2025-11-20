@@ -37,31 +37,31 @@ const Home: React.FC<HomeProps> = ({ onSelectTool, lastActiveTool, onOpenMostUse
 
       {/* Quick Action Buttons Grid */}
       <div className="mb-8 px-2 grid grid-cols-1 sm:grid-cols-3 gap-3">
-        {/* Today's Tasks (Before Most Used) */}
+        {/* Today's Tasks (Distinct Color) */}
         <button 
             onClick={() => onSelectTool('importantDates')}
-            className="bg-white/80 dark:bg-slate-800/80 text-primary font-bold py-4 rounded-2xl shadow-md border border-primary/20 transform transition hover:scale-[1.02] hover:bg-primary hover:text-white flex flex-col items-center justify-center gap-2"
+            className="bg-gradient-to-br from-emerald-500 to-teal-600 text-white font-bold py-4 rounded-2xl shadow-md transform transition hover:scale-[1.02] flex flex-col items-center justify-center gap-2 border-2 border-white/20"
         >
             <i className="fas fa-calendar-check text-xl"></i>
             <span className="text-sm">أعمال اليوم</span>
         </button>
 
-        {/* Most Used Button */}
+        {/* Most Used Button (Distinct Color) */}
         <button 
             onClick={onOpenMostUsed}
-            className="bg-gradient-to-r from-primary to-secondary text-white font-bold py-4 rounded-2xl shadow-lg transform transition hover:scale-[1.02] flex flex-col items-center justify-center gap-2 relative overflow-hidden"
+            className="bg-gradient-to-br from-amber-500 to-orange-600 text-white font-bold py-4 rounded-2xl shadow-lg transform transition hover:scale-[1.02] flex flex-col items-center justify-center gap-2 relative overflow-hidden border-2 border-white/20"
         >
-            <i className="fas fa-star text-yellow-300 text-2xl animate-pulse"></i>
+            <i className="fas fa-star text-yellow-200 text-2xl animate-pulse"></i>
             <span className="text-lg">الأكثر استخداماً</span>
         </button>
 
-        {/* Today's Schedule (After Most Used) */}
+        {/* Daily Schedule (Distinct Color + Renamed) */}
         <button 
             onClick={() => onSelectTool('classSchedule')}
-            className="bg-white/80 dark:bg-slate-800/80 text-primary font-bold py-4 rounded-2xl shadow-md border border-primary/20 transform transition hover:scale-[1.02] hover:bg-primary hover:text-white flex flex-col items-center justify-center gap-2"
+            className="bg-gradient-to-br from-blue-500 to-indigo-600 text-white font-bold py-4 rounded-2xl shadow-md transform transition hover:scale-[1.02] flex flex-col items-center justify-center gap-2 border-2 border-white/20"
         >
             <i className="fas fa-chalkboard-teacher text-xl"></i>
-            <span className="text-sm">جدول اليوم</span>
+            <span className="text-sm">جدول الحصص اليومي</span>
         </button>
       </div>
 

@@ -87,13 +87,39 @@
             color: rgb(var(--color-heading-text));
         }
         
-        /* Override for inputs to respect Appearance Settings */
-        input, textarea, select {
-            color: var(--color-input-override, rgb(var(--color-base-text)));
+        /* 
+           HIGH PRIORITY OVERRIDES FOR INPUT VISIBILITY 
+           Forces Black Text on White Background for all fields
+        */
+        input:not([type="color"]):not([type="range"]):not([type="checkbox"]):not([type="radio"]),
+        textarea,
+        select {
+            background-color: #ffffff !important;
+            color: #000000 !important;
+            border: 1px solid rgba(0,0,0,0.2) !important;
+            box-shadow: inset 1px 1px 3px rgba(0,0,0,0.1);
         }
-        input::placeholder, textarea::placeholder {
-            color: var(--color-input-override, rgb(var(--color-base-text)));
-            opacity: 0.6;
+        
+        /* Specific class to enforce this on table inputs or dynamic components */
+        .force-light-input {
+            background-color: #ffffff !important;
+            color: #000000 !important;
+            border: 1px solid #cccccc !important;
+        }
+        
+        /* Ensure placeholders are visible but distinct */
+        input::placeholder,
+        textarea::placeholder {
+            color: #666666 !important;
+            opacity: 0.7 !important;
+        }
+
+        /* Dark mode specifics for inputs if needed, but keeping white for clarity as requested */
+        html.dark input:not([type="color"]):not([type="range"]):not([type="checkbox"]):not([type="radio"]),
+        html.dark textarea,
+        html.dark select {
+            background-color: #ffffff !important;
+            color: #000000 !important;
         }
         
         .animated-logo {
@@ -106,26 +132,27 @@
             100% { transform: translateY(0px); }
         }
 
-        /* Updated Inset Style for Fields: Visible bg + Interaction borders */
+        /* Updated Inset Style for Fields */
         .neumorphic-inset {
-            background-color: rgba(255, 255, 255, 0.6);
+            background-color: #ffffff !important; /* Always white for inputs */
             border-radius: 0.75rem;
             border: 2px solid rgba(var(--color-primary), 0.2);
             box-shadow: inset 1px 1px 3px rgba(var(--color-shadow-dark), 0.1);
             transition: all 0.3s ease;
+            color: #000000 !important; /* Force black text inside inset containers */
         }
-
+        
         /* Interaction states for fields */
         .neumorphic-inset:hover,
         .neumorphic-inset:focus-within {
-            border-color: rgb(var(--color-primary));
-            background-color: rgba(255, 255, 255, 0.85);
+            border-color: rgb(var(--color-primary)); /* Change border color on hover/focus */
+            background-color: #ffffff !important;
             box-shadow: inset 2px 2px 5px rgba(var(--color-shadow-dark), 0.15);
         }
 
         .neumorphic-outset {
-            background-color: rgba(255, 255, 255, 0.6);
-            backdrop-filter: blur(2px);
+            background-color: rgba(255, 255, 255, 0.85); /* Lighter background for cards */
+            backdrop-filter: blur(4px);
             border-radius: 1rem;
             border: 1px solid rgba(var(--color-primary), 0.1);
             box-shadow: 2px 2px 8px rgba(var(--color-shadow-dark), 0.1);
@@ -214,13 +241,13 @@
         input[type="checkbox"] {
             -webkit-appearance: none;
             appearance: none;
-            background-color: transparent;
+            background-color: #ffffff !important; /* White checkbox background */
             margin: 0;
             font: inherit;
             color: currentColor;
             width: 1.5em;
             height: 1.5em;
-            border: 0.15em solid rgb(var(--color-primary));
+            border: 0.15em solid rgb(var(--color-primary)) !important;
             border-radius: 0.25em;
             transform: translateY(-0.075em);
             display: grid;

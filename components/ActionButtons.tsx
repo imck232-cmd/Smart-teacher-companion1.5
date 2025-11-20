@@ -49,38 +49,41 @@ const ActionButtons: React.FC<ActionButtonsProps> = ({ textToCopy, elementIdToPr
     setDownloadState(true);
 
     try {
+        // Ensure fonts are loaded to prevent glitches
         await Promise.race([
             document.fonts.ready,
             new Promise(resolve => setTimeout(resolve, 500))
         ]);
 
         const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-        const scale = isMobile ? 1.0 : 2.5; // Optimization for Android
+        // Reduce scale on mobile to prevent crashes and speed up generation
+        const scale = isMobile ? 1.0 : 2.5;
         
         const canvas = await html2canvas(input, {
             scale: scale,
             useCORS: true,
             allowTaint: true,
-            backgroundColor: '#ffffff',
+            backgroundColor: '#ffffff', // Force white background for visibility
             logging: false,
+            ignoreElements: (node: any) => node.classList?.contains('export-ignore'),
         });
         
-        // Use JPEG for speed on mobile
+        // Use Blob and JPEG for mobile stability (avoiding large base64 strings)
         canvas.toBlob((blob: Blob | null) => {
             if (blob) {
                 const url = URL.createObjectURL(blob);
                 const link = document.createElement('a');
                 link.href = url;
-                link.download = 'exported_content.jpg'; // jpg is safer for mobile
+                link.download = 'exported_content.jpg';
                 document.body.appendChild(link);
                 link.click();
                 document.body.removeChild(link);
                 URL.revokeObjectURL(url);
             }
-        }, 'image/jpeg', 0.8);
+        }, 'image/jpeg', 0.85); // 85% quality JPEG
     } catch (error) {
         console.error("Image generation failed", error);
-        alert("حدث خطأ أثناء تحميل الصورة.");
+        alert("حدث خطأ أثناء تحميل الصورة. قد يكون المحتوى كبيراً جداً.");
     } finally {
         setDownloadState(false);
     }
@@ -103,17 +106,18 @@ const ActionButtons: React.FC<ActionButtonsProps> = ({ textToCopy, elementIdToPr
         ]);
 
         const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+        // Conservative scale for mobile PDF to avoid OOM errors
         const scale = isMobile ? 1.0 : 2.0;
 
         const canvas = await html2canvas(input, {
             scale: scale,
             useCORS: true,
             allowTaint: true,
-            backgroundColor: '#ffffff',
+            backgroundColor: '#ffffff', // Force white background
             logging: false,
         });
 
-        // Compress image data for faster PDF generation
+        // Use JPEG compression for PDF image data to significantly reduce size
         const imgData = canvas.toDataURL('image/jpeg', 0.75);
         const pdf = new jspdf.jsPDF({
           orientation: 'portrait',
@@ -125,11 +129,12 @@ const ActionButtons: React.FC<ActionButtonsProps> = ({ textToCopy, elementIdToPr
         const pdfWidth = pdf.internal.pageSize.getWidth();
         const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
         
-        pdf.addImage(imgData, 'JPEG', 0, 0, pdfWidth, pdfHeight);
+        // Add image with compression alias 'FAST' for better performance
+        pdf.addImage(imgData, 'JPEG', 0, 0, pdfWidth, pdfHeight, undefined, 'FAST');
         pdf.save('document.pdf');
     } catch (error) {
         console.error("PDF generation failed", error);
-        alert("حدث خطأ أثناء تحميل ملف PDF.");
+        alert("حدث خطأ أثناء تحميل ملف PDF. يرجى المحاولة مرة أخرى.");
     } finally {
         setDownloadState(false);
     }
