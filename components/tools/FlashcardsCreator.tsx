@@ -84,8 +84,12 @@ const FlashcardsCreator: React.FC<{ onBack: () => void }> = ({ onBack }) => {
     const element = document.getElementById(elementId);
     if (!element) return null;
 
-    // Fast font check
-    await document.fonts.ready.catch(() => {});
+    // Critical Fix for Android: Race condition for fonts.
+    // If document.fonts.ready hangs (common on mobile networks), proceed anyway after 1.5s
+    await Promise.race([
+        document.fonts.ready,
+        new Promise(resolve => setTimeout(resolve, 1500))
+    ]).catch(() => console.warn('Font loading timed out, proceeding with capture...'));
 
     // Detect mobile
     const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
@@ -100,7 +104,7 @@ const FlashcardsCreator: React.FC<{ onBack: () => void }> = ({ onBack }) => {
         allowTaint: true,
         backgroundColor: '#ffffff',
         logging: false,
-        imageTimeout: 0, // Disable timeout
+        imageTimeout: 5000, // Set a reasonable timeout
         removeContainer: true,
         ignoreElements: (node: any) => node.classList?.contains('export-ignore'),
     });
@@ -155,7 +159,7 @@ const FlashcardsCreator: React.FC<{ onBack: () => void }> = ({ onBack }) => {
     
     try {
         // Yield to UI
-        await new Promise(resolve => setTimeout(resolve, 0));
+        await new Promise(resolve => setTimeout(resolve, 10));
 
         const canvas = await captureElement(`card-${index}`);
         if (canvas) {
@@ -195,7 +199,7 @@ const FlashcardsCreator: React.FC<{ onBack: () => void }> = ({ onBack }) => {
     setExportState('pdf', index);
 
     try {
-        await new Promise(resolve => setTimeout(resolve, 0));
+        await new Promise(resolve => setTimeout(resolve, 10));
 
         const canvas = await captureElement(`card-${index}`);
         if (canvas) {
@@ -248,7 +252,7 @@ const FlashcardsCreator: React.FC<{ onBack: () => void }> = ({ onBack }) => {
     e.preventDefault(); e.stopPropagation();
     if (cards.length === 0 || isExportingRef.current) return;
     
-    setExportState('batch', -1);
+    setExportState('batch', 0); // Start at index 0
     
     try {
         const pdf = new jspdf.jsPDF({
@@ -258,14 +262,18 @@ const FlashcardsCreator: React.FC<{ onBack: () => void }> = ({ onBack }) => {
         });
 
         for (let i = 0; i < cards.length; i++) {
+            // Update UI with current index
+            setExportAction({ type: 'batch', index: i + 1 });
+
             // CRITICAL: Yield to main thread to prevent "App Not Responding" on Android
-            await new Promise(resolve => setTimeout(resolve, 0));
+            // Increased delay slightly to allow UI update to paint
+            await new Promise(resolve => setTimeout(resolve, 10));
 
             const canvas = await captureElement(`card-${i}`);
             if (canvas) {
                 if (i > 0) pdf.addPage();
 
-                // Low quality JPEG for batch to save size/memory
+                // Low quality JPEG for batch to save size/memory on phones
                 const imgData = canvas.toDataURL('image/jpeg', 0.70);
                 
                 const pdfWidth = pdf.internal.pageSize.getWidth();
@@ -291,7 +299,7 @@ const FlashcardsCreator: React.FC<{ onBack: () => void }> = ({ onBack }) => {
         pdf.save('all_flashcards.pdf');
     } catch (error) {
         console.error("Batch PDF Export failed", error);
-        alert("حدث خطأ أثناء التصدير الجماعي.");
+        alert("حدث خطأ أثناء التصدير الجماعي. يرجى المحاولة مرة أخرى.");
     } finally {
         setExportState(null, null);
     }
@@ -805,7 +813,8 @@ const FlashcardsCreator: React.FC<{ onBack: () => void }> = ({ onBack }) => {
                 disabled={exportAction.type !== null}
                 className="neumorphic-button bg-red-600 text-white px-4 py-2 text-sm disabled:opacity-50"
             >
-                <i className={`fas ${exportAction.type === 'batch' ? 'fa-spinner fa-spin' : 'fa-file-pdf'} ml-2`}></i> PDF
+                <i className={`fas ${exportAction.type === 'batch' ? 'fa-spinner fa-spin' : 'fa-file-pdf'} ml-2`}></i> 
+                {exportAction.type === 'batch' ? `جاري التصدير (${exportAction.index}/${cards.length})` : 'PDF'}
              </button>
              <button onClick={handleExportAllTxt} className="neumorphic-button bg-gray-600 text-white px-4 py-2 text-sm">
                 <i className="fas fa-file-alt ml-2"></i> TXT
