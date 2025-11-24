@@ -50,9 +50,15 @@ const GradeSheet: React.FC<{ onBack: () => void }> = ({ onBack }) => {
     const [analyticsStartDate, setAnalyticsStartDate] = useState('');
     const [analyticsEndDate, setAnalyticsEndDate] = useState('');
 
+    // Helper to prevent Objects from crashing React
+    const safeString = (val: any): string => {
+        if (typeof val === 'string' || typeof val === 'number') return String(val);
+        return '';
+    };
+
     useEffect(() => {
         const savedTeacher = localStorage.getItem('teacherName');
-        if (savedTeacher) setTeacherName(savedTeacher);
+        if (savedTeacher) setTeacherName(safeString(savedTeacher));
 
         const savedSheetsData = localStorage.getItem('gradeSheetsList');
         if (savedSheetsData) {
@@ -60,19 +66,19 @@ const GradeSheet: React.FC<{ onBack: () => void }> = ({ onBack }) => {
                 const parsed = JSON.parse(savedSheetsData);
                 if (Array.isArray(parsed) && parsed.length > 0) {
                     const sanitizedSheets: FullSheet[] = parsed.map((s: any) => ({
-                        id: String(s.id || Date.now()),
+                        id: safeString(s.id || Date.now()),
                         createdAt: Number(s.createdAt) || Date.now(),
                         info: {
-                            school: String(s.info?.school || ''),
-                            class: String(s.info?.class || ''),
-                            division: String(s.info?.division || ''),
-                            subject: String(s.info?.subject || ''),
-                            month: String(s.info?.month || ''),
-                            date: String(s.info?.date || ''),
+                            school: safeString(s.info?.school),
+                            class: safeString(s.info?.class),
+                            division: safeString(s.info?.division),
+                            subject: safeString(s.info?.subject),
+                            month: safeString(s.info?.month),
+                            date: safeString(s.info?.date),
                         },
                         students: Array.isArray(s.students) ? s.students.map((st: any) => ({
-                            id: String(st.id || Math.random()),
-                            name: (typeof st.name === 'string' || typeof st.name === 'number') ? String(st.name) : 'طالب',
+                            id: safeString(st.id || Math.random()),
+                            name: safeString(st.name || 'طالب'),
                             attendance: Number(st.attendance) || 0,
                             oral: Number(st.oral) || 0,
                             homework: Number(st.homework) || 0,
@@ -83,7 +89,7 @@ const GradeSheet: React.FC<{ onBack: () => void }> = ({ onBack }) => {
                     setAllSheets(sanitizedSheets);
                     setCurrentSheetId(sanitizedSheets[0].id);
                 }
-            } catch (e) { console.error(e); }
+            } catch (e) { console.error("Error parsing grade sheets", e); }
         }
     }, []);
 
@@ -248,14 +254,14 @@ const GradeSheet: React.FC<{ onBack: () => void }> = ({ onBack }) => {
                     onChange={(e) => handleSheetChange(e.target.value)}
                     className="flex-grow max-w-md p-2 border rounded font-bold text-black bg-white"
                 >
-                    {allSheets.map(sheet => <option key={sheet.id} value={sheet.id}>{sheet.info.date} - {sheet.info.subject} ({sheet.info.class})</option>)}
+                    {allSheets.map(sheet => <option key={sheet.id} value={sheet.id}>{safeString(sheet.info.date)} - {safeString(sheet.info.subject)} ({safeString(sheet.info.class)})</option>)}
                     {allSheets.length === 0 && <option>لا توجد كشوفات</option>}
                 </select>
                 
                 <div className="flex gap-3">
                     <div className="flex items-center bg-white rounded px-2 border">
                         <span className="text-xs font-bold text-gray-500 ml-2">المعلم:</span>
-                        <input value={teacherName} onChange={e => setTeacherName(e.target.value)} placeholder="الاسم..." className="p-1 outline-none text-black w-32 text-sm bg-transparent" />
+                        <input value={safeString(teacherName)} onChange={e => setTeacherName(e.target.value)} placeholder="الاسم..." className="p-1 outline-none text-black w-32 text-sm bg-transparent" />
                     </div>
                     <button onClick={() => {
                         if (activeSheet) setNewSheetInfo({ ...activeSheet.info, date: new Date().toISOString().split('T')[0] });
@@ -272,12 +278,12 @@ const GradeSheet: React.FC<{ onBack: () => void }> = ({ onBack }) => {
                     <div className="bg-white rounded-xl p-6 w-full max-w-lg shadow-2xl" onClick={e => e.stopPropagation()}>
                         <h3 className="text-xl font-bold text-blue-800 mb-4 border-b pb-2">كشف جديد</h3>
                         <div className="grid grid-cols-2 gap-3 mb-4">
-                            <input placeholder="المدرسة" value={newSheetInfo.school} onChange={e => setNewSheetInfo({...newSheetInfo, school: e.target.value})} className="p-2 border rounded text-black bg-white" />
-                            <input placeholder="الصف" value={newSheetInfo.class} onChange={e => setNewSheetInfo({...newSheetInfo, class: e.target.value})} className="p-2 border rounded text-black bg-white" />
-                            <input placeholder="الشعبة" value={newSheetInfo.division} onChange={e => setNewSheetInfo({...newSheetInfo, division: e.target.value})} className="p-2 border rounded text-black bg-white" />
-                            <input placeholder="المادة" value={newSheetInfo.subject} onChange={e => setNewSheetInfo({...newSheetInfo, subject: e.target.value})} className="p-2 border rounded text-black bg-white" />
-                            <input placeholder="عنوان الكشف (الشهر)" value={newSheetInfo.month} onChange={e => setNewSheetInfo({...newSheetInfo, month: e.target.value})} className="p-2 border rounded text-black bg-white" />
-                            <input type="date" value={newSheetInfo.date} onChange={e => setNewSheetInfo({...newSheetInfo, date: e.target.value})} className="p-2 border rounded text-black bg-white" />
+                            <input placeholder="المدرسة" value={safeString(newSheetInfo.school)} onChange={e => setNewSheetInfo({...newSheetInfo, school: e.target.value})} className="p-2 border rounded text-black bg-white" />
+                            <input placeholder="الصف" value={safeString(newSheetInfo.class)} onChange={e => setNewSheetInfo({...newSheetInfo, class: e.target.value})} className="p-2 border rounded text-black bg-white" />
+                            <input placeholder="الشعبة" value={safeString(newSheetInfo.division)} onChange={e => setNewSheetInfo({...newSheetInfo, division: e.target.value})} className="p-2 border rounded text-black bg-white" />
+                            <input placeholder="المادة" value={safeString(newSheetInfo.subject)} onChange={e => setNewSheetInfo({...newSheetInfo, subject: e.target.value})} className="p-2 border rounded text-black bg-white" />
+                            <input placeholder="عنوان الكشف (الشهر)" value={safeString(newSheetInfo.month)} onChange={e => setNewSheetInfo({...newSheetInfo, month: e.target.value})} className="p-2 border rounded text-black bg-white" />
+                            <input type="date" value={safeString(newSheetInfo.date)} onChange={e => setNewSheetInfo({...newSheetInfo, date: e.target.value})} className="p-2 border rounded text-black bg-white" />
                         </div>
                         <div className="flex justify-end gap-2 mt-4">
                             <button onClick={() => confirmCreateSheet(false)} className="px-4 py-2 rounded bg-gray-500 text-white font-bold">إنشاء فارغ</button>
@@ -296,15 +302,15 @@ const GradeSheet: React.FC<{ onBack: () => void }> = ({ onBack }) => {
                             {/* Right */}
                             <div className="text-right space-y-1 font-bold">
                                 <p>وزارة التربية والتعليم</p>
-                                <p>المدرسة: <input value={activeInfo.school} onChange={e => updateInfoField('school', e.target.value)} className="border-b border-gray-400 focus:outline-none w-40 text-black bg-transparent font-bold" /></p>
-                                <p>المادة: <input value={activeInfo.subject} onChange={e => updateInfoField('subject', e.target.value)} className="border-b border-gray-400 focus:outline-none w-40 text-black bg-transparent font-bold" /></p>
+                                <p>المدرسة: <input value={safeString(activeInfo.school)} onChange={e => updateInfoField('school', e.target.value)} className="border-b border-gray-400 focus:outline-none w-40 text-black bg-transparent font-bold" /></p>
+                                <p>المادة: <input value={safeString(activeInfo.subject)} onChange={e => updateInfoField('subject', e.target.value)} className="border-b border-gray-400 focus:outline-none w-40 text-black bg-transparent font-bold" /></p>
                             </div>
                             
                             {/* Center */}
                             <div className="text-center">
                                 <h2 className="text-xl font-black underline mb-2">كشف رصد الدرجات</h2>
                                 <input 
-                                    value={activeInfo.month} 
+                                    value={safeString(activeInfo.month)} 
                                     onChange={e => updateInfoField('month', e.target.value)} 
                                     placeholder="عنوان الكشف / الشهر"
                                     className="text-center font-bold text-lg border-b-2 border-black focus:outline-none w-full bg-transparent text-black" 
@@ -313,8 +319,8 @@ const GradeSheet: React.FC<{ onBack: () => void }> = ({ onBack }) => {
                             
                             {/* Left */}
                             <div className="text-left space-y-1 font-bold" dir="ltr">
-                                <p>Class: <input value={activeInfo.class} onChange={e => updateInfoField('class', e.target.value)} className="border-b border-gray-400 focus:outline-none w-20 text-center text-black bg-transparent font-bold" /> / <input value={activeInfo.division} onChange={e => updateInfoField('division', e.target.value)} className="border-b border-gray-400 focus:outline-none w-12 text-center text-black bg-transparent font-bold" /></p>
-                                <p>Date: <input type="date" value={activeInfo.date} onChange={e => updateInfoField('date', e.target.value)} className="border-b border-gray-400 focus:outline-none text-black bg-transparent font-bold" /></p>
+                                <p>Class: <input value={safeString(activeInfo.class)} onChange={e => updateInfoField('class', e.target.value)} className="border-b border-gray-400 focus:outline-none w-20 text-center text-black bg-transparent font-bold" /> / <input value={safeString(activeInfo.division)} onChange={e => updateInfoField('division', e.target.value)} className="border-b border-gray-400 focus:outline-none w-12 text-center text-black bg-transparent font-bold" /></p>
+                                <p>Date: <input type="date" value={safeString(activeInfo.date)} onChange={e => updateInfoField('date', e.target.value)} className="border-b border-gray-400 focus:outline-none text-black bg-transparent font-bold" /></p>
                             </div>
                         </div>
                     </div>
@@ -346,15 +352,15 @@ const GradeSheet: React.FC<{ onBack: () => void }> = ({ onBack }) => {
                                                 </div>
                                             ) : (
                                                 <div className="flex justify-between items-center group">
-                                                    <span>{student.name}</span>
+                                                    <span>{safeString(student.name)}</span>
                                                 </div>
                                             )}
                                         </td>
-                                        <td className="border border-black p-1"><input type="number" value={student.attendance} onChange={e => updateGrade(student.id, 'attendance', e.target.value)} className="w-full text-center font-bold text-black bg-transparent outline-none" /></td>
-                                        <td className="border border-black p-1"><input type="number" value={student.oral} onChange={e => updateGrade(student.id, 'oral', e.target.value)} className="w-full text-center font-bold text-black bg-transparent outline-none" /></td>
-                                        <td className="border border-black p-1"><input type="number" value={student.homework} onChange={e => updateGrade(student.id, 'homework', e.target.value)} className="w-full text-center font-bold text-black bg-transparent outline-none" /></td>
-                                        <td className="border border-black p-1"><input type="number" value={student.written ?? ''} placeholder="غ" onChange={e => updateGrade(student.id, 'written', e.target.value)} className={`w-full text-center font-bold bg-transparent outline-none ${student.written === null ? 'bg-red-50' : 'text-black'}`} /></td>
-                                        <td className="border border-black p-2 font-black bg-gray-100">{student.total}</td>
+                                        <td className="border border-black p-1"><input type="number" value={String(student.attendance)} onChange={e => updateGrade(student.id, 'attendance', e.target.value)} className="w-full text-center font-bold text-black bg-transparent outline-none" /></td>
+                                        <td className="border border-black p-1"><input type="number" value={String(student.oral)} onChange={e => updateGrade(student.id, 'oral', e.target.value)} className="w-full text-center font-bold text-black bg-transparent outline-none" /></td>
+                                        <td className="border border-black p-1"><input type="number" value={String(student.homework)} onChange={e => updateGrade(student.id, 'homework', e.target.value)} className="w-full text-center font-bold text-black bg-transparent outline-none" /></td>
+                                        <td className="border border-black p-1"><input type="number" value={student.written === null ? '' : String(student.written)} placeholder="غ" onChange={e => updateGrade(student.id, 'written', e.target.value)} className={`w-full text-center font-bold bg-transparent outline-none ${student.written === null ? 'bg-red-50' : 'text-black'}`} /></td>
+                                        <td className="border border-black p-2 font-black bg-gray-100">{String(student.total)}</td>
                                         <td className="border border-black p-1 no-print">
                                             <div className="flex gap-1 justify-center">
                                                 <button onClick={() => handleStartEdit(student)} className="text-blue-500"><i className="fas fa-pencil-alt text-xs"></i></button>
@@ -384,11 +390,11 @@ const GradeSheet: React.FC<{ onBack: () => void }> = ({ onBack }) => {
                             <tfoot>
                                 <tr className="bg-gray-200 font-bold border-t-2 border-black">
                                     <td colSpan={2} className="border border-black p-2 text-center">الإجمالي</td>
-                                    <td className="border border-black p-2">{totals.attendance}</td>
-                                    <td className="border border-black p-2">{totals.oral}</td>
-                                    <td className="border border-black p-2">{totals.homework}</td>
-                                    <td className="border border-black p-2">{totals.written}</td>
-                                    <td className="border border-black p-2">{totals.total}</td>
+                                    <td className="border border-black p-2">{String(totals.attendance)}</td>
+                                    <td className="border border-black p-2">{String(totals.oral)}</td>
+                                    <td className="border border-black p-2">{String(totals.homework)}</td>
+                                    <td className="border border-black p-2">{String(totals.written)}</td>
+                                    <td className="border border-black p-2">{String(totals.total)}</td>
                                     <td className="border border-black no-print"></td>
                                 </tr>
                             </tfoot>
@@ -399,7 +405,7 @@ const GradeSheet: React.FC<{ onBack: () => void }> = ({ onBack }) => {
                     <div className="mt-8 flex justify-between items-end text-black pt-4 border-t-2 border-black text-center">
                         <div>
                             <p className="mb-4 font-bold">معلم المادة</p>
-                            <p className="font-bold text-lg">{teacherName}</p>
+                            <p className="font-bold text-lg">{safeString(teacherName)}</p>
                         </div>
                         <div>
                             <p className="mb-4 font-bold">وكيل الشؤون التعليمية</p>
@@ -426,11 +432,10 @@ const GradeSheet: React.FC<{ onBack: () => void }> = ({ onBack }) => {
             {showIndicators && (
                 <div className="mt-6 p-4 bg-white border rounded shadow animate-fadeIn no-print">
                     <h3 className="font-bold text-lg mb-3 text-indigo-800">تحليل النتائج ({analytics.count} كشوفات)</h3>
-                    {/* ... Analytics content ... */}
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
-                        <div className="p-2 bg-green-50 border-green-200 border rounded"><h4 className="font-bold text-green-800">الأوائل</h4><ul>{analytics.top.map(s => <li key={s.name}>{s.name} ({s.totalScore})</li>)}</ul></div>
-                        <div className="p-2 bg-red-50 border-red-200 border rounded"><h4 className="font-bold text-red-800">بحاجة لدعم</h4><ul>{analytics.bottom.map(s => <li key={s.name}>{s.name} ({s.totalScore})</li>)}</ul></div>
-                        <div className="p-2 bg-gray-50 border-gray-200 border rounded"><h4 className="font-bold text-gray-800">الغياب</h4><ul>{analytics.absentees.map(s => <li key={s.name}>{s.name} ({s.absentCount})</li>)}</ul></div>
+                        <div className="p-2 bg-green-50 border-green-200 border rounded"><h4 className="font-bold text-green-800">الأوائل</h4><ul>{analytics.top.map(s => <li key={s.name}>{safeString(s.name)} ({String(s.totalScore)})</li>)}</ul></div>
+                        <div className="p-2 bg-red-50 border-red-200 border rounded"><h4 className="font-bold text-red-800">بحاجة لدعم</h4><ul>{analytics.bottom.map(s => <li key={s.name}>{safeString(s.name)} ({String(s.totalScore)})</li>)}</ul></div>
+                        <div className="p-2 bg-gray-50 border-gray-200 border rounded"><h4 className="font-bold text-gray-800">الغياب</h4><ul>{analytics.absentees.map(s => <li key={s.name}>{safeString(s.name)} ({String(s.absentCount)})</li>)}</ul></div>
                         <div className="p-2 bg-blue-50 border-blue-200 border rounded flex items-center justify-center text-center"><div><h4 className="font-bold text-blue-800">المتوسط العام</h4><p className="text-2xl font-black">{analytics.avg.toFixed(1)}</p></div></div>
                     </div>
                 </div>

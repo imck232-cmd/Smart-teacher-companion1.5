@@ -77,7 +77,7 @@ const ImportantDates: React.FC<{ onBack: () => void }> = ({ onBack }) => {
                     <div className="space-y-2">
                         {todaysTasks.map(task => (
                             <div key={task.id} className={`p-3 rounded-lg flex items-center justify-between ${task.done ? 'bg-green-100 text-green-800' : 'bg-white shadow-sm'}`}>
-                                <span className={task.done ? 'line-through' : 'font-bold'}>{task.title}</span>
+                                <span className={task.done ? 'line-through' : 'font-bold'}>{String(task.title)}</span>
                                 {task.done ? <i className="fas fa-check-circle"></i> : <span className="text-xs bg-red-100 text-red-600 px-2 py-1 rounded">لم ينجز</span>}
                             </div>
                         ))}
@@ -125,7 +125,7 @@ const ImportantDates: React.FC<{ onBack: () => void }> = ({ onBack }) => {
                         
                         <div className="flex-grow">
                             <h4 className={`text-lg font-bold ${item.done ? 'line-through text-gray-400' : 'text-gray-800'}`}>
-                                {item.title}
+                                {String(item.title)}
                             </h4>
                             {item.date === today && !item.done && <span className="text-xs text-red-500 font-bold animate-pulse">مستحق اليوم!</span>}
                         </div>

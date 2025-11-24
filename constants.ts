@@ -6,6 +6,7 @@ export type ToolKey =
   | 'gradeSheet'
   | 'aiTools'
   | 'createAIPrompts'
+  | 'educationalGames'
   | 'curriculumExamples'
   | 'addNote'
   | 'summarizeLesson'
@@ -53,6 +54,7 @@ export const tools: Tool[] = [
   { key: 'gradeSheet', label: 'كشف الدرجات', icon: 'fas fa-clipboard-list', isNew: true },
   { key: 'aiTools', label: 'أدوات الذكاء الاصطناعي', icon: 'fas fa-robot' },
   { key: 'createAIPrompts', label: 'إنشاء أوامر للذكاء الاصطناعي', icon: 'fas fa-magic' },
+  { key: 'educationalGames', label: 'ألعاب تربوية', icon: 'fas fa-gamepad', isNew: true },
   { key: 'curriculumExamples', label: 'أمثلة عملية من واقع المناهج الدراسية', icon: 'fas fa-chalkboard-teacher' },
   { key: 'createFlashcards', label: 'البطاقات التعليمية', icon: 'fas fa-clone' },
   { key: 'creativeIdeas', label: 'اطلق العنان لأبداعك', icon: 'fas fa-rocket', isNew: true },
@@ -101,6 +103,14 @@ export const externalLinkTools: Record<ToolKey, { title: string; links: External
     createAIPrompts: {
         title: 'إنشاء أوامر للذكاء الاصطناعي',
         links: [{ name: 'مولد الأوامر', url: 'https://prompt-generation1-3.vercel.app/' }]
+    },
+    educationalGames: {
+        title: 'ألعاب تربوية',
+        links: [
+            { name: 'لعبة الأسئلة (كمبيوتر) - Kahoot', url: 'https://create.kahoot.it/discover' },
+            { name: 'لعبة الأسئلة (هاتف) - Kahoot', url: 'https://play.google.com/store/apps/details?id=no.mobitroll.kahoot.android' },
+            { name: 'لعبة الروليت (عجلة الحظ)', url: 'https://play.google.com/store/apps/details?id=com.appsnblue.roulette&hl=ar' }
+        ]
     },
     curriculumExamples: {
         title: 'أمثلة عملية من واقع المناهج الدراسية',

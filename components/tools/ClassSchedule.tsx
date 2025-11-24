@@ -112,7 +112,7 @@ const ClassSchedule: React.FC<{ onBack: () => void }> = ({ onBack }) => {
                                         <td key={i} className="p-1 border border-gray-300 bg-white">
                                             <input 
                                                 type="text"
-                                                value={typeof subject === 'string' ? subject : ''}
+                                                value={String(subject || '')}
                                                 onChange={(e) => handleCellChange(day, i, e.target.value)}
                                                 className="w-full h-full p-2 text-center bg-white focus:bg-yellow-50 focus:outline-none text-black font-semibold"
                                                 placeholder="---"
@@ -139,7 +139,7 @@ const ClassSchedule: React.FC<{ onBack: () => void }> = ({ onBack }) => {
                                 (typeof subj === 'string' && subj.trim()) ? (
                                     <div key={i} className="flex items-center justify-between p-4 bg-white rounded-xl shadow-sm border border-gray-200">
                                         <span className="font-bold text-gray-600 bg-gray-100 w-8 h-8 flex items-center justify-center rounded-full">{i + 1}</span>
-                                        <span className="text-xl font-bold text-black flex-grow">{subj}</span>
+                                        <span className="text-xl font-bold text-black flex-grow">{String(subj)}</span>
                                         <i className="fas fa-book text-primary/50"></i>
                                     </div>
                                 ) : null

@@ -95,13 +95,13 @@ const AddNote: React.FC<{ onBack: () => void }> = ({ onBack }) => {
                 {notes.map(note => (
                     <div key={note.id} className="neumorphic-outset p-4 relative group">
                         <div className="text-xs text-gray-500 mb-2 flex justify-between">
-                            <span>{note.date}</span>
+                            <span>{String(note.date)}</span>
                             <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
                                 <button onClick={() => handleEdit(note)} className="text-blue-500 hover:text-blue-700"><i className="fas fa-edit"></i></button>
                                 <button onClick={() => handleDelete(note.id)} className="text-red-500 hover:text-red-700"><i className="fas fa-trash"></i></button>
                             </div>
                         </div>
-                        <p className="text-base-text whitespace-pre-wrap">{note.content}</p>
+                        <p className="text-base-text whitespace-pre-wrap">{String(note.content)}</p>
                     </div>
                 ))}
                 {notes.length === 0 && <p className="text-center text-gray-500 mt-8">لا توجد ملاحظات محفوظة.</p>}

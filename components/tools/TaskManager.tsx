@@ -172,7 +172,7 @@ const TaskManager: React.FC<{ onBack: () => void }> = ({ onBack }) => {
                       onChange={() => handleToggleComplete(task.id)}
                     />
                     <span className={`flex-grow text-black font-medium ${task.completed ? 'line-through opacity-60' : ''}`}>
-                      {task.text}
+                      {String(task.text)}
                     </span>
                     <button onClick={() => handleStartEditing(task)} className="neumorphic-button w-10 h-10 flex-shrink-0 flex items-center justify-center">
                         <i className="fas fa-pencil-alt text-icon"></i>
