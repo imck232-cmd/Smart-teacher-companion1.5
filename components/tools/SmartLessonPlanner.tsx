@@ -179,6 +179,18 @@ const SmartLessonPlanner: React.FC<{ onBack: () => void }> = ({ onBack }) => {
                 day: new Date().toLocaleDateString('ar-EG', { weekday: 'long' })
             }));
         }
+
+        // Load Saved Images
+        const savedImages = localStorage.getItem('lessonPlannerImages');
+        if (savedImages) {
+            try {
+                const parsed = JSON.parse(savedImages);
+                if (parsed.eagle) setEagleImage(parsed.eagle);
+                if (parsed.logo) setSchoolLogo(parsed.logo);
+            } catch (e) {
+                console.error("Failed to load saved images", e);
+            }
+        }
     }, []);
 
     // Auto-update day when date changes in modal
@@ -211,7 +223,23 @@ const SmartLessonPlanner: React.FC<{ onBack: () => void }> = ({ onBack }) => {
         if (e.target.files && e.target.files[0]) {
             const reader = new FileReader();
             reader.onload = (ev) => {
-                if (ev.target?.result) setter(ev.target.result as string);
+                if (ev.target?.result) {
+                    const result = ev.target.result as string;
+                    setter(result);
+                    
+                    // Save image persistence
+                    const currentImagesStr = localStorage.getItem('lessonPlannerImages');
+                    const currentImages = currentImagesStr ? JSON.parse(currentImagesStr) : {};
+                    // Identify if we are setting eagle or logo based on the state setter
+                    if (setter === setEagleImage) currentImages.eagle = result;
+                    if (setter === setSchoolLogo) currentImages.logo = result;
+                    
+                    try {
+                        localStorage.setItem('lessonPlannerImages', JSON.stringify(currentImages));
+                    } catch (err) {
+                        console.warn("Image too large to save to local storage");
+                    }
+                }
             };
             reader.readAsDataURL(e.target.files[0]);
         }
@@ -314,6 +342,7 @@ const SmartLessonPlanner: React.FC<{ onBack: () => void }> = ({ onBack }) => {
         setIsExporting(true);
         
         // Allow UI to update to "Export Mode" (Text only, no inputs, small fonts)
+        // Yield for browser render
         await new Promise(resolve => setTimeout(resolve, 300));
 
         const element = document.getElementById('lesson-plan-export');
@@ -323,14 +352,21 @@ const SmartLessonPlanner: React.FC<{ onBack: () => void }> = ({ onBack }) => {
         }
 
         try {
+            // Mobile Detection
+            const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+            
+            // Reduced scale for mobile to prevent crash, 2 for desktop quality
+            const scale = isMobile ? 1.0 : 2.0;
+
             const canvas = await html2canvas(element, {
-                scale: 2,
+                scale: scale,
                 useCORS: true,
                 backgroundColor: '#ffffff',
                 logging: false
             });
 
-            const imgData = canvas.toDataURL('image/jpeg', 0.90);
+            // Use JPEG with moderate compression for speed and small size
+            const imgData = canvas.toDataURL('image/jpeg', 0.75);
             const pdf = new jspdf.jsPDF('p', 'mm', 'a4');
             const pdfWidth = 210;
             const pdfHeight = 297;
@@ -338,15 +374,13 @@ const SmartLessonPlanner: React.FC<{ onBack: () => void }> = ({ onBack }) => {
             const imgProps = pdf.getImageProperties(imgData);
             const imgHeight = (imgProps.height * pdfWidth) / imgProps.width;
             
-            // Simply add the image. If the "Compact Mode" worked, it should fit on one page.
-            // If it spills, we let it spill or crop, but the user requested single page optimization.
             pdf.addImage(imgData, 'JPEG', 0, 0, pdfWidth, imgHeight);
             
             pdf.save(`${plan.lessonTitle || 'Lesson_Plan'}.pdf`);
 
         } catch (e) {
             console.error(e);
-            alert('فشل تصدير PDF');
+            alert('فشل تصدير PDF. حاول مرة أخرى.');
         } finally {
             setIsExporting(false);
         }
