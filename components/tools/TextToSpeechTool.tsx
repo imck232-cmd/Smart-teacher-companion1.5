@@ -1,8 +1,9 @@
+
 import React, { useState, useRef } from 'react';
 import { generateSpeech } from '../../services/geminiService';
 import ToolHeader from '../ToolHeader';
 
-// Helper functions for audio decoding, as provided in guidelines
+// Helper functions for audio decoding
 function decode(base64: string) {
   const binaryString = atob(base64);
   const len = binaryString.length;
@@ -32,12 +33,45 @@ async function decodeAudioData(
   return buffer;
 }
 
+// --- WAV Header Construction Helpers ---
+const writeString = (view: DataView, offset: number, string: string) => {
+  for (let i = 0; i < string.length; i++) {
+    view.setUint8(offset + i, string.charCodeAt(i));
+  }
+};
+
+const createWavHeader = (sampleRate: number, numChannels: number, dataLength: number) => {
+  const buffer = new ArrayBuffer(44);
+  const view = new DataView(buffer);
+
+  // RIFF chunk descriptor
+  writeString(view, 0, 'RIFF');
+  view.setUint32(4, 36 + dataLength, true); // ChunkSize
+  writeString(view, 8, 'WAVE');
+
+  // fmt sub-chunk
+  writeString(view, 12, 'fmt ');
+  view.setUint32(16, 16, true); // Subchunk1Size (16 for PCM)
+  view.setUint16(20, 1, true);  // AudioFormat (1 for PCM)
+  view.setUint16(22, numChannels, true); // NumChannels
+  view.setUint32(24, sampleRate, true); // SampleRate
+  view.setUint32(28, sampleRate * numChannels * 2, true); // ByteRate
+  view.setUint16(32, numChannels * 2, true); // BlockAlign
+  view.setUint16(34, 16, true); // BitsPerSample
+
+  // data sub-chunk
+  writeString(view, 36, 'data');
+  view.setUint32(40, dataLength, true); // Subchunk2Size
+
+  return buffer;
+};
 
 const TextToSpeechTool: React.FC<{ onBack: () => void }> = ({ onBack }) => {
   const [text, setText] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
   const [isPlaying, setIsPlaying] = useState(false);
+  const [downloadUrl, setDownloadUrl] = useState<string | null>(null);
   
   const audioContextRef = useRef<AudioContext | null>(null);
   const audioSourceRef = useRef<AudioBufferSourceNode | null>(null);
@@ -53,20 +87,26 @@ const TextToSpeechTool: React.FC<{ onBack: () => void }> = ({ onBack }) => {
         audioSourceRef.current.stop();
         setIsPlaying(false);
     }
+    
+    // Cleanup previous download URL
+    if (downloadUrl) {
+        URL.revokeObjectURL(downloadUrl);
+        setDownloadUrl(null);
+    }
 
     setIsLoading(true);
     setError('');
 
     try {
       const base64Audio = await generateSpeech(text);
+      const rawBytes = decode(base64Audio);
       
-      // Initialize AudioContext if it doesn't exist
+      // 1. Prepare for Playback
       if (!audioContextRef.current) {
         audioContextRef.current = new (window.AudioContext || (window as any).webkitAudioContext)({ sampleRate: 24000 });
       }
       const audioContext = audioContextRef.current;
-      
-      const audioBuffer = await decodeAudioData(decode(base64Audio), audioContext, 24000, 1);
+      const audioBuffer = await decodeAudioData(rawBytes, audioContext, 24000, 1);
 
       const source = audioContext.createBufferSource();
       source.buffer = audioBuffer;
@@ -78,6 +118,12 @@ const TextToSpeechTool: React.FC<{ onBack: () => void }> = ({ onBack }) => {
       
       audioSourceRef.current = source;
       setIsPlaying(true);
+
+      // 2. Prepare for Download (Add WAV Header)
+      const wavHeader = createWavHeader(24000, 1, rawBytes.length);
+      const wavBlob = new Blob([wavHeader, rawBytes], { type: 'audio/wav' });
+      const url = URL.createObjectURL(wavBlob);
+      setDownloadUrl(url);
 
     } catch (err) {
       setError('حدث خطأ أثناء إنشاء الصوت. الرجاء المحاولة مرة أخرى.');
@@ -98,13 +144,25 @@ const TextToSpeechTool: React.FC<{ onBack: () => void }> = ({ onBack }) => {
           className="w-full p-3 neumorphic-inset h-40 bg-transparent text-base-text focus:outline-none"
           disabled={isLoading || isPlaying}
         />
-        <button
-          onClick={handleGenerateAndPlay}
-          disabled={isLoading || isPlaying}
-          className="w-full mt-4 neumorphic-button bg-primary text-white font-bold py-3 px-4 disabled:opacity-50"
-        >
-          {isLoading ? 'جاري الإنشاء...' : (isPlaying ? '...جاري التشغيل' : 'إنشاء وتشغيل الصوت')}
-        </button>
+        <div className="flex flex-col sm:flex-row gap-3 mt-4">
+            <button
+            onClick={handleGenerateAndPlay}
+            disabled={isLoading || isPlaying}
+            className="flex-grow neumorphic-button bg-primary text-white font-bold py-3 px-4 disabled:opacity-50"
+            >
+            {isLoading ? 'جاري الإنشاء...' : (isPlaying ? '...جاري التشغيل' : 'إنشاء وتشغيل الصوت')}
+            </button>
+            
+            {downloadUrl && !isLoading && (
+                <a
+                    href={downloadUrl}
+                    download="generated_speech.wav"
+                    className="neumorphic-button bg-green-600 text-white font-bold py-3 px-6 flex items-center justify-center hover:bg-green-700 transition-colors"
+                >
+                    <i className="fas fa-download ml-2"></i> تنزيل الصوت
+                </a>
+            )}
+        </div>
         {error && <p className="text-red-500 mt-4 text-center">{error}</p>}
       </div>
     </div>
