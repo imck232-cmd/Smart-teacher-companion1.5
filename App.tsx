@@ -27,6 +27,7 @@ import ImportantDates from './components/tools/ImportantDates';
 import MostUsedTools from './components/tools/MostUsedTools';
 import ParticipationLog from './components/tools/ParticipationLog';
 import GradeSheet from './components/tools/GradeSheet';
+import SmartLessonPlanner from './components/tools/SmartLessonPlanner';
 import { themes, Theme } from './themes';
 import Sidebar from './components/Sidebar';
 import ScrollToTopButton from './components/ScrollToTopButton';
@@ -252,6 +253,8 @@ const App: React.FC = () => {
         return <ParticipationLog onBack={handleGoHome} />;
       case 'gradeSheet':
         return <GradeSheet onBack={handleGoHome} />;
+      case 'smartLessonPlanner':
+        return <SmartLessonPlanner onBack={handleGoHome} />;
       case 'innovate':
         return <Innovate onBack={handleGoHome} />;
       case 'analyzeLiterary':

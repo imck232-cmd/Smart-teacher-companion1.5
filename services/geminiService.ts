@@ -1,3 +1,4 @@
+
 import { GoogleGenAI, Modality } from "@google/genai";
 
 let ai: GoogleGenAI | null = null;
@@ -263,6 +264,58 @@ export const generateSpeech = async (text: string) => {
         return base64Audio;
     } catch (error) {
         console.error("Error generating speech:", error);
+        throw error;
+    }
+};
+
+export const generateSmartLessonPlan = async (inputText: string, context: any) => {
+    try {
+        const client = getAiClient();
+        const prompt = `
+        بصفتك خبيراً تربوياً، قم بإعداد تحضير درس نموذجي وشامل بناءً على المعلومات التالية:
+        النص/الموضوع: ${inputText}
+        المادة: ${context.subject || 'عام'}
+        الصف: ${context.grade || 'عام'}
+        
+        يجب أن يكون التحضير بتنسيق JSON دقيق يحتوي على المفاتيح التالية بدقة لملء الحقول تلقائياً:
+        {
+            "lessonTitle": "عنوان الدرس المقترح",
+            "intro": { "text": "نص التمهيد (مشوق)", "type": "نوع التمهيد (سؤال، قصة...)" },
+            "methods": ["طريقة 1", "طريقة 2", "طريقة 3", "طريقة 4", "طريقة 5"],
+            "aids": ["وسيلة 1", "وسيلة 2", "وسيلة 3", "وسيلة 4", "وسيلة 5"],
+            "activities": "وصف الأنشطة الصفية ونوعها ومكان تنفيذها",
+            "objectives": [
+                { "domain": "معرفي", "level": "تذكر/فهم...", "text": "صياغة الهدف...", "evaluation": "كيفية قياسه" },
+                { "domain": "معرفي", "level": "...", "text": "...", "evaluation": "..." },
+                { "domain": "معرفي", "level": "...", "text": "...", "evaluation": "..." },
+                { "domain": "مهاري", "level": "...", "text": "...", "evaluation": "..." },
+                { "domain": "مهاري", "level": "...", "text": "...", "evaluation": "..." },
+                { "domain": "وجداني", "level": "...", "text": "...", "evaluation": "..." }
+            ],
+            "teacherRole": "دور المعلم في الدرس...",
+            "learnerRole": "دور الطالب في الدرس...",
+            "content": "محتوى الدرس ملخصاً في نقاط أو فقرات (لا يقل عن 10 أسطر)...",
+            "closure": { "text": "خاتمة الدرس...", "type": "نوع الغلق" },
+            "homework": { "text": "الواجب المنزلي...", "type": "نوع الواجب" },
+            "reflection": "خاطرة تربوية قصيرة (ترنيمة قلم)"
+        }
+        
+        تأكد أن الأهداف السلوكية تتنوع بين المعرفي (3 أهداف) والمهاري (2 هدف) والوجداني (1 هدف) مع ذكر المستوى الدقيق حسب تصنيف بلوم (مثل: تذكر، فهم، تطبيق، تحليل، تركيب، تقويم) أو المجال النفسحركي (إدراك، تهيئة...) أو الوجداني.
+        اختر طرق تدريس حديثة ومناسبة.
+        اختر وسائل تعليمية متنوعة (بصرية، سمعية، رقمية).
+        `;
+
+        const response = await client.models.generateContent({
+            model: "gemini-2.5-flash",
+            contents: prompt,
+            config: {
+                responseMimeType: 'application/json'
+            }
+        });
+        
+        return JSON.parse(response.text);
+    } catch (error) {
+        console.error("Error generating lesson plan:", error);
         throw error;
     }
 };

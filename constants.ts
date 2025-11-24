@@ -4,6 +4,7 @@ export type ToolKey =
   | 'search'
   | 'participationLog'
   | 'gradeSheet'
+  | 'smartLessonPlanner'
   | 'aiTools'
   | 'createAIPrompts'
   | 'educationalGames'
@@ -52,6 +53,7 @@ export const tools: Tool[] = [
   { key: 'search', label: 'البحث العام', icon: 'fas fa-search' },
   { key: 'participationLog', label: 'سجل المشاركات', icon: 'fas fa-list-ol', isNew: true },
   { key: 'gradeSheet', label: 'كشف الدرجات', icon: 'fas fa-clipboard-list', isNew: true },
+  { key: 'smartLessonPlanner', label: 'تحضير الدرس إلكترونياً', icon: 'fas fa-book-reader', isNew: true },
   { key: 'aiTools', label: 'أدوات الذكاء الاصطناعي', icon: 'fas fa-robot' },
   { key: 'createAIPrompts', label: 'إنشاء أوامر للذكاء الاصطناعي', icon: 'fas fa-magic' },
   { key: 'educationalGames', label: 'ألعاب تربوية', icon: 'fas fa-gamepad', isNew: true },
