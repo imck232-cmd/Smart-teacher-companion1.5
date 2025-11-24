@@ -2,6 +2,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import ToolHeader from '../ToolHeader';
 import { generateSmartLessonPlan } from '../../services/geminiService';
+import ActionButtons from '../ActionButtons';
 
 // Declare libraries for export
 declare const html2canvas: any;
@@ -24,6 +25,7 @@ interface LessonPlanState {
     day: string;
     date: string;
     subject: string;
+    subjectBranch: string; // New Field
     // Header Center
     lessonTitle: string;
     // Row 1
@@ -76,6 +78,7 @@ const initialState: LessonPlanState = {
     day: '',
     date: new Date().toISOString().split('T')[0],
     subject: '',
+    subjectBranch: '',
     lessonTitle: '',
     classLevel: '',
     division: '',
@@ -100,10 +103,35 @@ const initialState: LessonPlanState = {
 };
 
 // --- Constants for Dropdowns ---
-const subjects = ['القرآن الكريم', 'التربية الإسلامية', 'اللغة العربية', 'اللغة الإنجليزية', 'الرياضيات', 'العلوم', 'الكيمياء', 'الفيزياء', 'الأحياء', 'الاجتماعيات', 'الحاسوب', 'المكتبة', 'الفنية', 'المختص الاجتماعي', 'الأنشطة'];
-const days = ['السبت', 'الأحد', 'الاثنين', 'الثلاثاء', 'الأربعاء', 'الخميس'];
-const periods = ['صفرية', 'الأولى', 'الثانية', 'الثالثة', 'الرابعة', 'الخامسة', 'السادسة', 'السابعة'];
+const subjectsList = [
+    'القرآن الكريم', 'التربية الإسلامية', 'اللغة العربية', 'اللغة الإنجليزية', 
+    'الرياضيات', 'العلوم', 'الكيمياء', 'الفيزياء', 'الأحياء', 
+    'الاجتماعيات', 'الحاسوب', 'المكتبة', 'الفنية', 'المختص الاجتماعي', 'الأنشطة', 'أخرى'
+];
+
+const subjectBranchesMap: Record<string, string[]> = {
+    'القرآن الكريم': ['حفظ وتفسير', 'تجويد', 'تلاوة'],
+    'التربية الإسلامية': ['إيمان', 'حديث', 'فقه', 'سيرة'],
+    'اللغة العربية': ['نحو', 'أدب', 'نصوص', 'بلاغة', 'نقد', 'قراءة'],
+    'الرياضيات': ['جبر', 'هندسة', 'تفاضل', 'تكامل', 'إحصاء'],
+    'العلوم': ['علوم'],
+    'الكيمياء': ['كيمياء'],
+    'الفيزياء': ['فيزياء'],
+    'الأحياء': ['أحياء'],
+    'الاجتماعيات': ['تاريخ', 'مجتمع', 'جغرافيا', 'وطنية'],
+    'الحاسوب': ['حاسوب'],
+    'اللغة الإنجليزية': ['General'],
+    'أخرى': ['أخرى']
+};
+
+const gradesList = [
+    'التمهيدي', 
+    'الأول الأساسي', 'الثاني الأساسي', 'الثالث الأساسي', 'الرابع الأساسي', 'الخامس الأساسي', 'السادس الأساسي', 'السابع الأساسي', 'الثامن الأساسي', 'التاسع الأساسي',
+    'الأول الثانوي', 'الثاني الثانوي', 'الثالث الثانوي'
+];
+
 const divisions = ['أ', 'ب', 'ج', 'د', 'هـ', 'و', 'ز', 'ح', 'ط', 'ي', 'ك'];
+const periods = ['الأولى', 'الثانية', 'الثالثة', 'الرابعة', 'الخامسة', 'السادسة', 'السابعة'];
 const methodsList = ['الحوار والمناقشة', 'التعلم التعاوني', 'العصف الذهني', 'حل المشكلات', 'الاكتشاف', 'القصة', 'لعب الأدوار', 'الخرائط الذهنية', 'التعلم الذاتي'];
 const aidsList = ['السبورة', 'الكتاب المدرسي', 'جهاز العرض (Data Show)', 'بطاقات', 'مجسمات', 'فيديوهات', 'رسوم توضيحية', 'عينات حقيقية'];
 
@@ -111,8 +139,15 @@ const SmartLessonPlanner: React.FC<{ onBack: () => void }> = ({ onBack }) => {
     // --- State ---
     const [plan, setPlan] = useState<LessonPlanState>(initialState);
     const [aiInput, setAiInput] = useState('');
+    
+    // Modal Data State
+    const [showModal, setShowModal] = useState(false);
+    const [modalData, setModalData] = useState(initialState);
+    
+    // Processing State
     const [isGenerating, setIsGenerating] = useState(false);
-    const [isExporting, setIsExporting] = useState(false); // Crucial for export view
+    const [generatedResult, setGeneratedResult] = useState<any>(null); // Store raw AI result
+    const [isExporting, setIsExporting] = useState(false);
     
     // Images
     const [eagleImage, setEagleImage] = useState<string>('https://upload.wikimedia.org/wikipedia/commons/thumb/8/88/Emblem_of_Yemen.svg/1200px-Emblem_of_Yemen.svg.png');
@@ -124,26 +159,35 @@ const SmartLessonPlanner: React.FC<{ onBack: () => void }> = ({ onBack }) => {
 
     // --- Effects ---
     useEffect(() => {
-        // Load saved plans or defaults from local storage if needed
-        const saved = localStorage.getItem('currentLessonPlan');
-        if (saved) {
-            try {
-                setPlan(JSON.parse(saved));
-            } catch (e) { console.error(e); }
+        // Load saved persistent data (School, Teacher, District) to save user time
+        const savedMeta = localStorage.getItem('lessonPlannerMeta');
+        if (savedMeta) {
+            const parsed = JSON.parse(savedMeta);
+            setModalData(prev => ({
+                ...prev,
+                district: parsed.district || '',
+                school: parsed.school || '',
+                teacherName: parsed.teacherName || '',
+                // Default date/day logic
+                date: new Date().toISOString().split('T')[0],
+                day: new Date().toLocaleDateString('ar-EG', { weekday: 'long' })
+            }));
+        } else {
+             setModalData(prev => ({
+                ...prev,
+                date: new Date().toISOString().split('T')[0],
+                day: new Date().toLocaleDateString('ar-EG', { weekday: 'long' })
+            }));
         }
-        
-        // Set Day automatically based on date
-        const d = new Date();
-        const dayName = d.toLocaleDateString('ar-EG', { weekday: 'long' });
-        setPlan(prev => ({ ...prev, day: dayName }));
     }, []);
 
-    // Auto-save
-    useEffect(() => {
-        if (plan.lessonTitle) {
-            localStorage.setItem('currentLessonPlan', JSON.stringify(plan));
-        }
-    }, [plan]);
+    // Auto-update day when date changes in modal
+    const handleModalDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const dateVal = e.target.value;
+        const dateObj = new Date(dateVal);
+        const dayName = dateObj.toLocaleDateString('ar-EG', { weekday: 'long' });
+        setModalData(prev => ({ ...prev, date: dateVal, day: dayName }));
+    };
 
     // --- Handlers ---
 
@@ -176,47 +220,53 @@ const SmartLessonPlanner: React.FC<{ onBack: () => void }> = ({ onBack }) => {
     const handleNewLesson = () => {
         if (window.confirm('هل أنت متأكد من إنشاء درس جديد؟ سيتم مسح البيانات الحالية.')) {
             setPlan(initialState);
+            setGeneratedResult(null);
             setAiInput('');
-            localStorage.removeItem('currentLessonPlan');
         }
     };
 
-    // --- AI Generation ---
-    const handleGenerateAI = async () => {
-        if (!aiInput.trim()) return alert('الرجاء إدخال نص أو موضوع للتحضير');
-        
+    // --- Modal Logic ---
+    const openCreationModal = () => {
+        if (!aiInput.trim()) {
+            alert('الرجاء كتابة موضوع الدرس أو المحتوى أولاً في الحقل المخصص.');
+            return;
+        }
+        setShowModal(true);
+    };
+
+    const confirmCreation = async () => {
+        // Save metadata for next time
+        localStorage.setItem('lessonPlannerMeta', JSON.stringify({
+            district: modalData.district,
+            school: modalData.school,
+            teacherName: modalData.teacherName,
+            subject: modalData.subject,
+            classLevel: modalData.classLevel
+        }));
+
+        setShowModal(false);
         setIsGenerating(true);
+        setGeneratedResult(null); // Reset previous result
+
         try {
-            const result = await generateSmartLessonPlan(aiInput, { subject: plan.subject, grade: plan.classLevel });
+            // Pass context to AI including the specific Branch and Title
+            const context = {
+                subject: `${modalData.subject} (${modalData.subjectBranch})`,
+                grade: modalData.classLevel
+            };
             
-            // Map AI result to state
+            const result = await generateSmartLessonPlan(aiInput, context);
+            
+            // Store the raw AI result temporarily so user can "Fill Fields" later
+            setGeneratedResult(result);
+            
+            // Also pre-fill the "Plan" state with the Modal Data (Metadata) immediately
             setPlan(prev => ({
                 ...prev,
-                lessonTitle: result.lessonTitle || prev.lessonTitle,
-                introText: result.intro?.text || '',
-                introType: result.intro?.type || '',
-                methods: result.methods?.slice(0, 5) || prev.methods,
-                aids: result.aids?.slice(0, 5) || prev.aids,
-                activities: result.activities || '',
-                teacherRole: result.teacherRole || '',
-                learnerRole: result.learnerRole || '',
-                content: result.content || '',
-                closureText: result.closure?.text || '',
-                closureType: result.closure?.type || '',
-                homeworkText: result.homework?.text || '',
-                homeworkType: result.homework?.type || '',
-                reflection: result.reflection || '',
-                // Map objectives carefully
-                objectives: result.objectives && Array.isArray(result.objectives) 
-                    ? result.objectives.slice(0, 6).map((obj: any, i: number) => ({
-                        domain: obj.domain || prev.objectives[i]?.domain || 'معرفي',
-                        level: obj.level || '',
-                        text: obj.text || '',
-                        evaluation: obj.evaluation || ''
-                    }))
-                    : prev.objectives
+                ...modalData, // Overwrite metadata
+                // Don't overwrite content yet, wait for user to click "Fill Fields"
             }));
-            alert('تم توليد التحضير بنجاح! يمكنك الآن مراجعته وتعديله.');
+
         } catch (error) {
             alert('حدث خطأ أثناء التوليد بالذكاء الاصطناعي. حاول مرة أخرى.');
             console.error(error);
@@ -225,12 +275,46 @@ const SmartLessonPlanner: React.FC<{ onBack: () => void }> = ({ onBack }) => {
         }
     };
 
-    // --- Export Logic (The Magic) ---
+    const applyGeneratedContent = () => {
+        if (!generatedResult) return;
+
+        setPlan(prev => ({
+            ...prev,
+            // Keep metadata from modal, overwrite content from AI
+            lessonTitle: generatedResult.lessonTitle || prev.lessonTitle, // AI might suggest a better title
+            introText: generatedResult.intro?.text || '',
+            introType: generatedResult.intro?.type || '',
+            methods: generatedResult.methods?.slice(0, 5) || prev.methods,
+            aids: generatedResult.aids?.slice(0, 5) || prev.aids,
+            activities: generatedResult.activities || '',
+            teacherRole: generatedResult.teacherRole || '',
+            learnerRole: generatedResult.learnerRole || '',
+            content: generatedResult.content || '',
+            closureText: generatedResult.closure?.text || '',
+            closureType: generatedResult.closure?.type || '',
+            homeworkText: generatedResult.homework?.text || '',
+            homeworkType: generatedResult.homework?.type || '',
+            reflection: generatedResult.reflection || '',
+            objectives: generatedResult.objectives && Array.isArray(generatedResult.objectives) 
+                ? generatedResult.objectives.slice(0, 6).map((obj: any, i: number) => ({
+                    domain: obj.domain || prev.objectives[i]?.domain || 'معرفي',
+                    level: obj.level || '',
+                    text: obj.text || '',
+                    evaluation: obj.evaluation || ''
+                }))
+                : prev.objectives
+        }));
+        
+        // Scroll to the plan
+        document.getElementById('lesson-plan-export')?.scrollIntoView({ behavior: 'smooth' });
+    };
+
+    // --- Export Logic ---
     const handleExportPDF = async () => {
         setIsExporting(true);
         
-        // Allow UI to update to "Export Mode" (Text only, no inputs)
-        await new Promise(resolve => setTimeout(resolve, 100));
+        // Allow UI to update to "Export Mode" (Text only, no inputs, small fonts)
+        await new Promise(resolve => setTimeout(resolve, 300));
 
         const element = document.getElementById('lesson-plan-export');
         if (!element) {
@@ -239,39 +323,25 @@ const SmartLessonPlanner: React.FC<{ onBack: () => void }> = ({ onBack }) => {
         }
 
         try {
-            // Use html2canvas to capture the clean layout
             const canvas = await html2canvas(element, {
-                scale: 2, // High res
+                scale: 2,
                 useCORS: true,
                 backgroundColor: '#ffffff',
                 logging: false
             });
 
-            const imgData = canvas.toDataURL('image/jpeg', 0.95);
+            const imgData = canvas.toDataURL('image/jpeg', 0.90);
             const pdf = new jspdf.jsPDF('p', 'mm', 'a4');
-            const pdfWidth = 210; // A4 width mm
-            const pdfHeight = 297; // A4 height mm
-            const margin = 5; // 5mm margins requested
+            const pdfWidth = 210;
+            const pdfHeight = 297;
             
             const imgProps = pdf.getImageProperties(imgData);
-            const imgHeight = (imgProps.height * (pdfWidth - 2 * margin)) / imgProps.width;
+            const imgHeight = (imgProps.height * pdfWidth) / imgProps.width;
             
-            let heightLeft = imgHeight;
-            let position = margin; // Start Y
-
-            // First Page
-            pdf.addImage(imgData, 'JPEG', margin, position, pdfWidth - 2 * margin, imgHeight);
-            heightLeft -= (pdfHeight - 2 * margin);
-
-            // Subsequent Pages
-            while (heightLeft > 0) {
-                position = heightLeft - imgHeight; // Reset position logic for multi-page
-                pdf.addPage();
-                // We draw the same image shifted up
-                pdf.addImage(imgData, 'JPEG', margin, - (pdfHeight - 2 * margin) + position , pdfWidth - 2 * margin, imgHeight);
-                heightLeft -= (pdfHeight - 2 * margin);
-            }
-
+            // Simply add the image. If the "Compact Mode" worked, it should fit on one page.
+            // If it spills, we let it spill or crop, but the user requested single page optimization.
+            pdf.addImage(imgData, 'JPEG', 0, 0, pdfWidth, imgHeight);
+            
             pdf.save(`${plan.lessonTitle || 'Lesson_Plan'}.pdf`);
 
         } catch (e) {
@@ -286,48 +356,161 @@ const SmartLessonPlanner: React.FC<{ onBack: () => void }> = ({ onBack }) => {
         <div className="pb-20">
             <ToolHeader title="رفيقك في التحضير الإلكتروني" onBack={onBack} />
 
-            {/* TOP SECTION: AI Generator & Inputs */}
+            {/* TOP SECTION: Input Only */}
             <div className="neumorphic-outset p-6 mb-8 no-print">
-                <h3 className="text-xl font-bold text-indigo-700 mb-4 border-b pb-2">المولد الذكي للتحضير</h3>
+                <h3 className="text-xl font-bold text-indigo-700 mb-4 border-b pb-2">1. إنشاء تحضير إلكتروني كامل (مُستحسن)</h3>
+                <p className="text-sm text-gray-600 mb-2">اكتب موضوع الدرس (مثال: الفاعل في اللغة العربية) أو الصق محتوى الدرس هنا، ثم اضغط على زر الإنشاء.</p>
+                <textarea 
+                    value={aiInput}
+                    onChange={e => setAiInput(e.target.value)}
+                    placeholder="اكتب هنا..."
+                    className="w-full h-32 p-3 border rounded-lg bg-white text-black mb-4"
+                />
                 
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
-                    <select value={plan.subject} onChange={e => handleInputChange('subject', e.target.value)} className="p-3 border rounded-lg bg-white text-black font-bold">
-                        <option value="">اختر المادة...</option>
-                        {subjects.map(s => <option key={s} value={s}>{s}</option>)}
-                    </select>
-                    <select value={plan.classLevel} onChange={e => handleInputChange('classLevel', e.target.value)} className="p-3 border rounded-lg bg-white text-black font-bold">
-                        <option value="">اختر الصف...</option>
-                        <option value="تمهيدي">تمهيدي</option>
-                        {['الأول', 'الثاني', 'الثالث', 'الرابع', 'الخامس', 'السادس', 'السابع', 'الثامن', 'التاسع'].map(g => <option key={g} value={`${g} أساسي`}>{g} أساسي</option>)}
-                        {['الأول', 'الثاني', 'الثالث'].map(g => <option key={g} value={`${g} ثانوي`}>{g} ثانوي</option>)}
-                    </select>
-                    <input 
-                        type="text" 
-                        placeholder="عنوان الدرس" 
-                        value={plan.lessonTitle} 
-                        onChange={e => handleInputChange('lessonTitle', e.target.value)} 
-                        className="p-3 border rounded-lg bg-white text-black font-bold"
-                    />
+                <div className="flex flex-wrap gap-4">
+                    <button 
+                        onClick={openCreationModal} 
+                        disabled={isGenerating}
+                        className="neumorphic-button py-3 px-8 bg-green-600 text-white font-bold text-lg shadow-lg hover:bg-green-700 transition-all"
+                    >
+                        {isGenerating ? 'جاري الإنشاء...' : 'أنشئ التحضير إلكترونياً'}
+                    </button>
+                    
+                    <button onClick={() => document.getElementById('upload-file')?.click()} className="neumorphic-button bg-gray-200 text-gray-700 px-6 py-3 font-bold">
+                        أو أدرج ملف (txt, pdf, docx, xlsx)
+                    </button>
+                    <input id="upload-file" type="file" className="hidden" onChange={(e) => alert('ميزة قراءة الملفات قادمة قريباً! يرجى نسخ النص ولصقه حالياً.')} />
                 </div>
-
-                <div className="mb-4">
-                    <label className="block text-sm font-bold mb-2">نص الدرس / الموضوع / ملف (انسخ المحتوى هنا):</label>
-                    <textarea 
-                        value={aiInput}
-                        onChange={e => setAiInput(e.target.value)}
-                        placeholder="الصق نص الدرس هنا ليقوم الذكاء الاصطناعي باستخراج الأهداف والوسائل والطرق والمحتوى..."
-                        className="w-full h-32 p-3 border rounded-lg bg-white text-black"
-                    />
-                </div>
-
-                <button 
-                    onClick={handleGenerateAI} 
-                    disabled={isGenerating}
-                    className="neumorphic-button w-full py-3 bg-gradient-to-r from-indigo-600 to-blue-600 text-white font-bold text-lg shadow-lg"
-                >
-                    {isGenerating ? 'جاري التحليل والإنشاء الذكي...' : 'أنشئ التحضير إلكترونياً (AI)'}
-                </button>
             </div>
+
+            {/* 2. EXTRACTION SECTION (Manual Paste) */}
+            <div className="neumorphic-outset p-6 mb-8 bg-blue-50 border border-blue-100 no-print">
+                <h3 className="text-xl font-bold text-blue-800 mb-2">2. استخلاص المعلومات من تحضير جاهز</h3>
+                <p className="text-sm text-gray-600 mb-2">لديك تحضير مكتوب بالفعل؟ الصقه هنا لاستخلاص المعلومات وتعبئة الحقول بالأسفل تلقائياً.</p>
+                <textarea 
+                    placeholder="مثال: عنوان الدرس: الفاعل. المادة: لغة عربية. الصف: الخامس..."
+                    className="w-full h-20 p-3 border rounded-lg bg-white text-black mb-3 text-sm"
+                />
+                <button className="bg-blue-600 text-white px-6 py-2 rounded font-bold hover:bg-blue-700">تحليل النص</button>
+            </div>
+
+            {/* DATA ENTRY MODAL */}
+            {showModal && (
+                <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 no-print">
+                    <div className="bg-white rounded-2xl shadow-2xl w-full max-w-3xl max-h-[90vh] overflow-y-auto p-6 animate-scaleIn">
+                        <h3 className="text-2xl font-bold text-center text-indigo-800 mb-6 border-b pb-4">تفاصيل إنشاء الدرس</h3>
+                        
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                            {/* School Info */}
+                            <div>
+                                <label className="block text-sm font-bold text-gray-700 mb-1">المنطقة التعليمية</label>
+                                <input type="text" value={modalData.district} onChange={e => setModalData({...modalData, district: e.target.value})} className="w-full p-2 border rounded bg-gray-50 focus:bg-white" />
+                            </div>
+                            <div>
+                                <label className="block text-sm font-bold text-gray-700 mb-1">اسم المدرسة</label>
+                                <input type="text" value={modalData.school} onChange={e => setModalData({...modalData, school: e.target.value})} className="w-full p-2 border rounded bg-gray-50 focus:bg-white" />
+                            </div>
+
+                            {/* Subject & Branch */}
+                            <div>
+                                <label className="block text-sm font-bold text-gray-700 mb-1">الماده *</label>
+                                <select value={modalData.subject} onChange={e => setModalData({...modalData, subject: e.target.value, subjectBranch: ''})} className="w-full p-2 border rounded bg-gray-50 focus:bg-white">
+                                    <option value="">اختر المادة...</option>
+                                    {subjectsList.map(s => <option key={s} value={s}>{s}</option>)}
+                                </select>
+                            </div>
+                            <div>
+                                <label className="block text-sm font-bold text-gray-700 mb-1">فرع المادة</label>
+                                {modalData.subject === 'أخرى' ? (
+                                    <input type="text" value={modalData.subjectBranch} onChange={e => setModalData({...modalData, subjectBranch: e.target.value})} placeholder="اكتب الفرع..." className="w-full p-2 border rounded bg-gray-50 focus:bg-white" />
+                                ) : (
+                                    <select value={modalData.subjectBranch} onChange={e => setModalData({...modalData, subjectBranch: e.target.value})} className="w-full p-2 border rounded bg-gray-50 focus:bg-white">
+                                        <option value="">اختر الفرع...</option>
+                                        {(subjectBranchesMap[modalData.subject] || []).map(b => <option key={b} value={b}>{b}</option>)}
+                                    </select>
+                                )}
+                            </div>
+
+                            {/* Lesson Details */}
+                            <div className="md:col-span-2">
+                                <label className="block text-sm font-bold text-gray-700 mb-1">عنوان الدرس *</label>
+                                <input type="text" value={modalData.lessonTitle} onChange={e => setModalData({...modalData, lessonTitle: e.target.value})} className="w-full p-2 border rounded bg-gray-50 focus:bg-white font-bold text-lg" />
+                            </div>
+
+                            {/* Class Info */}
+                            <div>
+                                <label className="block text-sm font-bold text-gray-700 mb-1">الصف *</label>
+                                <select value={modalData.classLevel} onChange={e => setModalData({...modalData, classLevel: e.target.value})} className="w-full p-2 border rounded bg-gray-50 focus:bg-white">
+                                    <option value="">اختر الصف...</option>
+                                    {gradesList.map(g => <option key={g} value={g}>{g}</option>)}
+                                </select>
+                            </div>
+                            <div>
+                                <label className="block text-sm font-bold text-gray-700 mb-1">الشعبة</label>
+                                <select value={modalData.division} onChange={e => setModalData({...modalData, division: e.target.value})} className="w-full p-2 border rounded bg-gray-50 focus:bg-white">
+                                    <option value="">اختر...</option>
+                                    {divisions.map(d => <option key={d} value={d}>{d}</option>)}
+                                </select>
+                            </div>
+
+                            {/* Time Info */}
+                            <div>
+                                <label className="block text-sm font-bold text-gray-700 mb-1">التاريخ</label>
+                                <input type="date" value={modalData.date} onChange={handleModalDateChange} className="w-full p-2 border rounded bg-gray-50 focus:bg-white" />
+                            </div>
+                            <div>
+                                <label className="block text-sm font-bold text-gray-700 mb-1">اليوم</label>
+                                <input type="text" value={modalData.day} readOnly className="w-full p-2 border rounded bg-gray-200 text-gray-600 cursor-not-allowed" />
+                            </div>
+                            <div>
+                                <label className="block text-sm font-bold text-gray-700 mb-1">الحصة</label>
+                                <select value={modalData.period} onChange={e => setModalData({...modalData, period: e.target.value})} className="w-full p-2 border rounded bg-gray-50 focus:bg-white">
+                                    <option value="">اختر...</option>
+                                    {periods.map(p => <option key={p} value={p}>{p}</option>)}
+                                </select>
+                            </div>
+                            <div>
+                                <label className="block text-sm font-bold text-gray-700 mb-1">اسم المعلم/ة</label>
+                                <input type="text" value={modalData.teacherName} onChange={e => setModalData({...modalData, teacherName: e.target.value})} className="w-full p-2 border rounded bg-gray-50 focus:bg-white" />
+                            </div>
+                        </div>
+
+                        <div className="flex gap-4 mt-8">
+                            <button onClick={confirmCreation} className="flex-1 bg-green-600 text-white py-3 rounded-xl font-bold text-lg hover:bg-green-700 transition-colors shadow-lg">
+                                ابدأ التحضير إلكترونياً
+                            </button>
+                            <button onClick={() => setShowModal(false)} className="px-6 py-3 bg-gray-200 text-gray-700 rounded-xl font-bold hover:bg-gray-300">
+                                إلغاء
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* AI RESULT REVIEW SECTION */}
+            {generatedResult && (
+                <div className="neumorphic-outset p-6 mb-8 bg-green-50 border border-green-200 animate-fadeIn no-print">
+                    <h3 className="text-xl font-bold text-green-800 mb-4">التحضير الإلكتروني المقترح:</h3>
+                    <div className="bg-white p-4 rounded-lg border border-gray-300 max-h-60 overflow-y-auto mb-4 text-sm">
+                        <pre className="whitespace-pre-wrap font-sans text-gray-700">
+                            {`**الأهداف السلوكية:**\n` + 
+                             generatedResult.objectives?.map((o:any) => `- **(${o.domain})** ${o.text}`).join('\n') + 
+                             `\n\n**المحتوى:**\n${generatedResult.content?.substring(0, 150)}...`}
+                        </pre>
+                    </div>
+                    <div className="flex flex-wrap gap-3">
+                        <button onClick={applyGeneratedContent} className="neumorphic-button bg-green-600 text-white px-6 py-2 font-bold shadow-md animate-pulse">
+                            <i className="fas fa-check-circle ml-2"></i> تعبئة الحقول أدناه
+                        </button>
+                        <button onClick={() => { navigator.clipboard.writeText(JSON.stringify(generatedResult, null, 2)); alert('تم نسخ النص'); }} className="neumorphic-button bg-blue-500 text-white px-4 py-2 font-bold">
+                            نسخ النص
+                        </button>
+                        <button className="neumorphic-button bg-red-500 text-white px-4 py-2 font-bold">
+                            تصدير PDF
+                        </button>
+                    </div>
+                </div>
+            )}
 
             <div className="w-full h-2 bg-gray-300 my-8 rounded-full no-print"></div>
 
@@ -335,24 +518,27 @@ const SmartLessonPlanner: React.FC<{ onBack: () => void }> = ({ onBack }) => {
             <div className="flex flex-wrap gap-4 mb-6 justify-center no-print">
                 <button onClick={handleNewLesson} className="neumorphic-button bg-yellow-500 text-white px-6 py-2 font-bold"><i className="fas fa-plus"></i> درس جديد</button>
                 <button onClick={() => alert('تم الحفظ تلقائياً')} className="neumorphic-button bg-green-600 text-white px-6 py-2 font-bold"><i className="fas fa-save"></i> حفظ</button>
-                <button onClick={handleExportPDF} className="neumorphic-button bg-red-600 text-white px-6 py-2 font-bold"><i className="fas fa-file-pdf"></i> تصدير PDF</button>
-                <button onClick={onBack} className="neumorphic-button bg-gray-500 text-white px-6 py-2 font-bold"><i className="fas fa-arrow-right"></i> عودة</button>
+                <button onClick={handleExportPDF} className="neumorphic-button bg-indigo-600 text-white px-6 py-2 font-bold"><i className="fas fa-file-pdf"></i> تصدير A4 (PDF)</button>
             </div>
 
             {/* ------------------------------------------------------- */}
             {/* BOTTOM SECTION: The "Canvas" (Exportable Area) */}
             {/* ------------------------------------------------------- */}
-            <div className="flex justify-center">
+            <div className="flex justify-center overflow-x-auto">
                 <div 
                     id="lesson-plan-export" 
-                    className={`bg-white text-black shadow-2xl p-8 mx-auto ${isExporting ? 'w-[210mm]' : 'w-full max-w-[210mm]'}`} // A4 width approx
-                    style={{ minHeight: '297mm', border: '1px solid #ccc' }}
+                    className={`bg-white text-black shadow-2xl mx-auto origin-top transition-transform duration-300 ${isExporting ? 'w-[210mm] p-[5mm] pt-[2mm]' : 'w-full max-w-[210mm] p-8'}`}
+                    style={{ 
+                        minHeight: isExporting ? '297mm' : 'auto', 
+                        border: '1px solid #ccc',
+                        fontSize: isExporting ? '10pt' : '12pt' // Shrink font for single page fit
+                    }}
                 >
                     {/* HEADER */}
-                    <div className="flex justify-between items-start border-b-4 border-double border-black pb-4 mb-4">
+                    <div className={`flex justify-between items-start border-b-4 border-double border-black pb-1 ${isExporting ? 'mb-1' : 'mb-3'}`}>
                         {/* Right */}
-                        <div className="text-right w-1/4 text-xs font-bold space-y-2">
-                            <p className="text-sm">الجمهورية اليمنية</p>
+                        <div className="text-right w-1/4 font-bold space-y-1" style={{ fontSize: isExporting ? '9pt' : '10pt' }}>
+                            <p>الجمهورية اليمنية</p>
                             <p>{plan.ministry}</p>
                             <div className="flex items-center gap-1">
                                 <span>المنطقة:</span>
@@ -366,28 +552,28 @@ const SmartLessonPlanner: React.FC<{ onBack: () => void }> = ({ onBack }) => {
 
                         {/* Center */}
                         <div className="text-center flex-grow flex flex-col items-center">
-                            <div className="flex gap-4 mb-2">
+                            <div className={`flex gap-4 ${isExporting ? 'mb-0' : 'mb-1'}`}>
                                 {/* School Logo */}
-                                <div className="relative group w-16 h-16 cursor-pointer" onClick={() => !isExporting && logoInputRef.current?.click()}>
-                                    <img src={schoolLogo} alt="School Logo" className="w-full h-full object-contain" />
+                                <div className="relative group w-14 h-14 cursor-pointer" onClick={() => !isExporting && logoInputRef.current?.click()}>
+                                    <img src={schoolLogo} alt="School Logo" className={`w-full h-full object-contain ${isExporting ? 'scale-75' : ''}`} />
                                     {!isExporting && <div className="absolute inset-0 bg-black/20 hidden group-hover:flex items-center justify-center text-white text-xs rounded">تغيير</div>}
                                     <input type="file" ref={logoInputRef} className="hidden" onChange={e => handleImageUpload(e, setSchoolLogo)} />
                                 </div>
                                 {/* Eagle */}
-                                <div className="relative group w-20 h-20 cursor-pointer" onClick={() => !isExporting && eagleInputRef.current?.click()}>
-                                    <img src={eagleImage} alt="Eagle" className="w-full h-full object-contain" />
+                                <div className="relative group w-16 h-16 cursor-pointer" onClick={() => !isExporting && eagleInputRef.current?.click()}>
+                                    <img src={eagleImage} alt="Eagle" className={`w-full h-full object-contain ${isExporting ? 'scale-75' : ''}`} />
                                     {!isExporting && <div className="absolute inset-0 bg-black/20 hidden group-hover:flex items-center justify-center text-white text-xs rounded">تغيير</div>}
                                     <input type="file" ref={eagleInputRef} className="hidden" onChange={e => handleImageUpload(e, setEagleImage)} />
                                 </div>
                             </div>
-                            {/* Lesson Title Box */}
-                            <div className="border-2 border-black rounded px-6 py-2 font-black text-lg mt-2 bg-gray-50 shadow-sm w-full max-w-xs">
-                                {isExporting ? plan.lessonTitle : <input type="text" value={plan.lessonTitle} onChange={e => handleInputChange('lessonTitle', e.target.value)} className="w-full text-center bg-transparent focus:outline-none" placeholder="عنوان الدرس" />}
-                            </div>
+                            {/* Lesson Title */}
+                            <h2 className={`font-black text-blue-900 my-1 ${isExporting ? 'text-lg' : 'text-2xl'}`}>
+                                خطة الدرس اليومي
+                            </h2>
                         </div>
 
                         {/* Left */}
-                        <div className="text-left w-1/4 text-xs font-bold space-y-2" dir="ltr">
+                        <div className="text-left w-1/4 font-bold space-y-1" dir="ltr" style={{ fontSize: isExporting ? '9pt' : '10pt' }}>
                             <div className="flex items-center justify-end gap-1">
                                 {isExporting ? <span>{plan.day}</span> : <input type="text" value={plan.day} onChange={e => handleInputChange('day', e.target.value)} className="border-b border-dotted border-black w-24 text-right bg-transparent focus:outline-none" />}
                                 <span>:اليوم</span>
@@ -396,211 +582,170 @@ const SmartLessonPlanner: React.FC<{ onBack: () => void }> = ({ onBack }) => {
                                 {isExporting ? <span>{plan.date}</span> : <input type="date" value={plan.date} onChange={e => handleInputChange('date', e.target.value)} className="border-b border-dotted border-black w-24 text-right bg-transparent focus:outline-none" />}
                                 <span>:التاريخ</span>
                             </div>
-                            <div className="flex items-center justify-end gap-1">
-                                {isExporting ? <span>{plan.subject}</span> : <input type="text" value={plan.subject} onChange={e => handleInputChange('subject', e.target.value)} className="border-b border-dotted border-black w-24 text-right bg-transparent focus:outline-none" />}
-                                <span>:المادة</span>
-                            </div>
                         </div>
                     </div>
 
-                    {/* INFO ROW */}
-                    <div className="flex flex-wrap border-b-2 border-black pb-2 mb-4 text-sm font-bold gap-4 items-center">
+                    {/* INFO ROW 1 */}
+                    <div className="flex flex-wrap border-b border-gray-400 pb-2 mb-2 text-sm font-bold items-center justify-between gap-2" style={{ fontSize: isExporting ? '9pt' : '10pt' }}>
+                        
+                        {/* Subject & Branch */}
+                        <div className="flex gap-4 border-l border-gray-400 pl-4">
+                            <div className="flex items-center gap-1">
+                                <span className="text-red-800">المادة:</span>
+                                {isExporting ? <span className="px-1">{plan.subject}</span> : 
+                                <select value={plan.subject} onChange={e => handleInputChange('subject', e.target.value)} className="border-b border-black bg-transparent w-28">
+                                    <option value=""></option>
+                                    {subjectsList.map(s => <option key={s} value={s}>{s}</option>)}
+                                </select>}
+                            </div>
+                            <div className="flex items-center gap-1">
+                                <span className="text-red-800">فرع المادة:</span>
+                                {isExporting ? <span className="px-1">{plan.subjectBranch}</span> : 
+                                <input type="text" value={plan.subjectBranch} onChange={e => handleInputChange('subjectBranch', e.target.value)} className="border-b border-black bg-transparent w-20" placeholder="نحو/أدب..." />}
+                            </div>
+                        </div>
+
+                        {/* Lesson Title (In Row) */}
+                        <div className="flex items-center gap-1 flex-grow justify-center bg-gray-50 px-2 rounded border border-gray-200">
+                            <span className="text-red-800">عنوان الدرس:</span>
+                            {isExporting ? <span className="font-black px-2">{plan.lessonTitle}</span> : <input type="text" value={plan.lessonTitle} onChange={e => handleInputChange('lessonTitle', e.target.value)} className="bg-transparent w-full font-black text-center focus:outline-none" />}
+                        </div>
+                    </div>
+
+                    {/* INFO ROW 2 */}
+                    <div className="flex flex-wrap border-b-2 border-black pb-2 mb-3 text-sm font-bold gap-3 items-center" style={{ fontSize: isExporting ? '9pt' : '10pt' }}>
                         <div className="flex items-center gap-1">
-                            <span>الصف:</span>
-                            {isExporting ? <span className="px-2">{plan.classLevel}</span> : 
-                            <select value={plan.classLevel} onChange={e => handleInputChange('classLevel', e.target.value)} className="border-b border-black bg-transparent w-20">
+                            <span className="text-red-800">الصف:</span>
+                            {isExporting ? <span className="px-1">{plan.classLevel}</span> : 
+                            <select value={plan.classLevel} onChange={e => handleInputChange('classLevel', e.target.value)} className="border-b border-black bg-transparent w-24">
                                 <option value=""></option>
-                                {['الأول', 'الثاني', 'الثالث', 'الرابع', 'الخامس', 'السادس', 'السابع', 'الثامن', 'التاسع'].map(g => <option key={g} value={`${g} أساسي`}>{g} أساسي</option>)}
-                                {['الأول', 'الثاني', 'الثالث'].map(g => <option key={g} value={`${g} ثانوي`}>{g} ثانوي</option>)}
+                                {gradesList.map(g => <option key={g} value={g}>{g}</option>)}
                             </select>}
                         </div>
                         <div className="flex items-center gap-1">
-                            <span>الشعبة:</span>
-                            {isExporting ? <span className="px-2">{plan.division}</span> : 
+                            <span className="text-red-800">الشعبة:</span>
+                            {isExporting ? <span className="px-1">{plan.division}</span> : 
                             <select value={plan.division} onChange={e => handleInputChange('division', e.target.value)} className="border-b border-black bg-transparent w-12">
                                 <option value=""></option>
                                 {divisions.map(d => <option key={d} value={d}>{d}</option>)}
                             </select>}
                         </div>
                         <div className="flex items-center gap-1">
-                            <span>الحصة:</span>
-                            {isExporting ? <span className="px-2">{plan.period}</span> : 
+                            <span className="text-red-800">الحصة:</span>
+                            {isExporting ? <span className="px-1">{plan.period}</span> : 
                             <select value={plan.period} onChange={e => handleInputChange('period', e.target.value)} className="border-b border-black bg-transparent w-16">
                                 <option value=""></option>
                                 {periods.map(p => <option key={p} value={p}>{p}</option>)}
                             </select>}
                         </div>
-                        <div className="flex items-center gap-1 flex-grow">
-                            <span>السلوك:</span>
-                            {isExporting ? <span className="px-2">{plan.behavior}</span> : <input type="text" value={plan.behavior} onChange={e => handleInputChange('behavior', e.target.value)} className="border-b border-black bg-transparent flex-grow focus:outline-none" />}
+                    </div>
+
+                    {/* OBJECTIVES */}
+                    <div className="mb-3">
+                        <h4 className="font-bold text-red-800 mb-1 border-b border-gray-300 inline-block">الأهداف السلوكية</h4>
+                        <div className="space-y-1">
+                            {plan.objectives.map((obj, i) => (
+                                <div key={i} className="flex items-start gap-1 text-sm" style={{ fontSize: isExporting ? '9pt' : '10pt' }}>
+                                    <span className="font-bold min-w-[80px] text-gray-700 text-xs pt-1">
+                                        {obj.domain === 'معرفي' ? '🧠 (معرفي)' : obj.domain === 'مهاري' ? '✋ (مهاري)' : '❤️ (وجداني)'}
+                                    </span>
+                                    {isExporting ? (
+                                        <div className="flex-grow border-b border-dotted border-gray-300 pb-1 leading-tight">
+                                            <span className="font-bold text-gray-600 mx-1">[{obj.level}]:</span>
+                                            {obj.text} 
+                                            <span className="text-gray-500 text-xs mx-2">(التقويم: {obj.evaluation})</span>
+                                        </div>
+                                    ) : (
+                                        <div className="flex-grow flex gap-1">
+                                            <input value={obj.level} onChange={e => handleObjectiveChange(i, 'level', e.target.value)} placeholder="المستوى" className="w-20 border-b border-gray-300 text-xs" />
+                                            <input value={obj.text} onChange={e => handleObjectiveChange(i, 'text', e.target.value)} placeholder="أن..." className="flex-grow border-b border-gray-300" />
+                                            <input value={obj.evaluation} onChange={e => handleObjectiveChange(i, 'evaluation', e.target.value)} placeholder="التقويم" className="w-32 border-b border-gray-300 text-xs" />
+                                        </div>
+                                    )}
+                                </div>
+                            ))}
                         </div>
                     </div>
 
-                    {/* METHODS & AIDS */}
-                    <div className="grid grid-cols-2 gap-4 mb-4 text-sm">
-                        <div className="border border-black p-2 rounded">
-                            <span className="font-bold underline block mb-1">طرق وأساليب التدريس:</span>
-                            <div className="flex flex-wrap gap-2">
-                                {plan.methods.map((m, i) => (
-                                    <div key={i} className="w-[45%]">
-                                        {isExporting ? <span>- {m}</span> : 
-                                        <div className="flex gap-1">
-                                            <span>-</span>
-                                            <input list="methods-list" value={m} onChange={e => handleArrayChange('methods', i, e.target.value)} className="w-full border-b border-dotted border-gray-400 bg-transparent focus:outline-none text-xs" />
-                                        </div>}
-                                    </div>
-                                ))}
+                    {/* METHODS & AIDS (Compact Grid) */}
+                    <div className="grid grid-cols-2 gap-4 mb-3 pb-2 border-b border-gray-300">
+                        <div>
+                            <h4 className="font-bold text-red-800 text-sm mb-1">الوسائل والاستراتيجيات</h4>
+                            <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-gray-800">
+                                {plan.methods.slice(0, 3).map((m, i) => m && <span key={i}>• {m}</span>)}
+                                {plan.aids.slice(0, 3).map((a, i) => a && <span key={i}>• {a}</span>)}
+                            </div>
+                        </div>
+                        <div>
+                            <h4 className="font-bold text-red-800 text-sm mb-1">طرق التدريس</h4>
+                            <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-gray-800">
+                                {plan.methods.map((m, i) => isExporting ? (m && <span key={i}>◻ {m}</span>) : <input key={i} list="methods-list" value={m} onChange={e => handleArrayChange('methods', i, e.target.value)} className="w-20 border-b border-dotted border-gray-400 bg-transparent focus:outline-none text-xs" />)}
                                 <datalist id="methods-list">{methodsList.map(m => <option key={m} value={m} />)}</datalist>
                             </div>
                         </div>
-                        <div className="border border-black p-2 rounded">
-                            <span className="font-bold underline block mb-1">الوسائل التعليمية:</span>
-                            <div className="flex flex-wrap gap-2">
-                                {plan.aids.map((a, i) => (
-                                    <div key={i} className="w-[45%]">
-                                        {isExporting ? <span>- {a}</span> : 
-                                        <div className="flex gap-1">
-                                            <span>-</span>
-                                            <input list="aids-list" value={a} onChange={e => handleArrayChange('aids', i, e.target.value)} className="w-full border-b border-dotted border-gray-400 bg-transparent focus:outline-none text-xs" />
-                                        </div>}
-                                    </div>
-                                ))}
-                                <datalist id="aids-list">{aidsList.map(a => <option key={a} value={a} />)}</datalist>
-                            </div>
-                        </div>
                     </div>
 
-                    {/* INTRO & ACTIVITIES */}
-                    <div className="mb-4 space-y-2 text-sm">
-                        <div className="flex gap-2">
-                            <span className="font-bold whitespace-nowrap">التمهيد:</span>
-                            <div className="flex-grow border-b border-black">
-                                {isExporting ? <p className="px-1">{plan.introText}</p> : <textarea rows={2} value={plan.introText} onChange={e => handleInputChange('introText', e.target.value)} className="w-full bg-transparent focus:outline-none resize-none" />}
-                            </div>
-                            <div className="w-32 border border-black p-1 rounded">
-                                <span className="text-xs block font-bold text-gray-500">النوع:</span>
-                                {isExporting ? <span>{plan.introType}</span> : <input type="text" value={plan.introType} onChange={e => handleInputChange('introType', e.target.value)} className="w-full bg-transparent focus:outline-none" />}
+                    {/* CONTENT AREA */}
+                    <div className="mb-3">
+                        <div className="flex justify-between mb-1">
+                            <h4 className="font-bold text-red-800 text-sm">سير الدرس</h4>
+                            <div className="text-xs font-bold flex gap-4">
+                                <span>التمهيد: {plan.introType}</span>
                             </div>
                         </div>
-                        <div className="flex gap-2">
-                            <span className="font-bold whitespace-nowrap">الأنشطة:</span>
-                            <div className="flex-grow border-b border-black">
-                                {isExporting ? <p className="px-1">{plan.activities}</p> : <textarea rows={2} value={plan.activities} onChange={e => handleInputChange('activities', e.target.value)} className="w-full bg-transparent focus:outline-none resize-none" />}
-                            </div>
+                        
+                        {/* Intro - Reduced vertical padding */}
+                        <div className="mb-2 p-1 bg-gray-50 border border-gray-200 rounded text-sm leading-snug" style={{ fontSize: isExporting ? '9pt' : '10pt' }}>
+                            <span className="font-bold text-red-800 ml-2">التمهيد:</span>
+                            {isExporting ? plan.introText : <input value={plan.introText} onChange={e => handleInputChange('introText', e.target.value)} className="bg-transparent w-3/4" />}
                         </div>
-                    </div>
 
-                    {/* OBJECTIVES TABLE */}
-                    <div className="mb-4">
-                        <table className="w-full border-2 border-black text-center text-sm">
-                            <thead className="bg-gray-200 font-bold">
-                                <tr>
-                                    <th className="border border-black p-1 w-20">المجال</th>
-                                    <th className="border border-black p-1 w-24">المستوى</th>
-                                    <th className="border border-black p-1">صياغة الهدف السلوكي</th>
-                                    <th className="border border-black p-1 w-32">التقويم</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {plan.objectives.map((obj, i) => (
-                                    <tr key={i} className="border border-black">
-                                        <td className="border border-black p-1 font-bold bg-gray-50">{obj.domain}</td>
-                                        <td className="border border-black p-1">
-                                            {isExporting ? obj.level : <input type="text" value={obj.level} onChange={e => handleObjectiveChange(i, 'level', e.target.value)} className="w-full text-center bg-transparent focus:outline-none" placeholder="تذكر/فهم..." />}
-                                        </td>
-                                        <td className="border border-black p-1 text-right">
-                                            {isExporting ? <p className="pr-1">{obj.text}</p> : <input type="text" value={obj.text} onChange={e => handleObjectiveChange(i, 'text', e.target.value)} className="w-full text-right bg-transparent focus:outline-none" placeholder="أن..." />}
-                                        </td>
-                                        <td className="border border-black p-1">
-                                            {isExporting ? obj.evaluation : <input type="text" value={obj.evaluation} onChange={e => handleObjectiveChange(i, 'evaluation', e.target.value)} className="w-full text-center bg-transparent focus:outline-none" />}
-                                        </td>
-                                    </tr>
-                                ))}
-                            </tbody>
-                        </table>
-                    </div>
-
-                    {/* ROLES */}
-                    <div className="grid grid-cols-2 gap-4 mb-4 text-sm">
-                        <div>
-                            <span className="font-bold underline">دور المعلم:</span>
-                            {isExporting ? <p className="mt-1 text-justify">{plan.teacherRole}</p> : <textarea rows={3} value={plan.teacherRole} onChange={e => handleInputChange('teacherRole', e.target.value)} className="w-full border border-gray-300 rounded p-1 mt-1 bg-transparent focus:outline-none" />}
-                        </div>
-                        <div>
-                            <span className="font-bold underline">دور المتعلم:</span>
-                            {isExporting ? <p className="mt-1 text-justify">{plan.learnerRole}</p> : <textarea rows={3} value={plan.learnerRole} onChange={e => handleInputChange('learnerRole', e.target.value)} className="w-full border border-gray-300 rounded p-1 mt-1 bg-transparent focus:outline-none" />}
-                        </div>
-                    </div>
-
-                    {/* CONTENT */}
-                    <div className="mb-4 text-sm">
-                        <span className="font-bold underline block mb-2">محتوى الدرس:</span>
-                        <div className={`border border-black rounded p-2 min-h-[150px] ${isExporting ? '' : 'bg-yellow-50/30'}`}>
+                        {/* Main Content - Compact Box */}
+                        <div className="border border-gray-300 rounded p-2 min-h-[80px] text-justify leading-relaxed" style={{ fontSize: isExporting ? '9pt' : '10pt' }}>
+                            <h5 className="font-bold text-red-800 mb-1">محتوى الدرس والأنشطة</h5>
                             {isExporting ? (
-                                <div className="whitespace-pre-wrap text-justify leading-relaxed">{plan.content}</div>
+                                <div className="whitespace-pre-wrap">{plan.content}</div>
                             ) : (
                                 <textarea 
                                     value={plan.content} 
                                     onChange={e => handleInputChange('content', e.target.value)} 
                                     className="w-full h-full min-h-[150px] bg-transparent focus:outline-none resize-y"
-                                    placeholder="اكتب محتوى الدرس هنا (10 أسطر على الأقل)..."
                                 />
                             )}
                         </div>
                     </div>
 
-                    {/* CLOSURE & HOMEWORK */}
-                    <div className="mb-4 space-y-2 text-sm">
-                        <div className="flex gap-2">
-                            <span className="font-bold whitespace-nowrap">غلق الدرس:</span>
-                            <div className="flex-grow border-b border-black">
-                                {isExporting ? <p className="px-1">{plan.closureText}</p> : <input type="text" value={plan.closureText} onChange={e => handleInputChange('closureText', e.target.value)} className="w-full bg-transparent focus:outline-none" />}
-                            </div>
-                            <div className="w-32 border border-black p-1 rounded flex items-center gap-1">
-                                <span className="text-xs font-bold text-gray-500">النوع:</span>
-                                {isExporting ? <span>{plan.closureType}</span> : <input type="text" value={plan.closureType} onChange={e => handleInputChange('closureType', e.target.value)} className="w-full bg-transparent focus:outline-none" />}
-                            </div>
+                    {/* ROLES & CLOSURE */}
+                    <div className="grid grid-cols-2 gap-2 mb-2">
+                        <div className="border border-gray-200 p-1 rounded">
+                            <span className="font-bold text-red-800 text-xs block">أدوار الطالب</span>
+                            <p className="text-xs leading-tight">{plan.learnerRole}</p>
                         </div>
-                        <div className="flex gap-2">
-                            <span className="font-bold whitespace-nowrap">الواجب المنزلي:</span>
-                            <div className="flex-grow border-b border-black">
-                                {isExporting ? <p className="px-1">{plan.homeworkText}</p> : <input type="text" value={plan.homeworkText} onChange={e => handleInputChange('homeworkText', e.target.value)} className="w-full bg-transparent focus:outline-none" />}
-                            </div>
-                            <div className="w-32 border border-black p-1 rounded flex items-center gap-1">
-                                <span className="text-xs font-bold text-gray-500">النوع:</span>
-                                {isExporting ? <span>{plan.homeworkType}</span> : <input type="text" value={plan.homeworkType} onChange={e => handleInputChange('homeworkType', e.target.value)} className="w-full bg-transparent focus:outline-none" />}
-                            </div>
+                        <div className="border border-gray-200 p-1 rounded">
+                            <span className="font-bold text-red-800 text-xs block">أدوار المعلم</span>
+                            <p className="text-xs leading-tight">{plan.teacherRole}</p>
                         </div>
                     </div>
 
-                    {/* NOTES & REFLECTION */}
-                    <div className="mb-6 space-y-2 text-sm">
-                        <div className="flex gap-2">
-                            <span className="font-bold whitespace-nowrap">الملاحظات الإدارية:</span>
-                            <div className="flex-grow border-b border-black border-dotted">
-                                {isExporting ? <p className="px-1">{plan.adminNotes}</p> : <input type="text" value={plan.adminNotes} onChange={e => handleInputChange('adminNotes', e.target.value)} className="w-full bg-transparent focus:outline-none" />}
-                            </div>
+                    {/* FOOTER SECTION */}
+                    <div className="bg-gray-50 p-2 rounded border border-gray-200">
+                        <div className="flex justify-between text-sm mb-1">
+                            <span className="font-bold text-red-800">التقويم والخاتمة</span>
+                            <span className="font-bold text-red-800">الختامة والتقويم</span>
                         </div>
-                        <div className="flex gap-2">
-                            <span className="font-bold whitespace-nowrap text-purple-800">ترنيمة قلم:</span>
-                            <div className="flex-grow border-b border-black border-dotted">
-                                {isExporting ? <p className="px-1 italic">{plan.reflection}</p> : <input type="text" value={plan.reflection} onChange={e => handleInputChange('reflection', e.target.value)} className="w-full bg-transparent focus:outline-none" />}
-                            </div>
+                        <p className="text-xs mb-2 border-b border-dotted border-gray-300 pb-1">{plan.closureText}</p>
+                        
+                        <div className="flex justify-between text-sm mb-1">
+                            <span className="font-bold text-red-800">الواجب المنزلي</span>
                         </div>
+                        <p className="text-xs">{plan.homeworkText}</p>
                     </div>
 
-                    {/* FOOTER */}
-                    <div className="flex justify-between items-end mt-8 pt-4 border-t-2 border-black text-sm font-bold">
-                        <div>
-                            <p>اسم المعلم:</p>
-                            {isExporting ? <p className="mt-4 text-lg">{plan.teacherName}</p> : <input type="text" value={plan.teacherName} onChange={e => handleInputChange('teacherName', e.target.value)} className="mt-2 border-b border-black w-48 bg-transparent focus:outline-none" placeholder="......................." />}
-                        </div>
-                        <div>
-                            <p>التوقيع:</p>
-                            <p className="mt-4">.......................</p>
-                        </div>
-                        <div className="text-left">
-                            <p className="italic text-gray-600 font-serif text-lg">دفتر المعلم الاحترافي</p>
+                    {/* SIGNATURES - Modified to move Teacher to LEFT */}
+                    <div className="mt-4 pt-1 border-t-2 border-black text-xs font-bold flex justify-end">
+                        <div className="flex items-center gap-2">
+                            <span className="text-red-800">اسم المعلم/ة:</span>
+                            {isExporting ? <span>{plan.teacherName}</span> : <input type="text" value={plan.teacherName} onChange={e => handleInputChange('teacherName', e.target.value)} className="border-b border-black w-32 bg-transparent text-center" />}
                         </div>
                     </div>
 
