@@ -1,3 +1,4 @@
+
 import React, { useEffect } from 'react';
 import { tools, ToolKey } from '../../constants';
 
@@ -40,8 +41,9 @@ const Home: React.FC<HomeProps> = ({ onSelectTool, lastActiveTool, onOpenMostUse
         {/* Today's Tasks (Distinct Color) */}
         <button 
             onClick={() => onSelectTool('importantDates')}
-            className="bg-gradient-to-br from-emerald-500 to-teal-600 text-white font-bold py-4 rounded-2xl shadow-md transform transition hover:scale-[1.02] flex flex-col items-center justify-center gap-2 border-2 border-white/20"
+            className="relative bg-gradient-to-br from-emerald-500 to-teal-600 text-white font-bold py-4 rounded-2xl shadow-md transform transition hover:scale-[1.02] flex flex-col items-center justify-center gap-2 border-2 border-white/20"
         >
+            <span className="absolute -top-2 -right-2 bg-white text-emerald-700 text-[10px] font-bold px-2 py-0.5 rounded-full border border-emerald-200 shadow-sm animate-pulse">جديد</span>
             <i className="fas fa-calendar-check text-xl"></i>
             <span className="text-sm">أعمال اليوم</span>
         </button>
@@ -58,8 +60,9 @@ const Home: React.FC<HomeProps> = ({ onSelectTool, lastActiveTool, onOpenMostUse
         {/* Daily Schedule (Distinct Color + Renamed) */}
         <button 
             onClick={() => onSelectTool('classSchedule')}
-            className="bg-gradient-to-br from-blue-500 to-indigo-600 text-white font-bold py-4 rounded-2xl shadow-md transform transition hover:scale-[1.02] flex flex-col items-center justify-center gap-2 border-2 border-white/20"
+            className="relative bg-gradient-to-br from-blue-500 to-indigo-600 text-white font-bold py-4 rounded-2xl shadow-md transform transition hover:scale-[1.02] flex flex-col items-center justify-center gap-2 border-2 border-white/20"
         >
+            <span className="absolute -top-2 -right-2 bg-white text-blue-700 text-[10px] font-bold px-2 py-0.5 rounded-full border border-blue-200 shadow-sm animate-pulse">جديد</span>
             <i className="fas fa-chalkboard-teacher text-xl"></i>
             <span className="text-sm">جدول الحصص اليومي</span>
         </button>
@@ -82,6 +85,13 @@ const Home: React.FC<HomeProps> = ({ onSelectTool, lastActiveTool, onOpenMostUse
             <div className="absolute left-0 top-2 h-12 w-[calc(100%-3rem)] bg-component-bg rounded-l-full rounded-r-none flex items-center justify-center shadow-sm border border-gray-100 dark:border-gray-700 transition-all transform group-hover:translate-x-[-5px] group-hover:bg-primary group-hover:text-white"
                  style={{ color: 'var(--color-tool-text-override, rgb(var(--color-base-text)))' }}>
                 <span className="text-lg font-bold group-hover:text-white transition-colors">{tool.label}</span>
+                
+                {/* NEW BADGE INDICATOR */}
+                {tool.isNew && (
+                    <span className="absolute -top-3 left-4 bg-green-100 text-green-800 text-[10px] font-bold px-2 py-0.5 rounded border border-green-300 z-30 shadow-sm">
+                        جديد
+                    </span>
+                )}
             </div>
           </div>
         ))}

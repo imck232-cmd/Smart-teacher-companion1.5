@@ -44,17 +44,18 @@ interface Tool {
   key: ToolKey;
   label: string;
   icon: string;
+  isNew?: boolean; // Added property for "New" badge
 }
 
 export const tools: Tool[] = [
   { key: 'search', label: 'البحث العام', icon: 'fas fa-search' },
-  { key: 'participationLog', label: 'سجل المشاركات', icon: 'fas fa-list-ol' },
-  { key: 'gradeSheet', label: 'كشف الدرجات', icon: 'fas fa-clipboard-list' },
+  { key: 'participationLog', label: 'سجل المشاركات', icon: 'fas fa-list-ol', isNew: true },
+  { key: 'gradeSheet', label: 'كشف الدرجات', icon: 'fas fa-clipboard-list', isNew: true },
   { key: 'aiTools', label: 'أدوات الذكاء الاصطناعي', icon: 'fas fa-robot' },
   { key: 'createAIPrompts', label: 'إنشاء أوامر للذكاء الاصطناعي', icon: 'fas fa-magic' },
   { key: 'curriculumExamples', label: 'أمثلة عملية من واقع المناهج الدراسية', icon: 'fas fa-chalkboard-teacher' },
   { key: 'createFlashcards', label: 'البطاقات التعليمية', icon: 'fas fa-clone' },
-  { key: 'creativeIdeas', label: 'اطلق العنان لأبداعك', icon: 'fas fa-rocket' },
+  { key: 'creativeIdeas', label: 'اطلق العنان لأبداعك', icon: 'fas fa-rocket', isNew: true },
   { key: 'addNote', label: 'إضافة ملاحظة', icon: 'fas fa-sticky-note' },
   { key: 'summarizeLesson', label: 'تلخيص درس', icon: 'fas fa-file-alt' },
   { key: 'solveBookQuestions', label: 'حل أسئلة الكتاب', icon: 'fas fa-book-open' },
@@ -79,8 +80,8 @@ export const tools: Tool[] = [
   { key: 'createBarcode', label: 'إنشاء باركود', icon: 'fas fa-barcode' },
   { key: 'textToSong', label: 'تحويل النص إلى إنشودة', icon: 'fas fa-music'},
   { key: 'yourTasks', label: 'مهامك', icon: 'fas fa-tasks' },
-  { key: 'classSchedule', label: 'جدول الحصص', icon: 'fas fa-table' },
-  { key: 'importantDates', label: 'تواريخ تهمك', icon: 'fas fa-calendar-day' },
+  { key: 'classSchedule', label: 'جدول الحصص', icon: 'fas fa-table', isNew: true },
+  { key: 'importantDates', label: 'تواريخ تهمك', icon: 'fas fa-calendar-day', isNew: true },
   { key: 'innovate', label: 'ابتكر', icon: 'fas fa-lightbulb' },
   { key: 'archives', label: 'المحفوظات', icon: 'fas fa-archive' },
   { key: 'chatBot', label: 'المحادثة الفورية', icon: 'fas fa-comments' },
