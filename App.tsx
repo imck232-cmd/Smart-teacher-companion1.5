@@ -299,6 +299,7 @@ const App: React.FC = () => {
       <Header 
         onToggleThemeSwitcher={() => setIsThemeSwitcherOpen(true)} 
         onToggleAppearance={() => setIsAppearanceSettingsOpen(true)}
+        onToggleSidebar={() => setIsSidebarOpen(!isSidebarOpen)}
       />
       
       {isThemeSwitcherOpen && (
@@ -326,7 +327,7 @@ const App: React.FC = () => {
       <main className="flex-grow container mx-auto p-4 pt-24">
         {renderTool()}
       </main>
-      <Footer onToggleSidebar={() => setIsSidebarOpen(!isSidebarOpen)} />
+      <Footer />
       <ScrollToTopButton isVisible={isScrollButtonVisible} onClick={handleScrollToTop} />
     </div>
   );

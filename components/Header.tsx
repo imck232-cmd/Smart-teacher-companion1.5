@@ -1,17 +1,19 @@
+
 import React from 'react';
 
 interface HeaderProps {
     onToggleThemeSwitcher: () => void;
     onToggleAppearance: () => void;
+    onToggleSidebar: () => void;
 }
 
-const Header: React.FC<HeaderProps> = ({ onToggleThemeSwitcher, onToggleAppearance }) => {
+const Header: React.FC<HeaderProps> = ({ onToggleThemeSwitcher, onToggleAppearance, onToggleSidebar }) => {
   const whatsappUrl = "https://wa.me/967780804012";
 
   return (
     <header className="relative shadow-lg py-4 sticky top-0 z-50" style={{ backgroundColor: 'rgb(var(--color-component-bg))' }}>
        
-       {/* Action Buttons Group */}
+       {/* Left Action Buttons (Theme/Appearance) */}
        <div className="absolute bottom-4 left-4 flex gap-3 z-20">
            <button 
                 onClick={onToggleAppearance}
@@ -28,6 +30,18 @@ const Header: React.FC<HeaderProps> = ({ onToggleThemeSwitcher, onToggleAppearan
                 data-tooltip="تغيير السمة"
             >
                 <i className="fas fa-palette text-icon"></i>
+            </button>
+       </div>
+
+       {/* Right Action Button (Sidebar) */}
+       <div className="absolute bottom-4 right-4 z-20">
+            <button 
+                onClick={onToggleSidebar}
+                className="neumorphic-button w-10 h-10 flex items-center justify-center hover:!transform-none"
+                aria-label="Open tools menu"
+                data-tooltip="قائمة الأدوات"
+            >
+                <i className="fas fa-bars text-icon"></i>
             </button>
        </div>
 
