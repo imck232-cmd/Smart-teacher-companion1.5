@@ -476,12 +476,9 @@ const FlashcardsCreator: React.FC<{ onBack: () => void }> = ({ onBack }) => {
 
   const handleFrameSelect = (frame: FrameStyle) => {
       setSelectedFrameId(frame.id);
-      // Update defaults ONLY if they exist on the frame
+      // Only update default color if present, BUT DO NOT OVERRIDE FONT FAMILY
+      // This ensures the user's chosen font persists across frame changes.
       if (frame.defaultColor) setTextColor(frame.defaultColor);
-      // We do NOT override the font family here if the user has already chosen one,
-      // but initially it might be helpful. Let's respect user choice if they changed it.
-      // For simplicity in this fix, we update it to ensure the frame looks good initially.
-      if (frame.defaultFont) setFontFamily(frame.defaultFont);
   };
 
   const currentFrame = frames.find(f => f.id === selectedFrameId) || frames[0];
@@ -586,7 +583,6 @@ const FlashcardsCreator: React.FC<{ onBack: () => void }> = ({ onBack }) => {
                 style={{
                     boxShadow: '0 4px 6px rgba(0,0,0,0.1)',
                     ...currentFrame.containerStyle,
-                    // Ensure font family is applied to container for inheritance fallback
                     fontFamily: fontFamily 
                 }}
             >
@@ -601,18 +597,21 @@ const FlashcardsCreator: React.FC<{ onBack: () => void }> = ({ onBack }) => {
                           fontSize: `${fontSize}px`,
                           fontWeight: fontWeight,
                           lineHeight: '1.4',
-                          // Apply font family directly to the text wrapper
-                          fontFamily: fontFamily 
+                          fontFamily: fontFamily,
+                          whiteSpace: 'pre-wrap' // Ensure formatting is respected
                       }}>
                     {/* DIRECT H2 Style Application */}
-                    <h2 style={{ 
-                        fontSize: 'inherit', 
-                        color: 'inherit', 
-                        fontWeight: 'inherit', 
-                        margin: 0,
-                        // Critical: Ensure the inner element explicitly requests the font
-                        fontFamily: fontFamily 
-                        }} dir="auto">
+                    <h2 
+                        key={fontFamily} // Force re-render of element when font changes
+                        style={{ 
+                            fontSize: 'inherit', 
+                            color: 'inherit', 
+                            fontWeight: 'inherit', 
+                            margin: 0,
+                            fontFamily: fontFamily 
+                        }} 
+                        dir="auto"
+                    >
                         {cardText}
                     </h2>
                  </div>
