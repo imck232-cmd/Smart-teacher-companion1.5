@@ -369,7 +369,6 @@ const SmartLessonPlanner: React.FC<{ onBack: () => void }> = ({ onBack }) => {
             const imgData = canvas.toDataURL('image/jpeg', 0.75);
             const pdf = new jspdf.jsPDF('p', 'mm', 'a4');
             const pdfWidth = 210;
-            const pdfHeight = 297;
             
             const imgProps = pdf.getImageProperties(imgData);
             const imgHeight = (imgProps.height * pdfWidth) / imgProps.width;
@@ -390,7 +389,7 @@ const SmartLessonPlanner: React.FC<{ onBack: () => void }> = ({ onBack }) => {
         <div className="pb-20">
             <ToolHeader title="رفيقك في التحضير الإلكتروني" onBack={onBack} />
 
-            {/* TOP SECTION: Input Only */}
+            {/* TOP SECTION: Input Only (No initial fields here) */}
             <div className="neumorphic-outset p-6 mb-8 no-print">
                 <h3 className="text-xl font-bold text-indigo-700 mb-4 border-b pb-2">1. إنشاء تحضير إلكتروني كامل (مُستحسن)</h3>
                 <p className="text-sm text-gray-600 mb-2">اكتب موضوع الدرس (مثال: الفاعل في اللغة العربية) أو الصق محتوى الدرس هنا، ثم اضغط على زر الإنشاء.</p>
@@ -565,13 +564,13 @@ const SmartLessonPlanner: React.FC<{ onBack: () => void }> = ({ onBack }) => {
                     style={{ 
                         minHeight: isExporting ? '297mm' : 'auto', 
                         border: '1px solid #ccc',
-                        fontSize: isExporting ? '10pt' : '12pt' // Shrink font for single page fit
+                        fontSize: isExporting ? '9pt' : '12pt' // Compact font
                     }}
                 >
                     {/* HEADER */}
                     <div className={`flex justify-between items-start border-b-4 border-double border-black pb-1 ${isExporting ? 'mb-1' : 'mb-3'}`}>
                         {/* Right */}
-                        <div className="text-right w-1/4 font-bold space-y-1" style={{ fontSize: isExporting ? '9pt' : '10pt' }}>
+                        <div className="text-right w-1/4 font-bold space-y-1" style={{ fontSize: isExporting ? '8pt' : '10pt' }}>
                             <p>الجمهورية اليمنية</p>
                             <p>{plan.ministry}</p>
                             <div className="flex items-center gap-1">
@@ -586,7 +585,7 @@ const SmartLessonPlanner: React.FC<{ onBack: () => void }> = ({ onBack }) => {
 
                         {/* Center */}
                         <div className="text-center flex-grow flex flex-col items-center">
-                            <div className={`flex gap-4 ${isExporting ? 'mb-0' : 'mb-1'}`}>
+                            <div className={`flex gap-4 ${isExporting ? 'mb-0 -mt-2' : 'mb-1'}`}>
                                 {/* School Logo */}
                                 <div className="relative group w-14 h-14 cursor-pointer" onClick={() => !isExporting && logoInputRef.current?.click()}>
                                     <img src={schoolLogo} alt="School Logo" className={`w-full h-full object-contain ${isExporting ? 'scale-75' : ''}`} />
@@ -607,7 +606,7 @@ const SmartLessonPlanner: React.FC<{ onBack: () => void }> = ({ onBack }) => {
                         </div>
 
                         {/* Left */}
-                        <div className="text-left w-1/4 font-bold space-y-1" dir="ltr" style={{ fontSize: isExporting ? '9pt' : '10pt' }}>
+                        <div className="text-left w-1/4 font-bold space-y-1" dir="ltr" style={{ fontSize: isExporting ? '8pt' : '10pt' }}>
                             <div className="flex items-center justify-end gap-1">
                                 {isExporting ? <span>{plan.day}</span> : <input type="text" value={plan.day} onChange={e => handleInputChange('day', e.target.value)} className="border-b border-dotted border-black w-24 text-right bg-transparent focus:outline-none" />}
                                 <span>:اليوم</span>

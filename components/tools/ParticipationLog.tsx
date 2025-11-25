@@ -324,7 +324,7 @@ const ParticipationLog: React.FC<{ onBack: () => void }> = ({ onBack }) => {
             <button 
                 onClick={() => updateScore(sessionId, studentId, field, true)}
                 onContextMenu={(e) => { e.preventDefault(); updateScore(sessionId, studentId, field, false); }}
-                className={`w-10 h-10 rounded-full flex items-center justify-center text-lg transition-all duration-100 active:scale-90 select-none ${colorClass}`}
+                className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold transition-all duration-100 active:scale-90 select-none ${colorClass}`}
             >
                 {String(score)}
             </button>
@@ -432,109 +432,115 @@ const ParticipationLog: React.FC<{ onBack: () => void }> = ({ onBack }) => {
 
                         {/* CONTENT */}
                         {session.isExpanded && (
-                            <div className="p-4">
+                            <div className="p-2 md:p-4">
                                 {/* EXPORTABLE CONTAINER - VISIBLE IN PDF */}
-                                <div className="export-container" id={`participation-export-${session.id}`}>
-                                    
-                                    {/* A4 HEADER LAYOUT */}
-                                    <div className="mb-4 border-b-2 border-black pb-2">
-                                        <div className="grid grid-cols-3 items-center text-black">
-                                            {/* Right: Ministry/School */}
-                                            <div className="text-right space-y-1 font-bold text-sm">
-                                                <p>وزارة التربية والتعليم</p>
-                                                <p>المدرسة: {safeString(schoolName) || '..................'}</p>
-                                                <p>المادة: {safeString(session.subject)}</p>
-                                            </div>
-                                            
-                                            {/* Center: Title (Editable) */}
-                                            <div className="text-center">
-                                                <input 
-                                                    type="text" 
-                                                    value={safeString(session.recordTitle)}
-                                                    onChange={(e) => handleUpdateSessionTitle(session.id, e.target.value)}
-                                                    className="text-center font-black text-xl w-full bg-transparent border-none focus:ring-0 p-0 m-0 text-black"
-                                                    style={{ outline: 'none' }}
-                                                />
-                                            </div>
-                                            
-                                            {/* Left: Class/Date */}
-                                            <div className="text-left space-y-1 font-bold text-sm" dir="ltr">
-                                                <p>Class: {safeString(session.className)}</p>
-                                                <p>Date: {safeString(session.date)}</p>
-                                                <p>Year: {safeString(session.schoolYear)}</p>
+                                {/* Added overflow-x-auto for mobile visibility */}
+                                <div className="overflow-x-auto w-full shadow-sm rounded">
+                                    <div className="export-container" id={`participation-export-${session.id}`}>
+                                        
+                                        {/* A4 HEADER LAYOUT */}
+                                        <div className="mb-4 border-b-2 border-black pb-2">
+                                            <div className="grid grid-cols-3 items-center text-black">
+                                                {/* Right: Ministry/School */}
+                                                <div className="text-right space-y-1 font-bold text-xs md:text-sm">
+                                                    <p>وزارة التربية والتعليم</p>
+                                                    <p>المدرسة: {safeString(schoolName) || '..................'}</p>
+                                                    <p>المادة: {safeString(session.subject)}</p>
+                                                </div>
+                                                
+                                                {/* Center: Title (Editable) */}
+                                                <div className="text-center">
+                                                    <input 
+                                                        type="text" 
+                                                        value={safeString(session.recordTitle)}
+                                                        onChange={(e) => handleUpdateSessionTitle(session.id, e.target.value)}
+                                                        className="text-center font-black text-lg w-full bg-transparent border-none focus:ring-0 p-0 m-0 text-black"
+                                                        style={{ outline: 'none' }}
+                                                    />
+                                                </div>
+                                                
+                                                {/* Left: Class/Date */}
+                                                <div className="text-left space-y-1 font-bold text-xs md:text-sm" dir="ltr">
+                                                    <p>Class: {safeString(session.className)}</p>
+                                                    <p>Date: {safeString(session.date)}</p>
+                                                    <p>Year: {safeString(session.schoolYear)}</p>
+                                                </div>
                                             </div>
                                         </div>
-                                    </div>
 
-                                    {/* TABLE */}
-                                    <div className="overflow-x-auto">
-                                        <table className="w-full border-collapse text-center text-black border-2 border-black text-sm">
-                                            <thead>
-                                                <tr className="bg-gray-100">
-                                                    <th className="border border-black p-1 w-10">م</th>
-                                                    <th className="border border-black p-1 text-right">اسم الطالب</th>
-                                                    {headers.map((h, i) => (
-                                                        <th 
-                                                            key={i} 
-                                                            className="border border-black p-1 w-20 cursor-pointer hover:bg-gray-200 relative group"
-                                                            onClick={() => handleRenameHeader(i)}
-                                                            title="انقر لتغيير اسم المعيار"
-                                                        >
-                                                            {safeString(h)}
-                                                            <i className="fas fa-pencil-alt text-[10px] text-gray-400 absolute top-1 left-1 opacity-0 group-hover:opacity-100 no-print"></i>
-                                                        </th>
-                                                    ))}
-                                                    <th className="border border-black p-1 w-16 bg-gray-200 font-black">المجموع</th>
-                                                    <th className="border border-black p-1 w-16 no-print">إجراءات</th>
-                                                </tr>
-                                            </thead>
-                                            <tbody>
-                                                {session.students.map((student, idx) => (
-                                                    <tr key={student.id} className="border-b border-black">
-                                                        <td className="border border-black p-1 font-bold">{idx + 1}</td>
-                                                        <td className="border border-black p-1 text-right font-bold text-base">
-                                                            {editingStudentId === student.id ? (
-                                                                <div className="flex gap-1">
-                                                                    <input value={tempStudentName} onChange={e => setTempStudentName(e.target.value)} className="border border-black p-1 w-full text-black text-sm" autoFocus />
-                                                                    <button onClick={() => handleSaveStudentName(session.id)} className="text-green-600"><i className="fas fa-check"></i></button>
-                                                                </div>
-                                                            ) : (
-                                                                safeString(student.name)
-                                                            )}
-                                                        </td>
-                                                        <td className="border border-black p-1">{renderScoreBtn(session.id, student.id, student.score1, 'score1')}</td>
-                                                        <td className="border border-black p-1">{renderScoreBtn(session.id, student.id, student.score2, 'score2')}</td>
-                                                        <td className="border border-black p-1">{renderScoreBtn(session.id, student.id, student.score3, 'score3')}</td>
-                                                        <td className="border border-black p-1">{renderScoreBtn(session.id, student.id, student.score4, 'score4')}</td>
-                                                        <td className="border border-black p-1 font-black text-base bg-gray-100">{String(student.total)}</td>
-                                                        <td className="border border-black p-1 no-print">
-                                                            <div className="flex justify-center gap-2">
-                                                                <button onClick={() => handleStartEditStudent(student)} className="text-blue-600 hover:scale-110"><i className="fas fa-pencil-alt"></i></button>
-                                                                <button onClick={() => handleDeleteStudent(session.id, student.id)} className="text-red-600 hover:scale-110"><i className="fas fa-trash"></i></button>
-                                                            </div>
-                                                        </td>
+                                        {/* TABLE */}
+                                        <div className="overflow-x-auto">
+                                            <table className="w-full table-fixed border-collapse text-center text-black border-2 border-black text-[9px] sm:text-xs">
+                                                <thead>
+                                                    <tr className="bg-gray-100">
+                                                        <th className="border border-black p-0 w-6">م</th>
+                                                        {/* REDUCED WIDTH FOR MOBILE DENSITY */}
+                                                        <th className="border border-black p-1 text-right w-16 truncate">اسم الطالب</th>
+                                                        {headers.map((h, i) => (
+                                                            <th 
+                                                                key={i} 
+                                                                className="border border-black p-[1px] w-8 cursor-pointer hover:bg-gray-200 relative group leading-tight break-words"
+                                                                onClick={() => handleRenameHeader(i)}
+                                                                title="انقر لتغيير اسم المعيار"
+                                                            >
+                                                                {safeString(h)}
+                                                                <i className="fas fa-pencil-alt text-[8px] text-gray-400 absolute top-0 left-0 opacity-0 group-hover:opacity-100 no-print"></i>
+                                                            </th>
+                                                        ))}
+                                                        <th className="border border-black p-[1px] w-8 bg-gray-200 font-black">المجموع</th>
+                                                        <th className="border border-black p-0 w-8 no-print">إجراءات</th>
                                                     </tr>
-                                                ))}
-                                            </tbody>
-                                        </table>
-                                    </div>
+                                                </thead>
+                                                <tbody>
+                                                    {session.students.map((student, idx) => (
+                                                        <tr key={student.id} className="border-b border-black">
+                                                            <td className="border border-black p-0 font-bold">{idx + 1}</td>
+                                                            <td className="border border-black p-1 text-right font-bold truncate">
+                                                                {editingStudentId === student.id ? (
+                                                                    <div className="flex gap-1">
+                                                                        <input value={tempStudentName} onChange={e => setTempStudentName(e.target.value)} className="border border-black p-0 w-full text-black text-[9px]" autoFocus />
+                                                                        <button onClick={() => handleSaveStudentName(session.id)} className="text-green-600 text-[9px]"><i className="fas fa-check"></i></button>
+                                                                    </div>
+                                                                ) : (
+                                                                    safeString(student.name)
+                                                                )}
+                                                            </td>
+                                                            {/* Centered buttons with zero padding on cell for maximum density */}
+                                                            <td className="border border-black p-0 h-full"><div className="flex justify-center items-center h-full py-1">{renderScoreBtn(session.id, student.id, student.score1, 'score1')}</div></td>
+                                                            <td className="border border-black p-0 h-full"><div className="flex justify-center items-center h-full py-1">{renderScoreBtn(session.id, student.id, student.score2, 'score2')}</div></td>
+                                                            <td className="border border-black p-0 h-full"><div className="flex justify-center items-center h-full py-1">{renderScoreBtn(session.id, student.id, student.score3, 'score3')}</div></td>
+                                                            <td className="border border-black p-0 h-full"><div className="flex justify-center items-center h-full py-1">{renderScoreBtn(session.id, student.id, student.score4, 'score4')}</div></td>
+                                                            
+                                                            <td className="border border-black p-0 font-black bg-gray-100 align-middle">{String(student.total)}</td>
+                                                            <td className="border border-black p-0 no-print">
+                                                                <div className="flex justify-center gap-1">
+                                                                    <button onClick={() => handleStartEditStudent(student)} className="text-blue-600 hover:scale-110 text-[9px]"><i className="fas fa-pencil-alt"></i></button>
+                                                                    <button onClick={() => handleDeleteStudent(session.id, student.id)} className="text-red-600 hover:scale-110 text-[9px]"><i className="fas fa-trash"></i></button>
+                                                                </div>
+                                                            </td>
+                                                        </tr>
+                                                    ))}
+                                                </tbody>
+                                            </table>
+                                        </div>
 
-                                    {/* Footer */}
-                                    <div className="mt-6 pt-2 border-t-2 border-black grid grid-cols-3 text-center text-black text-sm">
-                                        <div>
-                                            <p className="font-bold">معلم المادة</p>
-                                            <p className="mt-4 text-base font-semibold">{safeString(teacherName)}</p>
+                                        {/* Footer */}
+                                        <div className="mt-6 pt-2 border-t-2 border-black grid grid-cols-3 text-center text-black text-xs">
+                                            <div>
+                                                <p className="font-bold">معلم المادة</p>
+                                                <p className="mt-4 text-base font-semibold">{safeString(teacherName)}</p>
+                                            </div>
+                                            <div>
+                                                <p className="font-bold">وكيل الشؤون التعليمية</p>
+                                                <p className="mt-4">....................</p>
+                                            </div>
+                                            <div>
+                                                <p className="font-bold">مدير المدرسة</p>
+                                                <p className="mt-4">....................</p>
+                                            </div>
                                         </div>
-                                        <div>
-                                            <p className="font-bold">وكيل الشؤون التعليمية</p>
-                                            <p className="mt-4">....................</p>
-                                        </div>
-                                        <div>
-                                            <p className="font-bold">مدير المدرسة</p>
-                                            <p className="mt-4">....................</p>
-                                        </div>
-                                    </div>
-                                </div> {/* End Export Container */}
+                                    </div> {/* End Export Container */}
+                                </div>
 
                                 {/* Controls OUTSIDE Export Container */}
                                 <div className="mt-6 no-print border-t pt-4">

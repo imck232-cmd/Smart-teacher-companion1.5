@@ -295,125 +295,129 @@ const GradeSheet: React.FC<{ onBack: () => void }> = ({ onBack }) => {
 
             {/* Main Content - A4 Container for Print */}
             {activeSheet ? (
-                <div className="export-container" id="grades-export">
-                    {/* Report Header - 3 Columns */}
-                    <div className="mb-6 border-b-2 border-black pb-4">
-                        <div className="grid grid-cols-3 items-center">
-                            {/* Right */}
-                            <div className="text-right space-y-1 font-bold">
-                                <p>وزارة التربية والتعليم</p>
-                                <p>المدرسة: <input value={safeString(activeInfo.school)} onChange={e => updateInfoField('school', e.target.value)} className="border-b border-gray-400 focus:outline-none w-40 text-black bg-transparent font-bold" /></p>
-                                <p>المادة: <input value={safeString(activeInfo.subject)} onChange={e => updateInfoField('subject', e.target.value)} className="border-b border-gray-400 focus:outline-none w-40 text-black bg-transparent font-bold" /></p>
-                            </div>
-                            
-                            {/* Center */}
-                            <div className="text-center">
-                                <h2 className="text-xl font-black underline mb-2">كشف رصد الدرجات</h2>
-                                <input 
-                                    value={safeString(activeInfo.month)} 
-                                    onChange={e => updateInfoField('month', e.target.value)} 
-                                    placeholder="عنوان الكشف / الشهر"
-                                    className="text-center font-bold text-lg border-b-2 border-black focus:outline-none w-full bg-transparent text-black" 
-                                />
-                            </div>
-                            
-                            {/* Left */}
-                            <div className="text-left space-y-1 font-bold" dir="ltr">
-                                <p>Class: <input value={safeString(activeInfo.class)} onChange={e => updateInfoField('class', e.target.value)} className="border-b border-gray-400 focus:outline-none w-20 text-center text-black bg-transparent font-bold" /> / <input value={safeString(activeInfo.division)} onChange={e => updateInfoField('division', e.target.value)} className="border-b border-gray-400 focus:outline-none w-12 text-center text-black bg-transparent font-bold" /></p>
-                                <p>Date: <input type="date" value={safeString(activeInfo.date)} onChange={e => updateInfoField('date', e.target.value)} className="border-b border-gray-400 focus:outline-none text-black bg-transparent font-bold" /></p>
+                // Added overflow-x-auto for mobile visibility
+                <div className="overflow-x-auto w-full shadow-sm rounded mb-4">
+                    <div className="export-container" id="grades-export">
+                        {/* Report Header - 3 Columns */}
+                        <div className="mb-6 border-b-2 border-black pb-4">
+                            <div className="grid grid-cols-3 items-center">
+                                {/* Right */}
+                                <div className="text-right space-y-1 font-bold text-sm">
+                                    <p>وزارة التربية والتعليم</p>
+                                    <p>المدرسة: <input value={safeString(activeInfo.school)} onChange={e => updateInfoField('school', e.target.value)} className="border-b border-gray-400 focus:outline-none w-40 text-black bg-transparent font-bold" /></p>
+                                    <p>المادة: <input value={safeString(activeInfo.subject)} onChange={e => updateInfoField('subject', e.target.value)} className="border-b border-gray-400 focus:outline-none w-40 text-black bg-transparent font-bold" /></p>
+                                </div>
+                                
+                                {/* Center */}
+                                <div className="text-center">
+                                    <h2 className="text-xl font-black underline mb-2">كشف رصد الدرجات</h2>
+                                    <input 
+                                        value={safeString(activeInfo.month)} 
+                                        onChange={e => updateInfoField('month', e.target.value)} 
+                                        placeholder="عنوان الكشف / الشهر"
+                                        className="text-center font-bold text-lg border-b-2 border-black focus:outline-none w-full bg-transparent text-black" 
+                                    />
+                                </div>
+                                
+                                {/* Left */}
+                                <div className="text-left space-y-1 font-bold text-sm" dir="ltr">
+                                    <p>Class: <input value={safeString(activeInfo.class)} onChange={e => updateInfoField('class', e.target.value)} className="border-b border-gray-400 focus:outline-none w-20 text-center text-black bg-transparent font-bold" /> / <input value={safeString(activeInfo.division)} onChange={e => updateInfoField('division', e.target.value)} className="border-b border-gray-400 focus:outline-none w-12 text-center text-black bg-transparent font-bold" /></p>
+                                    <p>Date: <input type="date" value={safeString(activeInfo.date)} onChange={e => updateInfoField('date', e.target.value)} className="border-b border-gray-400 focus:outline-none text-black bg-transparent font-bold" /></p>
+                                </div>
                             </div>
                         </div>
-                    </div>
 
-                    {/* Table */}
-                    <div className="overflow-x-auto">
-                        <table className="w-full text-center border-collapse text-black text-sm md:text-base border-2 border-black">
-                            <thead>
-                                <tr className="bg-gray-100">
-                                    <th className="border border-black p-2 w-8">م</th>
-                                    <th className="border border-black p-2 text-right min-w-[200px]">اسم الطالب</th>
-                                    <th className="border border-black p-2">مواظبة</th>
-                                    <th className="border border-black p-2">شفوي</th>
-                                    <th className="border border-black p-2">واجبات</th>
-                                    <th className="border border-black p-2">تحريري</th>
-                                    <th className="border border-black p-2 bg-gray-200">المجموع</th>
-                                    <th className="border border-black p-2 w-10 no-print"></th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {activeStudents.map((student, idx) => (
-                                    <tr key={student.id} className="border-b border-black hover:bg-gray-50">
-                                        <td className="border border-black p-2 font-bold">{idx+1}</td>
-                                        <td className="border border-black p-2 text-right font-bold">
-                                            {editingStudentId === student.id ? (
-                                                <div className="flex items-center gap-1">
-                                                    <input value={tempStudentName} onChange={e => setTempStudentName(e.target.value)} className="w-full border p-1 text-black" autoFocus />
-                                                    <button onClick={handleSaveEdit} className="text-green-600"><i className="fas fa-check"></i></button>
+                        {/* Table */}
+                        <div className="overflow-x-auto">
+                            <table className="w-full table-fixed text-center border-collapse text-black text-[9px] sm:text-xs border-2 border-black">
+                                <thead>
+                                    <tr className="bg-gray-100">
+                                        <th className="border border-black p-0 w-6">م</th>
+                                        {/* REDUCED WIDTH FOR MOBILE DENSITY */}
+                                        <th className="border border-black p-1 text-right w-16 truncate">اسم الطالب</th>
+                                        <th className="border border-black p-1 w-8">مواظبة</th>
+                                        <th className="border border-black p-1 w-8">شفوي</th>
+                                        <th className="border border-black p-1 w-8">واجب</th>
+                                        <th className="border border-black p-1 w-8">تحريري</th>
+                                        <th className="border border-black p-1 w-8 bg-gray-200">المجموع</th>
+                                        <th className="border border-black p-0 w-8 no-print"></th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {activeStudents.map((student, idx) => (
+                                        <tr key={student.id} className="border-b border-black hover:bg-gray-50">
+                                            <td className="border border-black p-0 font-bold">{idx+1}</td>
+                                            <td className="border border-black p-1 text-right font-bold truncate">
+                                                {editingStudentId === student.id ? (
+                                                    <div className="flex items-center gap-1">
+                                                        <input value={tempStudentName} onChange={e => setTempStudentName(e.target.value)} className="w-full border p-0 text-black text-[9px]" autoFocus />
+                                                        <button onClick={handleSaveEdit} className="text-green-600 text-[9px]"><i className="fas fa-check"></i></button>
+                                                    </div>
+                                                ) : (
+                                                    <div className="flex justify-between items-center group">
+                                                        <span>{safeString(student.name)}</span>
+                                                    </div>
+                                                )}
+                                            </td>
+                                            <td className="border border-black p-0"><input type="number" value={String(student.attendance)} onChange={e => updateGrade(student.id, 'attendance', e.target.value)} className="w-full text-center font-bold text-black bg-transparent outline-none p-0" /></td>
+                                            <td className="border border-black p-0"><input type="number" value={String(student.oral)} onChange={e => updateGrade(student.id, 'oral', e.target.value)} className="w-full text-center font-bold text-black bg-transparent outline-none p-0" /></td>
+                                            <td className="border border-black p-0"><input type="number" value={String(student.homework)} onChange={e => updateGrade(student.id, 'homework', e.target.value)} className="w-full text-center font-bold text-black bg-transparent outline-none p-0" /></td>
+                                            <td className="border border-black p-0"><input type="number" value={student.written === null ? '' : String(student.written)} placeholder="غ" onChange={e => updateGrade(student.id, 'written', e.target.value)} className={`w-full text-center font-bold bg-transparent outline-none p-0 ${student.written === null ? 'bg-red-50' : 'text-black'}`} /></td>
+                                            <td className="border border-black p-0 font-black bg-gray-100">{String(student.total)}</td>
+                                            <td className="border border-black p-0 no-print">
+                                                <div className="flex gap-1 justify-center">
+                                                    <button onClick={() => handleStartEdit(student)} className="text-blue-500 text-[9px]"><i className="fas fa-pencil-alt"></i></button>
+                                                    <button onClick={() => handleDeleteStudent(student.id)} className="text-red-500 text-[9px]"><i className="fas fa-trash"></i></button>
                                                 </div>
-                                            ) : (
-                                                <div className="flex justify-between items-center group">
-                                                    <span>{safeString(student.name)}</span>
-                                                </div>
-                                            )}
-                                        </td>
-                                        <td className="border border-black p-1"><input type="number" value={String(student.attendance)} onChange={e => updateGrade(student.id, 'attendance', e.target.value)} className="w-full text-center font-bold text-black bg-transparent outline-none" /></td>
-                                        <td className="border border-black p-1"><input type="number" value={String(student.oral)} onChange={e => updateGrade(student.id, 'oral', e.target.value)} className="w-full text-center font-bold text-black bg-transparent outline-none" /></td>
-                                        <td className="border border-black p-1"><input type="number" value={String(student.homework)} onChange={e => updateGrade(student.id, 'homework', e.target.value)} className="w-full text-center font-bold text-black bg-transparent outline-none" /></td>
-                                        <td className="border border-black p-1"><input type="number" value={student.written === null ? '' : String(student.written)} placeholder="غ" onChange={e => updateGrade(student.id, 'written', e.target.value)} className={`w-full text-center font-bold bg-transparent outline-none ${student.written === null ? 'bg-red-50' : 'text-black'}`} /></td>
-                                        <td className="border border-black p-2 font-black bg-gray-100">{String(student.total)}</td>
-                                        <td className="border border-black p-1 no-print">
-                                            <div className="flex gap-1 justify-center">
-                                                <button onClick={() => handleStartEdit(student)} className="text-blue-500"><i className="fas fa-pencil-alt text-xs"></i></button>
-                                                <button onClick={() => handleDeleteStudent(student.id)} className="text-red-500"><i className="fas fa-trash text-xs"></i></button>
+                                            </td>
+                                        </tr>
+                                    ))}
+                                    
+                                    {/* Add Student Row (No Print) */}
+                                    <tr className="no-print bg-blue-50">
+                                        <td className="border border-blue-200 p-0">+</td>
+                                        <td className="border border-blue-200 p-1" colSpan={7}>
+                                            <div className="flex gap-2">
+                                                <input 
+                                                    value={newStudentName} 
+                                                    onChange={e => setNewStudentName(e.target.value)} 
+                                                    className="p-1 border rounded flex-grow bg-white text-black text-xs" 
+                                                    placeholder="اسم الطالب الجديد..." 
+                                                    onKeyDown={e => e.key === 'Enter' && handleAddStudent()} 
+                                                />
+                                                <button onClick={handleAddStudent} className="bg-blue-500 text-white px-3 rounded text-xs">إضافة</button>
                                             </div>
                                         </td>
                                     </tr>
-                                ))}
-                                
-                                {/* Add Student Row (No Print) */}
-                                <tr className="no-print bg-blue-50">
-                                    <td className="border border-blue-200 p-2">+</td>
-                                    <td className="border border-blue-200 p-2" colSpan={7}>
-                                        <div className="flex gap-2">
-                                            <input 
-                                                value={newStudentName} 
-                                                onChange={e => setNewStudentName(e.target.value)} 
-                                                className="p-1 border rounded flex-grow bg-white text-black text-sm" 
-                                                placeholder="اسم الطالب الجديد..." 
-                                                onKeyDown={e => e.key === 'Enter' && handleAddStudent()} 
-                                            />
-                                            <button onClick={handleAddStudent} className="bg-blue-500 text-white px-3 rounded text-sm">إضافة</button>
-                                        </div>
-                                    </td>
-                                </tr>
-                            </tbody>
-                            <tfoot>
-                                <tr className="bg-gray-200 font-bold border-t-2 border-black">
-                                    <td colSpan={2} className="border border-black p-2 text-center">الإجمالي</td>
-                                    <td className="border border-black p-2">{String(totals.attendance)}</td>
-                                    <td className="border border-black p-2">{String(totals.oral)}</td>
-                                    <td className="border border-black p-2">{String(totals.homework)}</td>
-                                    <td className="border border-black p-2">{String(totals.written)}</td>
-                                    <td className="border border-black p-2">{String(totals.total)}</td>
-                                    <td className="border border-black no-print"></td>
-                                </tr>
-                            </tfoot>
-                        </table>
-                    </div>
+                                </tbody>
+                                <tfoot>
+                                    <tr className="bg-gray-200 font-bold border-t-2 border-black">
+                                        <td colSpan={2} className="border border-black p-0 text-center">الإجمالي</td>
+                                        <td className="border border-black p-0">{String(totals.attendance)}</td>
+                                        <td className="border border-black p-0">{String(totals.oral)}</td>
+                                        <td className="border border-black p-0">{String(totals.homework)}</td>
+                                        <td className="border border-black p-0">{String(totals.written)}</td>
+                                        <td className="border border-black p-0">{String(totals.total)}</td>
+                                        <td className="border border-black no-print"></td>
+                                    </tr>
+                                </tfoot>
+                            </table>
+                        </div>
 
-                    {/* Footer */}
-                    <div className="mt-8 flex justify-between items-end text-black pt-4 border-t-2 border-black text-center">
-                        <div>
-                            <p className="mb-4 font-bold">معلم المادة</p>
-                            <p className="font-bold text-lg">{safeString(teacherName)}</p>
-                        </div>
-                        <div>
-                            <p className="mb-4 font-bold">وكيل الشؤون التعليمية</p>
-                            <p>................................</p>
-                        </div>
-                        <div>
-                            <p className="mb-4 font-bold">مدير المدرسة</p>
-                            <p className="mb-4">الختم</p>
+                        {/* Footer */}
+                        <div className="mt-8 flex justify-between items-end text-black pt-4 border-t-2 border-black text-center text-xs">
+                            <div>
+                                <p className="mb-4 font-bold">معلم المادة</p>
+                                <p className="font-bold text-base">{safeString(teacherName)}</p>
+                            </div>
+                            <div>
+                                <p className="mb-4 font-bold">وكيل الشؤون التعليمية</p>
+                                <p>................................</p>
+                            </div>
+                            <div>
+                                <p className="mb-4 font-bold">مدير المدرسة</p>
+                                <p className="mb-4">الختم</p>
+                            </div>
                         </div>
                     </div>
                 </div>
