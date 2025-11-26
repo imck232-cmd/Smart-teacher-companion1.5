@@ -28,6 +28,9 @@ import MostUsedTools from './components/tools/MostUsedTools';
 import ParticipationLog from './components/tools/ParticipationLog';
 import GradeSheet from './components/tools/GradeSheet';
 import SmartLessonPlanner from './components/tools/SmartLessonPlanner';
+import TranscribeAudio from './components/tools/TranscribeAudio';
+import AiChatbot from './components/tools/AiChatbot';
+import ProImageGenerator from './components/tools/ProImageGenerator';
 import { themes, Theme } from './themes';
 import Sidebar from './components/Sidebar';
 import ScrollToTopButton from './components/ScrollToTopButton';
@@ -281,6 +284,12 @@ const App: React.FC = () => {
         return <FlashcardsCreator onBack={handleGoHome} />;
       
       // New Tools
+      case 'transcribeAudio':
+          return <TranscribeAudio onBack={handleGoHome} />;
+      case 'aiChatbotPro':
+          return <AiChatbot onBack={handleGoHome} />;
+      case 'proImageGenerator':
+          return <ProImageGenerator onBack={handleGoHome} />;
       case 'addNote':
           return <AddNote onBack={handleGoHome} />;
       case 'summarizeLesson':

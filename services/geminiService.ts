@@ -321,3 +321,63 @@ export const generateSmartLessonPlan = async (inputText: string, context: any) =
         throw error;
     }
 };
+
+// --- NEW SERVICES ---
+
+// Audio Transcription using gemini-2.5-flash
+export const transcribeAudioFile = async (base64Audio: string, mimeType: string) => {
+    try {
+        const client = getAiClient();
+        const response = await client.models.generateContent({
+            model: 'gemini-2.5-flash',
+            contents: {
+                parts: [
+                    { inlineData: { mimeType, data: base64Audio } },
+                    { text: "Transcribe this audio file accurately into the original language." }
+                ]
+            }
+        });
+        return response.text;
+    } catch (error) {
+        console.error("Error transcribing audio:", error);
+        throw error;
+    }
+};
+
+// Pro Chat using gemini-3-pro-preview
+export const startProChat = (prompt: string) => {
+    try {
+        const client = getAiClient();
+        return client.models.generateContentStream({
+            model: 'gemini-3-pro-preview',
+            contents: prompt,
+        });
+    } catch (error) {
+        console.error("Error starting Pro chat:", error);
+        throw error;
+    }
+};
+
+// Image Generation using gemini-3-pro-image-preview
+export const generateProImage = async (prompt: string, size: string) => {
+    try {
+        // Create a NEW client instance to ensure we pick up any newly selected API keys
+        // This is mandatory for gemini-3-pro-image-preview which requires user billing
+        const API_KEY = process.env.API_KEY;
+        const client = new GoogleGenAI({ apiKey: API_KEY });
+
+        const response = await client.models.generateContent({
+            model: 'gemini-3-pro-image-preview',
+            contents: { parts: [{ text: prompt }] },
+            config: {
+                imageConfig: {
+                    imageSize: size // "1K", "2K", or "4K"
+                }
+            },
+        });
+        return response;
+    } catch (error) {
+        console.error("Error generating pro image:", error);
+        throw error;
+    }
+};

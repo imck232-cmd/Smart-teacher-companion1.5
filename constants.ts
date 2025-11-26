@@ -40,7 +40,10 @@ export type ToolKey =
   | 'chatBot'
   | 'imageAnalyzer'
   | 'textToSpeechInternal'
-  | 'createFlashcards';
+  | 'createFlashcards'
+  | 'transcribeAudio'
+  | 'aiChatbotPro'
+  | 'proImageGenerator';
 
 interface Tool {
   key: ToolKey;
@@ -51,6 +54,9 @@ interface Tool {
 
 export const tools: Tool[] = [
   { key: 'search', label: 'البحث العام', icon: 'fas fa-search' },
+  { key: 'transcribeAudio', label: 'تحويل الصوت إلى نص', icon: 'fas fa-microphone-lines', isNew: true },
+  { key: 'aiChatbotPro', label: 'المساعد الذكي (Pro)', icon: 'fas fa-brain', isNew: true },
+  { key: 'proImageGenerator', label: 'توليد صور (احترافي)', icon: 'fas fa-palette', isNew: true },
   { key: 'participationLog', label: 'سجل المشاركات', icon: 'fas fa-list-ol', isNew: true },
   { key: 'gradeSheet', label: 'كشف الدرجات', icon: 'fas fa-clipboard-list', isNew: true },
   { key: 'smartLessonPlanner', label: 'تحضير الدرس إلكترونياً', icon: 'fas fa-book-reader', isNew: true },
@@ -77,7 +83,7 @@ export const tools: Tool[] = [
   { key: 'createSchoolCelebration', label: 'إنشاء احتفال مدرسي', icon: 'fas fa-gift' },
   { key: 'textToSpeech', label: 'تحويل النص إلى صوت (روابط)', icon: 'fas fa-volume-up' },
   { key: 'textToSpeechInternal', label: 'تحويل النص إلى صوت (تجريبي)', icon: 'fas fa-microphone-alt' },
-  { key: 'createImage', label: 'إنشاء صورة', icon: 'fas fa-image' },
+  { key: 'createImage', label: 'إنشاء صورة (روابط)', icon: 'fas fa-image' },
   { key: 'createLogo', label: 'إنشاء شعار', icon: 'fas fa-drafting-compass' },
   { key: 'designCover', label: 'تصميم غلاف', icon: 'fas fa-swatchbook' },
   { key: 'createVideo', label: 'إنشاء فيديو', icon: 'fas fa-film' },
@@ -88,7 +94,7 @@ export const tools: Tool[] = [
   { key: 'importantDates', label: 'تواريخ تهمك', icon: 'fas fa-calendar-day', isNew: true },
   { key: 'innovate', label: 'ابتكر', icon: 'fas fa-lightbulb' },
   { key: 'archives', label: 'المحفوظات', icon: 'fas fa-archive' },
-  { key: 'chatBot', label: 'المحادثة الفورية', icon: 'fas fa-comments' },
+  { key: 'chatBot', label: 'المحادثة الفورية (أساسي)', icon: 'fas fa-comments' },
   { key: 'imageAnalyzer', label: 'تحليل الصور', icon: 'fas fa-camera-retro' },
 ];
 
