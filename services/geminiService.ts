@@ -1,19 +1,17 @@
-
 import { GoogleGenAI, Modality } from "@google/genai";
 
 let ai: GoogleGenAI | null = null;
 
 const getAiClient = (): GoogleGenAI => {
-    if (ai) {
-        return ai;
-    }
+    // We do not cache the client (singleton) anymore because the API Key might change 
+    // during the session (e.g. via window.aistudio.openSelectKey() for Pro models).
+    // Always creating a new instance ensures we use the current process.env.API_KEY.
     const API_KEY = process.env.API_KEY;
     if (!API_KEY) {
         console.error("API_KEY environment variable is not set.");
         throw new Error("API Key is not configured. Please contact support.");
     }
-    ai = new GoogleGenAI({ apiKey: API_KEY });
-    return ai;
+    return new GoogleGenAI({ apiKey: API_KEY });
 };
 
 
@@ -353,27 +351,26 @@ export const startProChat = (prompt: string) => {
             contents: prompt,
         });
     } catch (error) {
-        console.error("Error starting Pro chat:", error);
+        console.error("Error starting pro chat:", error);
         throw error;
     }
 };
 
-// Image Generation using gemini-3-pro-image-preview
+// Pro Image Generation using gemini-3-pro-image-preview
 export const generateProImage = async (prompt: string, size: string) => {
     try {
-        // Create a NEW client instance to ensure we pick up any newly selected API keys
-        // This is mandatory for gemini-3-pro-image-preview which requires user billing
-        const API_KEY = process.env.API_KEY;
-        const client = new GoogleGenAI({ apiKey: API_KEY });
-
+        const client = getAiClient();
         const response = await client.models.generateContent({
             model: 'gemini-3-pro-image-preview',
-            contents: { parts: [{ text: prompt }] },
+            contents: {
+                parts: [{ text: prompt }]
+            },
             config: {
                 imageConfig: {
-                    imageSize: size // "1K", "2K", or "4K"
+                    aspectRatio: "1:1",
+                    imageSize: size // "1K", "2K", "4K"
                 }
-            },
+            }
         });
         return response;
     } catch (error) {

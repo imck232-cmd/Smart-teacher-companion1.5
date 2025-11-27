@@ -41,9 +41,7 @@ export type ToolKey =
   | 'imageAnalyzer'
   | 'textToSpeechInternal'
   | 'createFlashcards'
-  | 'transcribeAudio'
-  | 'aiChatbotPro'
-  | 'proImageGenerator';
+  | 'transcribeAudio';
 
 interface Tool {
   key: ToolKey;
@@ -55,8 +53,6 @@ interface Tool {
 export const tools: Tool[] = [
   { key: 'search', label: 'البحث العام', icon: 'fas fa-search' },
   { key: 'transcribeAudio', label: 'تحويل الصوت إلى نص', icon: 'fas fa-microphone-lines', isNew: true },
-  { key: 'aiChatbotPro', label: 'المساعد الذكي (Pro)', icon: 'fas fa-brain', isNew: true },
-  { key: 'proImageGenerator', label: 'توليد صور (احترافي)', icon: 'fas fa-palette', isNew: true },
   { key: 'participationLog', label: 'سجل المشاركات', icon: 'fas fa-list-ol', isNew: true },
   { key: 'gradeSheet', label: 'كشف الدرجات', icon: 'fas fa-clipboard-list', isNew: true },
   { key: 'smartLessonPlanner', label: 'تحضير الدرس إلكترونياً', icon: 'fas fa-book-reader', isNew: true },
