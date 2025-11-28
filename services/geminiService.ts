@@ -1,3 +1,4 @@
+
 import { GoogleGenAI, Modality } from "@google/genai";
 
 let ai: GoogleGenAI | null = null;
@@ -342,16 +343,12 @@ export const transcribeAudioFile = async (base64Audio: string, mimeType: string)
     }
 };
 
-// Start Pro Chat with Gemini 3.0 Pro
 export const startProChat = (prompt: string) => {
     try {
         const client = getAiClient();
         return client.models.generateContentStream({
             model: 'gemini-3-pro-preview',
             contents: prompt,
-            config: {
-                thinkingConfig: { thinkingBudget: 32768 }
-            }
         });
     } catch (error) {
         console.error("Error starting pro chat:", error);
@@ -359,7 +356,6 @@ export const startProChat = (prompt: string) => {
     }
 };
 
-// Generate Pro Image using Gemini 3.0 Pro Image
 export const generateProImage = async (prompt: string, size: string) => {
     try {
         const client = getAiClient();
@@ -367,13 +363,13 @@ export const generateProImage = async (prompt: string, size: string) => {
             model: 'gemini-3-pro-image-preview',
             contents: {
                 parts: [
-                    { text: prompt },
-                ],
+                    { text: prompt }
+                ]
             },
             config: {
                 imageConfig: {
                     aspectRatio: "1:1",
-                    imageSize: size
+                    imageSize: size as any
                 }
             }
         });
