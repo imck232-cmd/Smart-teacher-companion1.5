@@ -382,7 +382,7 @@ const SmartLessonPlanner: React.FC<{ onBack: () => void }> = ({ onBack }) => {
             const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
             
             // FIX FOR ANDROID CLIPPING:
-            // Explicitly set windowWidth to simulate a desktop viewport.
+            // Explicitly set windowWidth/windowHeight to simulate a desktop viewport.
             // This forces html2canvas to render the full width of the element (approx 800px for 210mm)
             // instead of cropping it to the mobile screen width (e.g., 360px).
             
