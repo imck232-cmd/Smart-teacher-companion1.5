@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
@@ -91,8 +92,8 @@
         }
         
         /* 
-           HIGH PRIORITY OVERRIDES FOR INPUT VISIBILITY 
-           Forces Black Text on White Background for all fields
+           STRICT VISIBILITY RULES
+           Force Black Text on White Inputs/Backgrounds 
         */
         input,
         textarea,
@@ -101,11 +102,18 @@
         input[type="number"],
         input[type="date"],
         input[type="email"],
-        input[type="password"] {
+        input[type="password"],
+        .bg-white,
+        [contenteditable] {
             background-color: #ffffff !important;
             color: #000000 !important;
             border: 1px solid rgba(0,0,0,0.3);
             box-shadow: inset 1px 1px 3px rgba(0,0,0,0.05);
+        }
+        
+        /* Force black text on any element explicitly styled with white background via tailwind */
+        .bg-white {
+            color: #000000 !important;
         }
         
         /* Specific class to enforce this on table inputs or dynamic components */
@@ -131,16 +139,6 @@
             border-color: #ccc;
         }
         
-        .animated-logo {
-            animation: float 3s ease-in-out infinite;
-        }
-        
-        @keyframes float {
-            0% { transform: translateY(0px); }
-            50% { transform: translateY(-8px); }
-            100% { transform: translateY(0px); }
-        }
-
         /* Updated Inset Style for Fields */
         .neumorphic-inset {
             background-color: #ffffff !important; /* Always white for inputs */
@@ -154,7 +152,7 @@
         /* Interaction states for fields */
         .neumorphic-inset:hover,
         .neumorphic-inset:focus-within {
-            border-color: rgb(var(--color-primary)); /* Change border color on hover/focus */
+            border-color: rgb(var(--color-primary));
             background-color: #ffffff !important;
             box-shadow: inset 2px 2px 5px rgba(var(--color-shadow-dark), 0.15);
         }

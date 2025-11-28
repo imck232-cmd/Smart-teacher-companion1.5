@@ -157,21 +157,35 @@ const SmartLessonPlanner: React.FC<{ onBack: () => void }> = ({ onBack }) => {
     const eagleInputRef = useRef<HTMLInputElement>(null);
     const logoInputRef = useRef<HTMLInputElement>(null);
 
+    // Helper to safe string to prevent Error #31
+    const safeString = (val: any): string => {
+        if (val === null || val === undefined) return '';
+        if (typeof val === 'string') return val;
+        if (typeof val === 'number') return String(val);
+        // If object, try to get a meaningful property or stringify safely
+        if (typeof val === 'object') {
+            return val.text || val.content || val.value || '';
+        }
+        return String(val);
+    };
+
     // --- Effects ---
     useEffect(() => {
         // Load saved persistent data (School, Teacher, District) to save user time
         const savedMeta = localStorage.getItem('lessonPlannerMeta');
         if (savedMeta) {
-            const parsed = JSON.parse(savedMeta);
-            setModalData(prev => ({
-                ...prev,
-                district: parsed.district || '',
-                school: parsed.school || '',
-                teacherName: parsed.teacherName || '',
-                // Default date/day logic
-                date: new Date().toISOString().split('T')[0],
-                day: new Date().toLocaleDateString('ar-EG', { weekday: 'long' })
-            }));
+            try {
+                const parsed = JSON.parse(savedMeta);
+                setModalData(prev => ({
+                    ...prev,
+                    district: safeString(parsed.district),
+                    school: safeString(parsed.school),
+                    teacherName: safeString(parsed.teacherName),
+                    // Default date/day logic
+                    date: new Date().toISOString().split('T')[0],
+                    day: new Date().toLocaleDateString('ar-EG', { weekday: 'long' })
+                }));
+            } catch(e) { console.error(e); }
         } else {
              setModalData(prev => ({
                 ...prev,
@@ -309,26 +323,38 @@ const SmartLessonPlanner: React.FC<{ onBack: () => void }> = ({ onBack }) => {
         setPlan(prev => ({
             ...prev,
             // Keep metadata from modal, overwrite content from AI
-            lessonTitle: generatedResult.lessonTitle || prev.lessonTitle, // AI might suggest a better title
-            introText: generatedResult.intro?.text || '',
-            introType: generatedResult.intro?.type || '',
-            methods: generatedResult.methods?.slice(0, 5) || prev.methods,
-            aids: generatedResult.aids?.slice(0, 5) || prev.aids,
-            activities: generatedResult.activities || '',
-            teacherRole: generatedResult.teacherRole || '',
-            learnerRole: generatedResult.learnerRole || '',
-            content: generatedResult.content || '',
-            closureText: generatedResult.closure?.text || '',
-            closureType: generatedResult.closure?.type || '',
-            homeworkText: generatedResult.homework?.text || '',
-            homeworkType: generatedResult.homework?.type || '',
-            reflection: generatedResult.reflection || '',
+            // Use safeString to ensure no objects are passed to React state
+            lessonTitle: safeString(generatedResult.lessonTitle || prev.lessonTitle),
+            introText: safeString(generatedResult.intro?.text),
+            introType: safeString(generatedResult.intro?.type),
+            
+            // Ensure methods is array of strings
+            methods: Array.isArray(generatedResult.methods) 
+                ? generatedResult.methods.map((m: any) => safeString(m)).slice(0, 5) 
+                : prev.methods,
+            
+            // Ensure aids is array of strings
+            aids: Array.isArray(generatedResult.aids) 
+                ? generatedResult.aids.map((a: any) => safeString(a)).slice(0, 5) 
+                : prev.aids,
+            
+            activities: safeString(generatedResult.activities),
+            teacherRole: safeString(generatedResult.teacherRole),
+            learnerRole: safeString(generatedResult.learnerRole),
+            content: safeString(generatedResult.content),
+            closureText: safeString(generatedResult.closure?.text),
+            closureType: safeString(generatedResult.closure?.type),
+            homeworkText: safeString(generatedResult.homework?.text),
+            homeworkType: safeString(generatedResult.homework?.type),
+            reflection: safeString(generatedResult.reflection),
+            
+            // Ensure objectives are strictly sanitized
             objectives: generatedResult.objectives && Array.isArray(generatedResult.objectives) 
                 ? generatedResult.objectives.slice(0, 6).map((obj: any, i: number) => ({
-                    domain: obj.domain || prev.objectives[i]?.domain || 'معرفي',
-                    level: obj.level || '',
-                    text: obj.text || '',
-                    evaluation: obj.evaluation || ''
+                    domain: safeString(obj.domain) || prev.objectives[i]?.domain || 'معرفي',
+                    level: safeString(obj.level),
+                    text: safeString(obj.text),
+                    evaluation: safeString(obj.evaluation)
                 }))
                 : prev.objectives
         }));
@@ -343,7 +369,7 @@ const SmartLessonPlanner: React.FC<{ onBack: () => void }> = ({ onBack }) => {
         
         // Allow UI to update to "Export Mode" (Text only, no inputs, small fonts)
         // Yield for browser render
-        await new Promise(resolve => setTimeout(resolve, 300));
+        await new Promise(resolve => setTimeout(resolve, 500)); // Give browser time to re-render
 
         const element = document.getElementById('lesson-plan-export');
         if (!element) {
@@ -355,14 +381,23 @@ const SmartLessonPlanner: React.FC<{ onBack: () => void }> = ({ onBack }) => {
             // Mobile Detection
             const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
             
-            // Reduced scale for mobile to prevent crash, 2 for desktop quality
-            const scale = isMobile ? 1.0 : 2.0;
-
+            // FIX FOR ANDROID CLIPPING:
+            // Explicitly set windowWidth to simulate a desktop viewport.
+            // This forces html2canvas to render the full width of the element (approx 800px for 210mm)
+            // instead of cropping it to the mobile screen width (e.g., 360px).
+            
             const canvas = await html2canvas(element, {
-                scale: scale,
+                scale: isMobile ? 1.5 : 2.0, // 1.5 is safe for mobile memory, 2.0 for desktop quality
                 useCORS: true,
                 backgroundColor: '#ffffff',
-                logging: false
+                logging: false,
+                width: element.scrollWidth, // Capture full scroll width
+                height: element.scrollHeight, // Capture full scroll height
+                windowWidth: 1200, // Simulate desktop width to prevent wrapping/clipping on mobile
+                x: 0,
+                y: 0,
+                scrollX: 0,
+                scrollY: 0
             });
 
             // Use JPEG with moderate compression for speed and small size
@@ -527,8 +562,8 @@ const SmartLessonPlanner: React.FC<{ onBack: () => void }> = ({ onBack }) => {
                     <div className="bg-white p-4 rounded-lg border border-gray-300 max-h-60 overflow-y-auto mb-4 text-sm">
                         <pre className="whitespace-pre-wrap font-sans text-gray-700">
                             {`**الأهداف السلوكية:**\n` + 
-                             generatedResult.objectives?.map((o:any) => `- **(${o.domain})** ${o.text}`).join('\n') + 
-                             `\n\n**المحتوى:**\n${generatedResult.content?.substring(0, 150)}...`}
+                             (Array.isArray(generatedResult.objectives) ? generatedResult.objectives.map((o:any) => `- **(${safeString(o.domain)})** ${safeString(o.text)}`).join('\n') : '') + 
+                             `\n\n**المحتوى:**\n${safeString(generatedResult.content)?.substring(0, 150)}...`}
                         </pre>
                     </div>
                     <div className="flex flex-wrap gap-3">
@@ -572,14 +607,14 @@ const SmartLessonPlanner: React.FC<{ onBack: () => void }> = ({ onBack }) => {
                         {/* Right */}
                         <div className="text-right w-1/4 font-bold space-y-1" style={{ fontSize: isExporting ? '8pt' : '10pt' }}>
                             <p>الجمهورية اليمنية</p>
-                            <p>{plan.ministry}</p>
+                            <p>{safeString(plan.ministry)}</p>
                             <div className="flex items-center gap-1">
                                 <span>المنطقة:</span>
-                                {isExporting ? <span>{plan.district}</span> : <input type="text" value={plan.district} onChange={e => handleInputChange('district', e.target.value)} className="border-b border-dotted border-black w-24 bg-transparent focus:outline-none" />}
+                                {isExporting ? <span>{safeString(plan.district)}</span> : <input type="text" value={plan.district} onChange={e => handleInputChange('district', e.target.value)} className="border-b border-dotted border-black w-24 bg-transparent focus:outline-none" />}
                             </div>
                             <div className="flex items-center gap-1">
                                 <span>المدرسة:</span>
-                                {isExporting ? <span>{plan.school}</span> : <input type="text" value={plan.school} onChange={e => handleInputChange('school', e.target.value)} className="border-b border-dotted border-black w-24 bg-transparent focus:outline-none" />}
+                                {isExporting ? <span>{safeString(plan.school)}</span> : <input type="text" value={plan.school} onChange={e => handleInputChange('school', e.target.value)} className="border-b border-dotted border-black w-24 bg-transparent focus:outline-none" />}
                             </div>
                         </div>
 
@@ -608,11 +643,11 @@ const SmartLessonPlanner: React.FC<{ onBack: () => void }> = ({ onBack }) => {
                         {/* Left */}
                         <div className="text-left w-1/4 font-bold space-y-1" dir="ltr" style={{ fontSize: isExporting ? '8pt' : '10pt' }}>
                             <div className="flex items-center justify-end gap-1">
-                                {isExporting ? <span>{plan.day}</span> : <input type="text" value={plan.day} onChange={e => handleInputChange('day', e.target.value)} className="border-b border-dotted border-black w-24 text-right bg-transparent focus:outline-none" />}
+                                {isExporting ? <span>{safeString(plan.day)}</span> : <input type="text" value={plan.day} onChange={e => handleInputChange('day', e.target.value)} className="border-b border-dotted border-black w-24 text-right bg-transparent focus:outline-none" />}
                                 <span>:اليوم</span>
                             </div>
                             <div className="flex items-center justify-end gap-1">
-                                {isExporting ? <span>{plan.date}</span> : <input type="date" value={plan.date} onChange={e => handleInputChange('date', e.target.value)} className="border-b border-dotted border-black w-24 text-right bg-transparent focus:outline-none" />}
+                                {isExporting ? <span>{safeString(plan.date)}</span> : <input type="date" value={plan.date} onChange={e => handleInputChange('date', e.target.value)} className="border-b border-dotted border-black w-24 text-right bg-transparent focus:outline-none" />}
                                 <span>:التاريخ</span>
                             </div>
                         </div>
@@ -625,7 +660,7 @@ const SmartLessonPlanner: React.FC<{ onBack: () => void }> = ({ onBack }) => {
                         <div className="flex gap-4 border-l border-gray-400 pl-4">
                             <div className="flex items-center gap-1">
                                 <span className="text-red-800">المادة:</span>
-                                {isExporting ? <span className="px-1">{plan.subject}</span> : 
+                                {isExporting ? <span className="px-1">{safeString(plan.subject)}</span> : 
                                 <select value={plan.subject} onChange={e => handleInputChange('subject', e.target.value)} className="border-b border-black bg-transparent w-28">
                                     <option value=""></option>
                                     {subjectsList.map(s => <option key={s} value={s}>{s}</option>)}
@@ -633,7 +668,7 @@ const SmartLessonPlanner: React.FC<{ onBack: () => void }> = ({ onBack }) => {
                             </div>
                             <div className="flex items-center gap-1">
                                 <span className="text-red-800">فرع المادة:</span>
-                                {isExporting ? <span className="px-1">{plan.subjectBranch}</span> : 
+                                {isExporting ? <span className="px-1">{safeString(plan.subjectBranch)}</span> : 
                                 <input type="text" value={plan.subjectBranch} onChange={e => handleInputChange('subjectBranch', e.target.value)} className="border-b border-black bg-transparent w-20" placeholder="نحو/أدب..." />}
                             </div>
                         </div>
@@ -641,7 +676,7 @@ const SmartLessonPlanner: React.FC<{ onBack: () => void }> = ({ onBack }) => {
                         {/* Lesson Title (In Row) */}
                         <div className="flex items-center gap-1 flex-grow justify-center bg-gray-50 px-2 rounded border border-gray-200">
                             <span className="text-red-800">عنوان الدرس:</span>
-                            {isExporting ? <span className="font-black px-2">{plan.lessonTitle}</span> : <input type="text" value={plan.lessonTitle} onChange={e => handleInputChange('lessonTitle', e.target.value)} className="bg-transparent w-full font-black text-center focus:outline-none" />}
+                            {isExporting ? <span className="font-black px-2">{safeString(plan.lessonTitle)}</span> : <input type="text" value={plan.lessonTitle} onChange={e => handleInputChange('lessonTitle', e.target.value)} className="bg-transparent w-full font-black text-center focus:outline-none" />}
                         </div>
                     </div>
 
@@ -649,7 +684,7 @@ const SmartLessonPlanner: React.FC<{ onBack: () => void }> = ({ onBack }) => {
                     <div className="flex flex-wrap border-b-2 border-black pb-2 mb-3 text-sm font-bold gap-3 items-center" style={{ fontSize: isExporting ? '9pt' : '10pt' }}>
                         <div className="flex items-center gap-1">
                             <span className="text-red-800">الصف:</span>
-                            {isExporting ? <span className="px-1">{plan.classLevel}</span> : 
+                            {isExporting ? <span className="px-1">{safeString(plan.classLevel)}</span> : 
                             <select value={plan.classLevel} onChange={e => handleInputChange('classLevel', e.target.value)} className="border-b border-black bg-transparent w-24">
                                 <option value=""></option>
                                 {gradesList.map(g => <option key={g} value={g}>{g}</option>)}
@@ -657,7 +692,7 @@ const SmartLessonPlanner: React.FC<{ onBack: () => void }> = ({ onBack }) => {
                         </div>
                         <div className="flex items-center gap-1">
                             <span className="text-red-800">الشعبة:</span>
-                            {isExporting ? <span className="px-1">{plan.division}</span> : 
+                            {isExporting ? <span className="px-1">{safeString(plan.division)}</span> : 
                             <select value={plan.division} onChange={e => handleInputChange('division', e.target.value)} className="border-b border-black bg-transparent w-12">
                                 <option value=""></option>
                                 {divisions.map(d => <option key={d} value={d}>{d}</option>)}
@@ -665,7 +700,7 @@ const SmartLessonPlanner: React.FC<{ onBack: () => void }> = ({ onBack }) => {
                         </div>
                         <div className="flex items-center gap-1">
                             <span className="text-red-800">الحصة:</span>
-                            {isExporting ? <span className="px-1">{plan.period}</span> : 
+                            {isExporting ? <span className="px-1">{safeString(plan.period)}</span> : 
                             <select value={plan.period} onChange={e => handleInputChange('period', e.target.value)} className="border-b border-black bg-transparent w-16">
                                 <option value=""></option>
                                 {periods.map(p => <option key={p} value={p}>{p}</option>)}
@@ -684,9 +719,9 @@ const SmartLessonPlanner: React.FC<{ onBack: () => void }> = ({ onBack }) => {
                                     </span>
                                     {isExporting ? (
                                         <div className="flex-grow border-b border-dotted border-gray-300 pb-1 leading-tight">
-                                            <span className="font-bold text-gray-600 mx-1">[{obj.level}]:</span>
-                                            {obj.text} 
-                                            <span className="text-gray-500 text-xs mx-2">(التقويم: {obj.evaluation})</span>
+                                            <span className="font-bold text-gray-600 mx-1">[{safeString(obj.level)}]:</span>
+                                            {safeString(obj.text)} 
+                                            <span className="text-gray-500 text-xs mx-2">(التقويم: {safeString(obj.evaluation)})</span>
                                         </div>
                                     ) : (
                                         <div className="flex-grow flex gap-1">
@@ -705,14 +740,14 @@ const SmartLessonPlanner: React.FC<{ onBack: () => void }> = ({ onBack }) => {
                         <div>
                             <h4 className="font-bold text-red-800 text-sm mb-1">الوسائل والاستراتيجيات</h4>
                             <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-gray-800">
-                                {plan.methods.slice(0, 3).map((m, i) => m && <span key={i}>• {m}</span>)}
-                                {plan.aids.slice(0, 3).map((a, i) => a && <span key={i}>• {a}</span>)}
+                                {plan.methods.slice(0, 3).map((m, i) => m && <span key={i}>• {safeString(m)}</span>)}
+                                {plan.aids.slice(0, 3).map((a, i) => a && <span key={i}>• {safeString(a)}</span>)}
                             </div>
                         </div>
                         <div>
                             <h4 className="font-bold text-red-800 text-sm mb-1">طرق التدريس</h4>
                             <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-gray-800">
-                                {plan.methods.map((m, i) => isExporting ? (m && <span key={i}>◻ {m}</span>) : <input key={i} list="methods-list" value={m} onChange={e => handleArrayChange('methods', i, e.target.value)} className="w-20 border-b border-dotted border-gray-400 bg-transparent focus:outline-none text-xs" />)}
+                                {plan.methods.map((m, i) => isExporting ? (m && <span key={i}>◻ {safeString(m)}</span>) : <input key={i} list="methods-list" value={m} onChange={e => handleArrayChange('methods', i, e.target.value)} className="w-20 border-b border-dotted border-gray-400 bg-transparent focus:outline-none text-xs" />)}
                                 <datalist id="methods-list">{methodsList.map(m => <option key={m} value={m} />)}</datalist>
                             </div>
                         </div>
@@ -723,21 +758,21 @@ const SmartLessonPlanner: React.FC<{ onBack: () => void }> = ({ onBack }) => {
                         <div className="flex justify-between mb-1">
                             <h4 className="font-bold text-red-800 text-sm">سير الدرس</h4>
                             <div className="text-xs font-bold flex gap-4">
-                                <span>التمهيد: {plan.introType}</span>
+                                <span>التمهيد: {safeString(plan.introType)}</span>
                             </div>
                         </div>
                         
                         {/* Intro - Reduced vertical padding */}
                         <div className="mb-2 p-1 bg-gray-50 border border-gray-200 rounded text-sm leading-snug" style={{ fontSize: isExporting ? '9pt' : '10pt' }}>
                             <span className="font-bold text-red-800 ml-2">التمهيد:</span>
-                            {isExporting ? plan.introText : <input value={plan.introText} onChange={e => handleInputChange('introText', e.target.value)} className="bg-transparent w-3/4" />}
+                            {isExporting ? safeString(plan.introText) : <input value={plan.introText} onChange={e => handleInputChange('introText', e.target.value)} className="bg-transparent w-3/4" />}
                         </div>
 
                         {/* Main Content - Compact Box */}
                         <div className="border border-gray-300 rounded p-2 min-h-[80px] text-justify leading-relaxed" style={{ fontSize: isExporting ? '9pt' : '10pt' }}>
                             <h5 className="font-bold text-red-800 mb-1">محتوى الدرس والأنشطة</h5>
                             {isExporting ? (
-                                <div className="whitespace-pre-wrap">{plan.content}</div>
+                                <div className="whitespace-pre-wrap">{safeString(plan.content)}</div>
                             ) : (
                                 <textarea 
                                     value={plan.content} 
@@ -752,11 +787,11 @@ const SmartLessonPlanner: React.FC<{ onBack: () => void }> = ({ onBack }) => {
                     <div className="grid grid-cols-2 gap-2 mb-2">
                         <div className="border border-gray-200 p-1 rounded">
                             <span className="font-bold text-red-800 text-xs block">أدوار الطالب</span>
-                            <p className="text-xs leading-tight">{plan.learnerRole}</p>
+                            <p className="text-xs leading-tight">{safeString(plan.learnerRole)}</p>
                         </div>
                         <div className="border border-gray-200 p-1 rounded">
                             <span className="font-bold text-red-800 text-xs block">أدوار المعلم</span>
-                            <p className="text-xs leading-tight">{plan.teacherRole}</p>
+                            <p className="text-xs leading-tight">{safeString(plan.teacherRole)}</p>
                         </div>
                     </div>
 
@@ -766,19 +801,19 @@ const SmartLessonPlanner: React.FC<{ onBack: () => void }> = ({ onBack }) => {
                             <span className="font-bold text-red-800">التقويم والخاتمة</span>
                             <span className="font-bold text-red-800">الختامة والتقويم</span>
                         </div>
-                        <p className="text-xs mb-2 border-b border-dotted border-gray-300 pb-1">{plan.closureText}</p>
+                        <p className="text-xs mb-2 border-b border-dotted border-gray-300 pb-1">{safeString(plan.closureText)}</p>
                         
                         <div className="flex justify-between text-sm mb-1">
                             <span className="font-bold text-red-800">الواجب المنزلي</span>
                         </div>
-                        <p className="text-xs">{plan.homeworkText}</p>
+                        <p className="text-xs">{safeString(plan.homeworkText)}</p>
                     </div>
 
                     {/* SIGNATURES - Modified to move Teacher to LEFT */}
                     <div className="mt-4 pt-1 border-t-2 border-black text-xs font-bold flex justify-end">
                         <div className="flex items-center gap-2">
                             <span className="text-red-800">اسم المعلم/ة:</span>
-                            {isExporting ? <span>{plan.teacherName}</span> : <input type="text" value={plan.teacherName} onChange={e => handleInputChange('teacherName', e.target.value)} className="border-b border-black w-32 bg-transparent text-center" />}
+                            {isExporting ? <span>{safeString(plan.teacherName)}</span> : <input type="text" value={plan.teacherName} onChange={e => handleInputChange('teacherName', e.target.value)} className="border-b border-black w-32 bg-transparent text-center" />}
                         </div>
                     </div>
 

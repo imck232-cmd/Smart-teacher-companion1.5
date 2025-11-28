@@ -342,7 +342,6 @@ export const transcribeAudioFile = async (base64Audio: string, mimeType: string)
     }
 };
 
-// Pro Chat using gemini-3-pro-preview
 export const startProChat = (prompt: string) => {
     try {
         const client = getAiClient();
@@ -356,19 +355,20 @@ export const startProChat = (prompt: string) => {
     }
 };
 
-// Pro Image Generation using gemini-3-pro-image-preview
 export const generateProImage = async (prompt: string, size: string) => {
     try {
         const client = getAiClient();
         const response = await client.models.generateContent({
             model: 'gemini-3-pro-image-preview',
             contents: {
-                parts: [{ text: prompt }]
+                parts: [
+                    { text: prompt }
+                ]
             },
             config: {
                 imageConfig: {
                     aspectRatio: "1:1",
-                    imageSize: size // "1K", "2K", "4K"
+                    imageSize: size as any
                 }
             }
         });

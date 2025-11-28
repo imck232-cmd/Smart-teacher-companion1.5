@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 
 interface HeaderProps {
     onToggleThemeSwitcher: () => void;
@@ -8,13 +8,28 @@ interface HeaderProps {
 }
 
 const Header: React.FC<HeaderProps> = ({ onToggleThemeSwitcher, onToggleAppearance, onToggleSidebar }) => {
+  const [isCollapsed, setIsCollapsed] = useState(false);
   const whatsappUrl = "https://wa.me/967780804012";
 
   return (
-    <header className="relative shadow-lg py-4 sticky top-0 z-50" style={{ backgroundColor: 'rgb(var(--color-component-bg))' }}>
+    <header 
+        className={`relative shadow-lg sticky top-0 z-50 transition-all duration-300 ${isCollapsed ? 'py-2' : 'py-4'}`} 
+        style={{ backgroundColor: 'rgb(var(--color-component-bg))' }}
+    >
        
+       {/* Collapse Toggle Button */}
+       <div className="absolute top-0 left-1/2 transform -translate-x-1/2 z-30">
+            <button 
+                onClick={() => setIsCollapsed(!isCollapsed)}
+                className="bg-black/10 hover:bg-black/20 text-heading-text/50 hover:text-heading-text rounded-b-lg px-4 pb-1 pt-0 transition-all focus:outline-none shadow-sm"
+                title={isCollapsed ? "عرض الترويسة" : "طي الترويسة"}
+            >
+                <i className={`fas fa-chevron-${isCollapsed ? 'down' : 'up'} text-sm`}></i>
+            </button>
+       </div>
+
        {/* Left Action Buttons (Theme/Appearance) */}
-       <div className="absolute bottom-4 left-4 flex gap-3 z-20">
+       <div className={`absolute left-4 flex gap-3 z-20 transition-all duration-300 ${isCollapsed ? 'top-1/2 -translate-y-1/2' : 'bottom-4'}`}>
            <button 
                 onClick={onToggleAppearance}
                 className="neumorphic-button w-10 h-10 flex items-center justify-center hover:!transform-none"
@@ -34,7 +49,7 @@ const Header: React.FC<HeaderProps> = ({ onToggleThemeSwitcher, onToggleAppearan
        </div>
 
        {/* Right Action Button (Sidebar) */}
-       <div className="absolute bottom-4 right-4 z-20">
+       <div className={`absolute right-4 z-20 transition-all duration-300 ${isCollapsed ? 'top-1/2 -translate-y-1/2' : 'bottom-4'}`}>
             <button 
                 onClick={onToggleSidebar}
                 className="neumorphic-button w-10 h-10 flex items-center justify-center hover:!transform-none"
@@ -45,7 +60,8 @@ const Header: React.FC<HeaderProps> = ({ onToggleThemeSwitcher, onToggleAppearan
             </button>
        </div>
 
-      <div className="container mx-auto px-4 text-center text-heading-text">
+      {/* Collapsible Main Content */}
+      <div className={`container mx-auto px-4 text-center text-heading-text transition-all duration-300 overflow-hidden ${isCollapsed ? 'max-h-0 opacity-0' : 'max-h-40 opacity-100'}`}>
         <h1 className="text-4xl md:text-5xl font-bold font-heading">
           رفيق المعلم الذكي
         </h1>
