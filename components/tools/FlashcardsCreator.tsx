@@ -1,6 +1,7 @@
 
 import React, { useState, useRef } from 'react';
 import ToolHeader from '../ToolHeader';
+import ActionButtons from '../ActionButtons';
 
 // Make jspdf and html2canvas available from the window object
 declare const jspdf: any;
@@ -563,70 +564,75 @@ const FlashcardsCreator: React.FC<{ onBack: () => void }> = ({ onBack }) => {
       </div>
 
       {cards.length > 0 && (
-        <div className="mb-8 flex flex-wrap gap-4 justify-center neumorphic-inset p-4">
-             <h3 className="w-full text-center font-bold text-lg mb-2">تصدير الكل</h3>
-             <button onClick={handleExportAllPdf} disabled={exportAction.type !== null} className="neumorphic-button bg-red-600 text-white px-4 py-2 text-sm disabled:opacity-50">
-                <i className={`fas ${exportAction.type === 'batch' ? 'fa-spinner fa-spin' : 'fa-file-pdf'} ml-2`}></i> {exportAction.type === 'batch' ? `جاري التصدير (${exportAction.index}/${cards.length})` : 'PDF'}
-             </button>
-             <button onClick={handleExportAllTxt} className="neumorphic-button bg-gray-600 text-white px-4 py-2 text-sm"><i className="fas fa-file-alt ml-2"></i> TXT</button>
-             <button onClick={handleExportAllExcel} className="neumorphic-button bg-green-600 text-white px-4 py-2 text-sm"><i className="fas fa-file-excel ml-2"></i> Excel</button>
-        </div>
-      )}
-
-      <div className="grid grid-cols-1 gap-12 pb-12">
-        {cards.map((cardText, index) => (
-          <div key={index} className="flex flex-col items-center">
-            {/* Card Visual */}
-            <div 
-                id={`card-${index}`} 
-                className="relative flex items-center justify-center p-12 w-full max-w-3xl aspect-[3/2] mx-auto transition-all duration-300"
-                style={{
-                    boxShadow: '0 4px 6px rgba(0,0,0,0.1)',
-                    ...currentFrame.containerStyle,
-                    fontFamily: fontFamily 
-                }}
-            >
-                 {currentFrame && typeof currentFrame.render === 'function' ? currentFrame.render() : null}
-                 
-                 {/* Content - STRICT inline styling to enforce font application */}
-                 <div 
-                      className="z-10 w-full text-center break-words px-8" 
-                      style={{ 
-                          ...currentFrame.textStyle, 
-                          color: textColor, 
-                          fontSize: `${fontSize}px`,
-                          fontWeight: fontWeight,
-                          lineHeight: '1.4',
-                          fontFamily: fontFamily,
-                          whiteSpace: 'pre-wrap' // Ensure formatting is respected
-                      }}>
-                    {/* DIRECT H2 Style Application */}
-                    <h2 
-                        key={fontFamily} // Force re-render of element when font changes
-                        style={{ 
-                            fontSize: 'inherit', 
-                            color: 'inherit', 
-                            fontWeight: 'inherit', 
-                            margin: 0,
+        <>
+            <div className="mb-4 flex justify-end">
+                <ActionButtons textToCopy="" elementIdToPrint="flashcards-container" />
+            </div>
+            <div id="flashcards-container" className="grid grid-cols-1 gap-12 pb-12">
+                {cards.map((cardText, index) => (
+                <div key={index} className="flex flex-col items-center page-break-inside-avoid">
+                    {/* Card Visual */}
+                    <div 
+                        id={`card-${index}`} 
+                        className="relative flex items-center justify-center p-12 w-full max-w-3xl aspect-[3/2] mx-auto transition-all duration-300"
+                        style={{
+                            boxShadow: '0 4px 6px rgba(0,0,0,0.1)',
+                            ...currentFrame.containerStyle,
                             fontFamily: fontFamily 
-                        }} 
-                        dir="auto"
+                        }}
                     >
-                        {cardText}
-                    </h2>
-                 </div>
-            </div>
+                        {currentFrame && typeof currentFrame.render === 'function' ? currentFrame.render() : null}
+                        
+                        {/* Content - STRICT inline styling to enforce font application */}
+                        <div 
+                            className="z-10 w-full text-center break-words px-8" 
+                            style={{ 
+                                ...currentFrame.textStyle, 
+                                color: textColor, 
+                                fontSize: `${fontSize}px`,
+                                fontWeight: fontWeight,
+                                lineHeight: '1.4',
+                                fontFamily: fontFamily,
+                                whiteSpace: 'pre-wrap' // Ensure formatting is respected
+                            }}>
+                            {/* DIRECT H2 Style Application */}
+                            <h2 
+                                key={fontFamily} // Force re-render of element when font changes
+                                style={{ 
+                                    fontSize: 'inherit', 
+                                    color: 'inherit', 
+                                    fontWeight: 'inherit', 
+                                    margin: 0,
+                                    fontFamily: fontFamily 
+                                }} 
+                                dir="auto"
+                            >
+                                {cardText}
+                            </h2>
+                        </div>
+                    </div>
 
-            {/* Individual Controls */}
-            <div className="mt-4 flex flex-wrap justify-center gap-3">
-                <button onClick={(e) => handleExportSingleTxt(e, cardText, index)} disabled={exportAction.type !== null} className="neumorphic-button px-4 py-2 bg-gray-200 text-gray-800 text-sm font-semibold hover:bg-gray-300 disabled:opacity-50"><i className="fas fa-file-alt ml-2"></i> TXT</button>
-                <button onClick={(e) => handleExportSingleImage(e, index)} disabled={exportAction.type !== null} className="neumorphic-button px-4 py-2 bg-blue-100 text-blue-800 text-sm font-semibold hover:bg-blue-200 disabled:opacity-50"><i className={`fas ${exportAction.type === 'image' && exportAction.index === index ? 'fa-spinner fa-spin' : 'fa-image'} ml-2`}></i> صورة</button>
-                <button onClick={(e) => handleExportSinglePdf(e, index)} disabled={exportAction.type !== null} className="neumorphic-button px-4 py-2 bg-red-100 text-red-800 text-sm font-semibold hover:bg-red-200 disabled:opacity-50"><i className={`fas ${exportAction.type === 'pdf' && exportAction.index === index ? 'fa-spinner fa-spin' : 'fa-file-pdf'} ml-2`}></i> PDF</button>
-                 <button onClick={(e) => handleExportSingleExcel(e, cardText, index)} disabled={exportAction.type !== null} className="neumorphic-button px-4 py-2 bg-green-100 text-green-800 text-sm font-semibold hover:bg-green-200 disabled:opacity-50"><i className="fas fa-file-excel ml-2"></i> Excel</button>
+                    {/* Individual Controls */}
+                    <div className="mt-4 flex flex-wrap justify-center gap-3 no-print">
+                        <button onClick={(e) => handleExportSingleTxt(e, cardText, index)} disabled={exportAction.type !== null} className="neumorphic-button px-4 py-2 bg-gray-200 text-gray-800 text-sm font-semibold hover:bg-gray-300 disabled:opacity-50"><i className="fas fa-file-alt ml-2"></i> TXT</button>
+                        <button onClick={(e) => handleExportSingleImage(e, index)} disabled={exportAction.type !== null} className="neumorphic-button px-4 py-2 bg-blue-100 text-blue-800 text-sm font-semibold hover:bg-blue-200 disabled:opacity-50"><i className={`fas ${exportAction.type === 'image' && exportAction.index === index ? 'fa-spinner fa-spin' : 'fa-image'} ml-2`}></i> صورة</button>
+                        <button onClick={(e) => handleExportSinglePdf(e, index)} disabled={exportAction.type !== null} className="neumorphic-button px-4 py-2 bg-red-100 text-red-800 text-sm font-semibold hover:bg-red-200 disabled:opacity-50"><i className={`fas ${exportAction.type === 'pdf' && exportAction.index === index ? 'fa-spinner fa-spin' : 'fa-file-pdf'} ml-2`}></i> PDF</button>
+                        <button onClick={(e) => handleExportSingleExcel(e, cardText, index)} disabled={exportAction.type !== null} className="neumorphic-button px-4 py-2 bg-green-100 text-green-800 text-sm font-semibold hover:bg-green-200 disabled:opacity-50"><i className="fas fa-file-excel ml-2"></i> Excel</button>
+                    </div>
+                </div>
+                ))}
             </div>
-          </div>
-        ))}
-      </div>
+            
+             <div className="mb-8 flex flex-wrap gap-4 justify-center neumorphic-inset p-4 no-print">
+                 <h3 className="w-full text-center font-bold text-lg mb-2">تصدير الكل</h3>
+                 <button onClick={handleExportAllPdf} disabled={exportAction.type !== null} className="neumorphic-button bg-red-600 text-white px-4 py-2 text-sm disabled:opacity-50">
+                    <i className={`fas ${exportAction.type === 'batch' ? 'fa-spinner fa-spin' : 'fa-file-pdf'} ml-2`}></i> {exportAction.type === 'batch' ? `جاري التصدير (${exportAction.index}/${cards.length})` : 'PDF'}
+                 </button>
+                 <button onClick={handleExportAllTxt} className="neumorphic-button bg-gray-600 text-white px-4 py-2 text-sm"><i className="fas fa-file-alt ml-2"></i> TXT</button>
+                 <button onClick={handleExportAllExcel} className="neumorphic-button bg-green-600 text-white px-4 py-2 text-sm"><i className="fas fa-file-excel ml-2"></i> Excel</button>
+            </div>
+        </>
+      )}
     </div>
   );
 };

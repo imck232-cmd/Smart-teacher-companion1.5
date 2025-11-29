@@ -2,6 +2,7 @@
 import React, { useState, useRef } from 'react';
 import { generateSpeech } from '../../services/geminiService';
 import ToolHeader from '../ToolHeader';
+import ActionButtons from '../ActionButtons';
 
 // Helper functions for audio decoding
 function decode(base64: string) {
@@ -137,13 +138,16 @@ const TextToSpeechTool: React.FC<{ onBack: () => void }> = ({ onBack }) => {
     <div>
       <ToolHeader title="تحويل النص إلى صوت" onBack={onBack} />
       <div className="neumorphic-outset p-6">
-        <textarea
-          value={text}
-          onChange={(e) => setText(e.target.value)}
-          placeholder="اكتب النص الذي تريد تحويله إلى صوت هنا..."
-          className="w-full p-3 neumorphic-inset h-40 bg-transparent text-base-text focus:outline-none"
-          disabled={isLoading || isPlaying}
-        />
+        <div id="tts-content">
+            <textarea
+            value={text}
+            onChange={(e) => setText(e.target.value)}
+            placeholder="اكتب النص الذي تريد تحويله إلى صوت هنا..."
+            className="w-full p-3 neumorphic-inset h-40 bg-transparent text-base-text focus:outline-none"
+            disabled={isLoading || isPlaying}
+            />
+        </div>
+        
         <div className="flex flex-col sm:flex-row gap-3 mt-4">
             <button
             onClick={handleGenerateAndPlay}
@@ -163,6 +167,12 @@ const TextToSpeechTool: React.FC<{ onBack: () => void }> = ({ onBack }) => {
                 </a>
             )}
         </div>
+        
+        {/* Action Button for Printing Text */}
+        <div className="flex justify-end mt-4">
+             <ActionButtons textToCopy={text} elementIdToPrint="tts-content" />
+        </div>
+
         {error && <p className="text-red-500 mt-4 text-center">{error}</p>}
       </div>
     </div>

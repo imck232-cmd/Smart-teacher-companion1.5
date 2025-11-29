@@ -1,6 +1,7 @@
 
 import React, { useState, useEffect } from 'react';
 import ToolHeader from '../ToolHeader';
+import ActionButtons from '../ActionButtons';
 
 interface Note {
     id: string;
@@ -68,7 +69,7 @@ const AddNote: React.FC<{ onBack: () => void }> = ({ onBack }) => {
         <div>
             <ToolHeader title="إضافة ملاحظة" onBack={onBack} />
             
-            <div className="neumorphic-outset p-6 mb-6">
+            <div className="neumorphic-outset p-6 mb-6 no-print">
                 <textarea
                     value={currentNote}
                     onChange={(e) => setCurrentNote(e.target.value)}
@@ -90,13 +91,17 @@ const AddNote: React.FC<{ onBack: () => void }> = ({ onBack }) => {
                     </button>
                 )}
             </div>
+            
+            <div className="flex justify-end mb-4 no-print">
+                {notes.length > 0 && <ActionButtons textToCopy="" elementIdToPrint="notes-list" />}
+            </div>
 
-            <div className="space-y-4">
+            <div id="notes-list" className="space-y-4">
                 {notes.map(note => (
-                    <div key={note.id} className="neumorphic-outset p-4 relative group">
+                    <div key={note.id} className="neumorphic-outset p-4 relative group break-inside-avoid">
                         <div className="text-xs text-gray-500 mb-2 flex justify-between">
                             <span>{String(note.date)}</span>
-                            <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                            <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity no-print">
                                 <button onClick={() => handleEdit(note)} className="text-blue-500 hover:text-blue-700"><i className="fas fa-edit"></i></button>
                                 <button onClick={() => handleDelete(note.id)} className="text-red-500 hover:text-red-700"><i className="fas fa-trash"></i></button>
                             </div>

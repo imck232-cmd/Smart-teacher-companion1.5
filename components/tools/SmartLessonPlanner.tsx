@@ -433,63 +433,6 @@ const SmartLessonPlanner: React.FC<{ onBack: () => void }> = ({ onBack }) => {
         document.getElementById('lesson-plan-export')?.scrollIntoView({ behavior: 'smooth' });
     };
 
-    // --- Export Logic ---
-    const handleExportPDF = async () => {
-        setIsExporting(true);
-        
-        // Allow UI to update to "Export Mode" (Text only, no inputs, small fonts)
-        // Yield for browser render
-        await new Promise(resolve => setTimeout(resolve, 500)); // Give browser time to re-render
-
-        const element = document.getElementById('lesson-plan-export');
-        if (!element) {
-            setIsExporting(false);
-            return;
-        }
-
-        try {
-            // Mobile Detection
-            const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-            
-            // FIX FOR ANDROID CLIPPING:
-            // Explicitly set windowWidth/windowHeight to simulate a desktop viewport.
-            // This forces html2canvas to render the full width of the element (approx 800px for 210mm)
-            // instead of cropping it to the mobile screen width (e.g., 360px).
-            
-            const canvas = await html2canvas(element, {
-                scale: isMobile ? 1.5 : 2.0, // 1.5 is safe for mobile memory, 2.0 for desktop quality
-                useCORS: true,
-                backgroundColor: '#ffffff',
-                logging: false,
-                width: element.scrollWidth, // Capture full scroll width
-                height: element.scrollHeight, // Capture full scroll height
-                windowWidth: 1200, // Simulate desktop width to prevent wrapping/clipping on mobile
-                x: 0,
-                y: 0,
-                scrollX: 0,
-                scrollY: 0
-            });
-
-            // Use JPEG with moderate compression for speed and small size
-            const imgData = canvas.toDataURL('image/jpeg', 0.75);
-            const pdf = new jspdf.jsPDF('p', 'mm', 'a4');
-            const pdfWidth = 210;
-            
-            const imgProps = pdf.getImageProperties(imgData);
-            const imgHeight = (imgProps.height * pdfWidth) / imgProps.width;
-            
-            pdf.addImage(imgData, 'JPEG', 0, 0, pdfWidth, imgHeight);
-            
-            pdf.save(`${plan.lessonTitle || 'Lesson_Plan'}.pdf`);
-
-        } catch (e) {
-            console.error(e);
-            alert('فشل تصدير PDF. حاول مرة أخرى.');
-        } finally {
-            setIsExporting(false);
-        }
-    };
-
     return (
         <div className="pb-20">
             <ToolHeader title="رفيقك في التحضير الإلكتروني" onBack={onBack} />
@@ -658,9 +601,6 @@ const SmartLessonPlanner: React.FC<{ onBack: () => void }> = ({ onBack }) => {
                         <button onClick={() => { navigator.clipboard.writeText(JSON.stringify(generatedResult, null, 2)); alert('تم نسخ النص'); }} className="neumorphic-button bg-blue-500 text-white px-4 py-2 font-bold">
                             نسخ النص
                         </button>
-                        <button className="neumorphic-button bg-red-500 text-white px-4 py-2 font-bold">
-                            تصدير PDF
-                        </button>
                     </div>
                 </div>
             )}
@@ -671,7 +611,6 @@ const SmartLessonPlanner: React.FC<{ onBack: () => void }> = ({ onBack }) => {
             <div className="flex flex-wrap gap-4 mb-6 justify-center no-print">
                 <button onClick={handleNewLesson} className="neumorphic-button bg-yellow-500 text-white px-6 py-2 font-bold"><i className="fas fa-plus"></i> درس جديد</button>
                 <button onClick={() => alert('تم الحفظ تلقائياً')} className="neumorphic-button bg-green-600 text-white px-6 py-2 font-bold"><i className="fas fa-save"></i> حفظ</button>
-                <button onClick={handleExportPDF} className="neumorphic-button bg-indigo-600 text-white px-6 py-2 font-bold"><i className="fas fa-file-pdf"></i> تصدير A4 (PDF)</button>
             </div>
 
             {/* ------------------------------------------------------- */}
@@ -903,6 +842,14 @@ const SmartLessonPlanner: React.FC<{ onBack: () => void }> = ({ onBack }) => {
                     </div>
 
                 </div>
+            </div>
+            
+             {/* Action Buttons for Printing */}
+            <div className="mt-8 no-print">
+                 <ActionButtons 
+                    textToCopy={JSON.stringify(plan, null, 2)} 
+                    elementIdToPrint="lesson-plan-export" 
+                />
             </div>
         </div>
     );

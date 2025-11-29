@@ -1,6 +1,7 @@
 
 import React, { useState, useEffect } from 'react';
 import ToolHeader from '../ToolHeader';
+import ActionButtons from '../ActionButtons';
 
 interface Task {
   id: number;
@@ -111,7 +112,7 @@ const TaskManager: React.FC<{ onBack: () => void }> = ({ onBack }) => {
       <ToolHeader title="إدارة المهام" onBack={onBack} />
       <div className="neumorphic-outset p-6">
         {/* Add Task Form */}
-        <form onSubmit={handleAddTask} className="flex items-center gap-3 mb-6">
+        <form onSubmit={handleAddTask} className="flex items-center gap-3 mb-6 no-print">
           <div className="flex-grow neumorphic-inset flex items-center p-1 !bg-white">
             <input
               type="text"
@@ -128,24 +129,27 @@ const TaskManager: React.FC<{ onBack: () => void }> = ({ onBack }) => {
         </form>
 
         {/* Filters and Actions */}
-        <div className="flex flex-wrap justify-between items-center mb-4 gap-4">
+        <div className="flex flex-wrap justify-between items-center mb-4 gap-4 no-print">
           <div className="flex p-1 rounded-xl neumorphic-inset">
              <button onClick={() => setFilter('all')} className={`px-4 py-2 rounded-xl transition-all duration-300 ${filter === 'all' ? 'neumorphic-button active bg-primary text-white' : 'text-gray-600'}`}>الكل</button>
              <button onClick={() => setFilter('active')} className={`px-4 py-2 rounded-xl transition-all duration-300 ${filter === 'active' ? 'neumorphic-button active bg-primary text-white' : 'text-gray-600'}`}>النشطة</button>
              <button onClick={() => setFilter('completed')} className={`px-4 py-2 rounded-xl transition-all duration-300 ${filter === 'completed' ? 'neumorphic-button active bg-primary text-white' : 'text-gray-600'}`}>المكتملة</button>
           </div>
-          {completedCount > 0 && (
-            <button onClick={handleClearCompleted} className="neumorphic-button bg-secondary text-white text-sm py-2 px-4">
-              حذف المكتمل <span className="bg-white/20 text-xs rounded-full px-2 py-0.5 ml-2">{completedCount}</span>
-            </button>
-          )}
+          <div className="flex gap-2">
+            {completedCount > 0 && (
+                <button onClick={handleClearCompleted} className="neumorphic-button bg-secondary text-white text-sm py-2 px-4">
+                حذف المكتمل <span className="bg-white/20 text-xs rounded-full px-2 py-0.5 ml-2">{completedCount}</span>
+                </button>
+            )}
+            {filteredTasks.length > 0 && <ActionButtons textToCopy="" elementIdToPrint="tasks-list" />}
+          </div>
         </div>
 
         {/* Task List */}
-        <div className="space-y-3">
+        <div id="tasks-list" className="space-y-3">
           {filteredTasks.length > 0 ? (
             filteredTasks.map(task => (
-              <div key={task.id} className="neumorphic-inset p-3 flex items-center gap-3 transition-opacity duration-300 !bg-white">
+              <div key={task.id} className="neumorphic-inset p-3 flex items-center gap-3 transition-opacity duration-300 !bg-white break-inside-avoid">
                 {editingTaskId === task.id ? (
                   <>
                     <input
@@ -157,10 +161,10 @@ const TaskManager: React.FC<{ onBack: () => void }> = ({ onBack }) => {
                       style={{ color: 'black' }}
                       autoFocus
                     />
-                    <button onClick={() => handleSaveEdit(task.id)} className="neumorphic-button w-10 h-10 flex-shrink-0 flex items-center justify-center bg-secondary text-white">
+                    <button onClick={() => handleSaveEdit(task.id)} className="neumorphic-button w-10 h-10 flex-shrink-0 flex items-center justify-center bg-secondary text-white no-print">
                         <i className="fas fa-save"></i>
                     </button>
-                    <button onClick={handleCancelEditing} className="neumorphic-button w-10 h-10 flex-shrink-0 flex items-center justify-center">
+                    <button onClick={handleCancelEditing} className="neumorphic-button w-10 h-10 flex-shrink-0 flex items-center justify-center no-print">
                         <i className="fas fa-times text-icon"></i>
                     </button>
                   </>
@@ -174,10 +178,10 @@ const TaskManager: React.FC<{ onBack: () => void }> = ({ onBack }) => {
                     <span className={`flex-grow text-black font-medium ${task.completed ? 'line-through opacity-60' : ''}`}>
                       {String(task.text)}
                     </span>
-                    <button onClick={() => handleStartEditing(task)} className="neumorphic-button w-10 h-10 flex-shrink-0 flex items-center justify-center">
+                    <button onClick={() => handleStartEditing(task)} className="neumorphic-button w-10 h-10 flex-shrink-0 flex items-center justify-center no-print">
                         <i className="fas fa-pencil-alt text-icon"></i>
                     </button>
-                    <button onClick={() => handleDeleteTask(task.id)} className="neumorphic-button w-10 h-10 flex-shrink-0 flex items-center justify-center bg-red-500 text-white">
+                    <button onClick={() => handleDeleteTask(task.id)} className="neumorphic-button w-10 h-10 flex-shrink-0 flex items-center justify-center bg-red-500 text-white no-print">
                         <i className="fas fa-trash"></i>
                     </button>
                   </>

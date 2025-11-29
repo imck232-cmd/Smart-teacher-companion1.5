@@ -1,6 +1,7 @@
 
 import React, { useState, useEffect } from 'react';
 import ToolHeader from '../ToolHeader';
+import ActionButtons from '../ActionButtons';
 
 const days = ['السبت', 'الأحد', 'الاثنين', 'الثلاثاء', 'الأربعاء', 'الخميس'];
 const periods = 8; // Max periods
@@ -78,7 +79,7 @@ const ClassSchedule: React.FC<{ onBack: () => void }> = ({ onBack }) => {
         <div className="pb-8">
             <ToolHeader title="جدول الحصص المدرسي" onBack={onBack} />
             
-            <div className="flex gap-4 mb-6 justify-center">
+            <div className="flex gap-4 mb-6 justify-center no-print">
                 <button 
                     onClick={() => setView('weekly')}
                     className={`px-6 py-2 rounded-full font-bold transition-all ${view === 'weekly' ? 'bg-primary text-white shadow-lg' : 'bg-gray-200 text-gray-700'}`}
@@ -94,7 +95,12 @@ const ClassSchedule: React.FC<{ onBack: () => void }> = ({ onBack }) => {
             </div>
 
             {view === 'weekly' && (
-                <div className="neumorphic-outset p-4 overflow-x-auto bg-white/90">
+                <>
+                <div className="flex justify-end mb-4 no-print">
+                     <ActionButtons textToCopy="" elementIdToPrint="schedule-table" />
+                </div>
+                <div id="schedule-table" className="neumorphic-outset p-4 overflow-x-auto bg-white/90">
+                    <h3 className="text-center font-bold text-xl mb-4 text-black">جدول الحصص الأسبوعي</h3>
                     <table className="w-full min-w-[800px] border-collapse text-center">
                         <thead>
                             <tr>
@@ -124,14 +130,15 @@ const ClassSchedule: React.FC<{ onBack: () => void }> = ({ onBack }) => {
                             ))}
                         </tbody>
                     </table>
-                    <button onClick={handleSave} className="neumorphic-button mt-6 bg-green-600 text-white px-8 py-3 font-bold block mx-auto">
+                    <button onClick={handleSave} className="neumorphic-button mt-6 bg-green-600 text-white px-8 py-3 font-bold block mx-auto no-print">
                         <i className="fas fa-save ml-2"></i> حفظ التعديلات
                     </button>
                 </div>
+                </>
             )}
 
             {view === 'daily' && (
-                <div className="neumorphic-outset p-6 max-w-2xl mx-auto text-center">
+                <div id="daily-schedule-print" className="neumorphic-outset p-6 max-w-2xl mx-auto text-center">
                     <h3 className="text-3xl font-bold text-primary mb-6 border-b pb-4">{todayData.day}</h3>
                     {todayData.periods.length > 0 ? (
                         <div className="space-y-3">
@@ -151,6 +158,9 @@ const ClassSchedule: React.FC<{ onBack: () => void }> = ({ onBack }) => {
                     ) : (
                         <p className="text-xl text-gray-500 py-10">اليوم عطلة، استمتع بوقتك!</p>
                     )}
+                    <div className="mt-6 flex justify-center no-print">
+                        <ActionButtons textToCopy="" elementIdToPrint="daily-schedule-print" />
+                    </div>
                 </div>
             )}
         </div>
