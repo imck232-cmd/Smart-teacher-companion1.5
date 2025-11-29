@@ -29,6 +29,7 @@ import ParticipationLog from './components/tools/ParticipationLog';
 import GradeSheet from './components/tools/GradeSheet';
 import SmartLessonPlanner from './components/tools/SmartLessonPlanner';
 import TranscribeAudio from './components/tools/TranscribeAudio';
+import CurriculumDownloader from './components/tools/CurriculumDownloader';
 import { themes, Theme } from './themes';
 import Sidebar from './components/Sidebar';
 import ScrollToTopButton from './components/ScrollToTopButton';
@@ -250,6 +251,8 @@ const App: React.FC = () => {
     switch (selectedTool) {
       case 'search':
         return <GeneralSearch onBack={handleGoHome} />;
+      case 'curriculumDownloader':
+        return <CurriculumDownloader onBack={handleGoHome} />;
       case 'participationLog':
         return <ParticipationLog onBack={handleGoHome} />;
       case 'gradeSheet':

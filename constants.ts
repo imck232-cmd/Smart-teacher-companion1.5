@@ -2,6 +2,7 @@
 // Fix: Define ToolKey here to avoid circular dependency
 export type ToolKey =
   | 'search'
+  | 'curriculumDownloader'
   | 'participationLog'
   | 'gradeSheet'
   | 'smartLessonPlanner'
@@ -52,6 +53,7 @@ interface Tool {
 
 export const tools: Tool[] = [
   { key: 'search', label: 'البحث العام', icon: 'fas fa-search' },
+  { key: 'curriculumDownloader', label: 'تنزيل المنهج والتحكم به', icon: 'fas fa-file-download', isNew: true },
   { key: 'transcribeAudio', label: 'تحويل الصوت إلى نص', icon: 'fas fa-microphone-lines', isNew: true },
   { key: 'participationLog', label: 'سجل المشاركات', icon: 'fas fa-list-ol', isNew: true },
   { key: 'gradeSheet', label: 'كشف الدرجات', icon: 'fas fa-clipboard-list', isNew: true },
