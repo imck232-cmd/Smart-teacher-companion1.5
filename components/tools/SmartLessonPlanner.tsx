@@ -4,9 +4,11 @@ import ToolHeader from '../ToolHeader';
 import { generateSmartLessonPlan } from '../../services/geminiService';
 import ActionButtons from '../ActionButtons';
 
-// Declare libraries for export
+// Declare libraries for export and file reading
 declare const html2canvas: any;
 declare const jspdf: any;
+declare const pdfjsLib: any;
+declare const mammoth: any;
 
 // --- Types ---
 interface Objective {
@@ -146,6 +148,7 @@ const SmartLessonPlanner: React.FC<{ onBack: () => void }> = ({ onBack }) => {
     
     // Processing State
     const [isGenerating, setIsGenerating] = useState(false);
+    const [isReadingFile, setIsReadingFile] = useState(false);
     const [generatedResult, setGeneratedResult] = useState<any>(null); // Store raw AI result
     const [isExporting, setIsExporting] = useState(false);
     
@@ -156,6 +159,7 @@ const SmartLessonPlanner: React.FC<{ onBack: () => void }> = ({ onBack }) => {
     // Refs for file inputs
     const eagleInputRef = useRef<HTMLInputElement>(null);
     const logoInputRef = useRef<HTMLInputElement>(null);
+    const contentFileInputRef = useRef<HTMLInputElement>(null);
 
     // Helper to safe string to prevent Error #31
     const safeString = (val: any): string => {
@@ -256,6 +260,72 @@ const SmartLessonPlanner: React.FC<{ onBack: () => void }> = ({ onBack }) => {
                 }
             };
             reader.readAsDataURL(e.target.files[0]);
+        }
+    };
+
+    // --- File Reading for Content ---
+    const handleContentFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+
+        setIsReadingFile(true);
+        try {
+            let extractedText = '';
+
+            // 1. PDF Handling
+            if (file.type === 'application/pdf') {
+                if (typeof pdfjsLib === 'undefined') throw new Error("مكتبة PDF غير محملة");
+                
+                const arrayBuffer = await file.arrayBuffer();
+                const loadingTask = pdfjsLib.getDocument({ data: arrayBuffer });
+                const pdf = await loadingTask.promise;
+                
+                let fullText = '';
+                // Limit to first 5 pages to prevent freezing on large books
+                const maxPages = Math.min(pdf.numPages, 5);
+                
+                for (let i = 1; i <= maxPages; i++) {
+                    const page = await pdf.getPage(i);
+                    const textContent = await page.getTextContent();
+                    const pageText = textContent.items.map((item: any) => item.str).join(' ');
+                    // Filter out very short lines or garbage
+                    if (pageText.length > 20) {
+                        fullText += pageText + '\n\n';
+                    }
+                }
+                extractedText = fullText;
+            } 
+            // 2. Word (DOCX) Handling
+            else if (file.type === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document') {
+                if (typeof mammoth === 'undefined') throw new Error("مكتبة Mammoth غير محملة");
+                
+                const arrayBuffer = await file.arrayBuffer();
+                const result = await mammoth.extractRawText({ arrayBuffer: arrayBuffer });
+                extractedText = result.value;
+            }
+            // 3. Plain Text
+            else if (file.type === 'text/plain') {
+                 extractedText = await file.text();
+            }
+            else {
+                alert('نوع الملف غير مدعوم حالياً. يرجى استخدام PDF, DOCX, أو TXT.');
+                setIsReadingFile(false);
+                return;
+            }
+
+            if (extractedText.trim().length === 0) {
+                 alert('لم يتم العثور على نص قابل للقراءة في الملف. قد يكون صورة ممسوحة ضوئياً.');
+            } else {
+                 setAiInput(prev => prev + '\n\n' + extractedText);
+                 alert('تم استخراج النص من الملف بنجاح! يمكنك الآن الضغط على زر "أنشئ التحضير".');
+            }
+
+        } catch (error) {
+            console.error(error);
+            alert('حدث خطأ أثناء قراءة الملف. يرجى التأكد من أن الملف سليم وغير محمي بكلمة مرور.');
+        } finally {
+            setIsReadingFile(false);
+            if (e.target) e.target.value = ''; // Reset input
         }
     };
 
@@ -427,27 +497,42 @@ const SmartLessonPlanner: React.FC<{ onBack: () => void }> = ({ onBack }) => {
             {/* TOP SECTION: Input Only (No initial fields here) */}
             <div className="neumorphic-outset p-6 mb-8 no-print">
                 <h3 className="text-xl font-bold text-indigo-700 mb-4 border-b pb-2">1. إنشاء تحضير إلكتروني كامل (مُستحسن)</h3>
-                <p className="text-sm text-gray-600 mb-2">اكتب موضوع الدرس (مثال: الفاعل في اللغة العربية) أو الصق محتوى الدرس هنا، ثم اضغط على زر الإنشاء.</p>
+                <p className="text-sm text-gray-600 mb-2">اكتب موضوع الدرس (مثال: الفاعل في اللغة العربية) أو الصق محتوى الدرس هنا، أو قم برفع ملف (PDF/Word) ليقوم الذكاء الاصطناعي بقراءته.</p>
                 <textarea 
                     value={aiInput}
                     onChange={e => setAiInput(e.target.value)}
-                    placeholder="اكتب هنا..."
+                    placeholder="اكتب هنا أو الصق النص..."
                     className="w-full h-32 p-3 border rounded-lg bg-white text-black mb-4"
                 />
                 
-                <div className="flex flex-wrap gap-4">
+                <div className="flex flex-wrap gap-4 items-center">
                     <button 
                         onClick={openCreationModal} 
-                        disabled={isGenerating}
-                        className="neumorphic-button py-3 px-8 bg-green-600 text-white font-bold text-lg shadow-lg hover:bg-green-700 transition-all"
+                        disabled={isGenerating || isReadingFile}
+                        className="neumorphic-button py-3 px-8 bg-green-600 text-white font-bold text-lg shadow-lg hover:bg-green-700 transition-all disabled:opacity-50"
                     >
                         {isGenerating ? 'جاري الإنشاء...' : 'أنشئ التحضير إلكترونياً'}
                     </button>
                     
-                    <button onClick={() => document.getElementById('upload-file')?.click()} className="neumorphic-button bg-gray-200 text-gray-700 px-6 py-3 font-bold">
-                        أو أدرج ملف (txt, pdf, docx, xlsx)
+                    <button 
+                        onClick={() => contentFileInputRef.current?.click()} 
+                        disabled={isReadingFile}
+                        className="neumorphic-button bg-gray-200 text-gray-700 px-6 py-3 font-bold hover:bg-gray-300 disabled:opacity-60"
+                    >
+                        {isReadingFile ? (
+                            <span><i className="fas fa-spinner fa-spin ml-2"></i> جاري قراءة الملف...</span>
+                        ) : (
+                            <span><i className="fas fa-file-upload ml-2"></i> أدرج ملف (PDF, DOCX, TXT)</span>
+                        )}
                     </button>
-                    <input id="upload-file" type="file" className="hidden" onChange={(e) => alert('ميزة قراءة الملفات قادمة قريباً! يرجى نسخ النص ولصقه حالياً.')} />
+                    <input 
+                        id="upload-file" 
+                        type="file" 
+                        ref={contentFileInputRef}
+                        accept=".pdf,.docx,.txt"
+                        className="hidden" 
+                        onChange={handleContentFileUpload} 
+                    />
                 </div>
             </div>
 
