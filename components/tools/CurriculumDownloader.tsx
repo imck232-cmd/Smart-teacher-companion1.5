@@ -9,27 +9,49 @@ interface CurriculumLink {
     icon: string;
 }
 
+interface LocalFile {
+    name: string;
+    size: string;
+    url: string;
+    type: string;
+}
+
 const officialLinks: CurriculumLink[] = [
     { country: 'اليمن', name: 'المناهج الدراسية (موقع الأمجاد)', url: 'https://www.al-amgaad.com/2022/08/all-books-yemen.html', icon: 'https://cdn-icons-png.flaticon.com/512/323/323303.png' },
     { country: 'عام', name: 'مكتبة نور (كتب تعليمية)', url: 'https://www.noor-book.com/', icon: 'fas fa-book' },
 ];
 
 const CurriculumDownloader: React.FC<{ onBack: () => void }> = ({ onBack }) => {
-    const [myFiles, setMyFiles] = useState<{ name: string; size: string }[]>([]);
+    const [myFiles, setMyFiles] = useState<LocalFile[]>([]);
     const fileInputRef = useRef<HTMLInputElement>(null);
 
     const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
         if (file) {
+            const url = URL.createObjectURL(file);
             setMyFiles(prev => [...prev, { 
                 name: file.name, 
-                size: (file.size / 1024 / 1024).toFixed(2) + ' MB' 
+                size: (file.size / 1024 / 1024).toFixed(2) + ' MB',
+                url: url,
+                type: file.type
             }]);
         }
+        // Reset input to allow re-uploading the same file if deleted
+        if (e.target) e.target.value = '';
     };
 
     const handleDeleteFile = (index: number) => {
-        setMyFiles(prev => prev.filter((_, i) => i !== index));
+        setMyFiles(prev => {
+            const fileToRemove = prev[index];
+            if (fileToRemove) {
+                URL.revokeObjectURL(fileToRemove.url); // Clean up memory
+            }
+            return prev.filter((_, i) => i !== index);
+        });
+    };
+
+    const handleOpenFile = (file: LocalFile) => {
+        window.open(file.url, '_blank');
     };
 
     return (
@@ -71,7 +93,7 @@ const CurriculumDownloader: React.FC<{ onBack: () => void }> = ({ onBack }) => {
                     </div>
                 </div>
 
-                {/* Section 2: Local File Management (Mock) */}
+                {/* Section 2: Local File Management */}
                 <div className="neumorphic-outset p-6 bg-blue-50/50 border border-blue-100">
                     <div className="flex justify-between items-center mb-4">
                         <h3 className="text-xl font-bold text-blue-800">
@@ -88,28 +110,33 @@ const CurriculumDownloader: React.FC<{ onBack: () => void }> = ({ onBack }) => {
                             ref={fileInputRef} 
                             onChange={handleFileUpload} 
                             className="hidden" 
-                            accept=".pdf,.doc,.docx,.ppt,.pptx"
+                            accept=".pdf,.doc,.docx,.ppt,.pptx,.jpg,.jpeg,.png"
                         />
                     </div>
                     
                     {myFiles.length > 0 ? (
                         <div className="space-y-2">
                             {myFiles.map((file, idx) => (
-                                <div key={idx} className="flex items-center justify-between p-3 bg-white rounded-lg border border-gray-200">
+                                <div key={idx} className="flex items-center justify-between p-3 bg-white rounded-lg border border-gray-200 hover:border-blue-300 transition-colors">
                                     <div className="flex items-center gap-3">
-                                        <i className="fas fa-file-pdf text-red-500 text-xl"></i>
+                                        <i className={`fas ${file.type.includes('image') ? 'fa-image text-purple-500' : 'fa-file-pdf text-red-500'} text-xl`}></i>
                                         <div>
                                             <p className="font-bold text-sm text-gray-800">{file.name}</p>
                                             <p className="text-xs text-gray-500">{file.size}</p>
                                         </div>
                                     </div>
                                     <div className="flex gap-2">
-                                        <button className="w-8 h-8 flex items-center justify-center rounded-full bg-gray-100 text-gray-600 hover:bg-blue-100 hover:text-blue-600 transition-colors">
+                                        <button 
+                                            onClick={() => handleOpenFile(file)}
+                                            className="w-8 h-8 flex items-center justify-center rounded-full bg-gray-100 text-gray-600 hover:bg-blue-100 hover:text-blue-600 transition-colors"
+                                            title="فتح الملف"
+                                        >
                                             <i className="fas fa-eye"></i>
                                         </button>
                                         <button 
                                             onClick={() => handleDeleteFile(idx)}
                                             className="w-8 h-8 flex items-center justify-center rounded-full bg-gray-100 text-gray-600 hover:bg-red-100 hover:text-red-600 transition-colors"
+                                            title="حذف الملف"
                                         >
                                             <i className="fas fa-trash"></i>
                                         </button>
