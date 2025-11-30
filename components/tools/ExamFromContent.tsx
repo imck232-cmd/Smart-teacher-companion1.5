@@ -21,6 +21,10 @@ const gradesList = [
     'الأول الثانوي', 'الثاني الثانوي', 'الثالث الثانوي'
 ];
 
+const subjectsList = [
+    'القرآن الكريم', 'التربية الإسلامية', 'اللغة العربية', 'اللغة الإنجليزية', 'الرياضيات', 'العلوم', 'الكيمياء', 'الفيزياء', 'الأحياء', 'الاجتماعيات', 'الحاسوب', 'المكتبة', 'الفنية', 'المختص الاجتماعي', 'الأنشطة', 'أخرى'
+];
+
 const ExamFromContent: React.FC<{ onBack: () => void }> = ({ onBack }) => {
     // Input State
     const [contentInput, setContentInput] = useState('');
@@ -34,7 +38,7 @@ const ExamFromContent: React.FC<{ onBack: () => void }> = ({ onBack }) => {
         district: '',
         school: '',
         teacher: '',
-        subject: 'اللغة العربية',
+        subject: '',
         month: 'صفر',
         year: '1447',
         semester: 'الأول',
@@ -239,12 +243,20 @@ const ExamFromContent: React.FC<{ onBack: () => void }> = ({ onBack }) => {
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
                             <div><label className="block text-sm font-bold text-gray-700">المنطقة التعليمية</label><input type="text" value={config.district} onChange={e => setConfig({...config, district: e.target.value})} className="w-full p-2 border rounded bg-white text-black" /></div>
                             <div><label className="block text-sm font-bold text-gray-700">المدرسة</label><input type="text" value={config.school} onChange={e => setConfig({...config, school: e.target.value})} className="w-full p-2 border rounded bg-white text-black" /></div>
+                            <div><label className="block text-sm font-bold text-gray-700">الفصل الدراسي</label><input type="text" value={config.semester} onChange={e => setConfig({...config, semester: e.target.value})} className="w-full p-2 border rounded bg-white text-black" /></div>
+                            
                             <div><label className="block text-sm font-bold text-gray-700">المعلم</label><input type="text" value={config.teacher} onChange={e => setConfig({...config, teacher: e.target.value})} className="w-full p-2 border rounded bg-white text-black" /></div>
-                            <div><label className="block text-sm font-bold text-gray-700">المادة</label><input type="text" value={config.subject} onChange={e => setConfig({...config, subject: e.target.value})} className="w-full p-2 border rounded bg-white text-black" /></div>
+                            <div>
+                                <label className="block text-sm font-bold text-gray-700">المادة</label>
+                                <input list="subjects" value={config.subject} onChange={e => setConfig({...config, subject: e.target.value})} className="w-full p-2 border rounded bg-white text-black" />
+                                <datalist id="subjects">
+                                    {subjectsList.map(s => <option key={s} value={s} />)}
+                                </datalist>
+                            </div>
                             <div><label className="block text-sm font-bold text-gray-700">الشهر/الفترة</label><input type="text" value={config.month} onChange={e => setConfig({...config, month: e.target.value})} className="w-full p-2 border rounded bg-white text-black" /></div>
                             <div><label className="block text-sm font-bold text-gray-700">الصف</label><select value={config.grade} onChange={e => setConfig({...config, grade: e.target.value})} className="w-full p-2 border rounded bg-white text-black">{gradesList.map(g => <option key={g} value={g}>{g}</option>)}</select></div>
                             <div><label className="block text-sm font-bold text-gray-700">الدرجة الكلية</label><input type="number" value={config.totalMarks} onChange={e => setConfig({...config, totalMarks: e.target.value})} className="w-full p-2 border rounded bg-white text-black" /></div>
-                            <div className="md:col-span-2"><label className="block text-sm font-bold text-gray-700">تعليمات الاختبار</label><input type="text" value={config.instructions} onChange={e => setConfig({...config, instructions: e.target.value})} className="w-full p-2 border rounded bg-white text-black" /></div>
+                            <div className="md:col-span-1"><label className="block text-sm font-bold text-gray-700">تعليمات الاختبار</label><input type="text" value={config.instructions} onChange={e => setConfig({...config, instructions: e.target.value})} className="w-full p-2 border rounded bg-white text-black" /></div>
                         </div>
 
                         {/* Question Types Selection */}
@@ -327,9 +339,9 @@ const ExamFromContent: React.FC<{ onBack: () => void }> = ({ onBack }) => {
                                 <tbody>
                                     <tr>
                                         <td className="w-1/3 align-top text-right pr-2">
-                                            <p>الجمهورية اليمنية</p>
-                                            <p>{safeString(config.ministry)}</p>
-                                            <p>مكتب التربية والتعليم بالأمانة</p>
+                                            <p className="text-black">الجمهورية اليمنية</p>
+                                            <p className="text-black">{safeString(config.ministry)}</p>
+                                            <p className="text-black">مكتب التربية والتعليم بالأمانة</p>
                                             <div contentEditable className="whitespace-nowrap outline-none text-black">المنطقة التعليمية: {safeString(config.district)}</div>
                                             <div contentEditable className="whitespace-nowrap outline-none text-black">مدارس: {safeString(config.school)}</div>
                                         </td>
@@ -340,10 +352,10 @@ const ExamFromContent: React.FC<{ onBack: () => void }> = ({ onBack }) => {
                                             <div contentEditable className="text-xs outline-none text-black">للعام الدراسي {safeString(config.year)}</div>
                                         </td>
                                         <td className="w-1/3 align-top text-left pl-2">
-                                            <div className="flex justify-end gap-1"><span>التاريخ:</span> <div contentEditable className="border-b border-black w-24 text-center outline-none text-black">{config.date}</div></div>
-                                            <div className="flex justify-end gap-1 mt-1"><span>المادة:</span> <div contentEditable className="border-b border-black w-24 text-center outline-none text-black">{config.subject}</div></div>
-                                            <div className="flex justify-end gap-1 mt-1"><span>الصف:</span> <div contentEditable className="border-b border-black w-24 text-center outline-none text-black">{config.grade}</div></div>
-                                            <div className="flex justify-end gap-1 mt-1"><span>النموذج:</span> <div contentEditable className="border-b border-black w-24 text-center outline-none text-black">{config.model}</div></div>
+                                            <div className="flex justify-end gap-1"><span className="text-black">التاريخ:</span> <div contentEditable className="border-b border-black w-24 text-center outline-none text-black">{config.date}</div></div>
+                                            <div className="flex justify-end gap-1 mt-1"><span className="text-black">المادة:</span> <div contentEditable className="border-b border-black w-24 text-center outline-none text-black">{config.subject}</div></div>
+                                            <div className="flex justify-end gap-1 mt-1"><span className="text-black">الصف:</span> <div contentEditable className="border-b border-black w-24 text-center outline-none text-black">{config.grade}</div></div>
+                                            <div className="flex justify-end gap-1 mt-1"><span className="text-black">النموذج:</span> <div contentEditable className="border-b border-black w-24 text-center outline-none text-black">{config.model}</div></div>
                                         </td>
                                     </tr>
                                 </tbody>
@@ -351,10 +363,10 @@ const ExamFromContent: React.FC<{ onBack: () => void }> = ({ onBack }) => {
                             
                             {/* Student Name Strip */}
                             <div className="border-t-2 border-black mt-2 pt-1 flex justify-between items-center text-sm font-bold bg-gray-100 px-2 text-black">
-                                <div className="flex gap-2 w-1/2"><span>الاسم:</span> <div contentEditable className="border-b border-dotted border-black flex-grow outline-none text-black"></div></div>
-                                <div className="flex gap-2"><span>الشعبة:</span> <div contentEditable className="border-b border-dotted border-black w-10 outline-none text-black"></div></div>
-                                <div className="flex gap-2"><span>رقم الجلوس:</span> <div contentEditable className="border-b border-dotted border-black w-16 outline-none text-black"></div></div>
-                                <div className="flex gap-2"><span>الرقم السري:</span> <div contentEditable className="border-b border-dotted border-black w-12 outline-none text-black"></div></div>
+                                <div className="flex gap-2 w-1/2"><span className="text-black">الاسم:</span> <div contentEditable className="border-b border-dotted border-black flex-grow outline-none text-black"></div></div>
+                                <div className="flex gap-2"><span className="text-black">الشعبة:</span> <div contentEditable className="border-b border-dotted border-black w-10 outline-none text-black"></div></div>
+                                <div className="flex gap-2"><span className="text-black">رقم الجلوس:</span> <div contentEditable className="border-b border-dotted border-black w-16 outline-none text-black"></div></div>
+                                <div className="flex gap-2"><span className="text-black">الرقم السري:</span> <div contentEditable className="border-b border-dotted border-black w-12 outline-none text-black"></div></div>
                             </div>
                         </div>
 
@@ -369,13 +381,13 @@ const ExamFromContent: React.FC<{ onBack: () => void }> = ({ onBack }) => {
                         ].map((section, idx) => (
                             <div key={idx} className="mb-4 border border-black relative">
                                 <div className="bg-gray-200 text-center font-bold border-b border-black py-1 text-sm text-black">
-                                    <div contentEditable onBlur={e => handleExamChange(section.key, 'title', e.currentTarget.innerText)} className="outline-none inline-block">
+                                    <div contentEditable onBlur={e => handleExamChange(section.key, 'title', e.currentTarget.innerText)} className="outline-none inline-block text-black font-black text-base">
                                         {renderedExam[section.key as keyof typeof renderedExam][`title`]}
                                     </div>
                                 </div>
                                 <div className="flex">
                                     <div className="w-10 border-l border-black flex items-center justify-center font-bold bg-gray-50 text-sm text-black">
-                                        <div contentEditable onBlur={e => handleExamChange('gradingTable', section.key, e.currentTarget.innerText)} className="outline-none">
+                                        <div contentEditable onBlur={e => handleExamChange('gradingTable', section.key, e.currentTarget.innerText)} className="outline-none text-black">
                                             {renderedExam.gradingTable[section.key as keyof typeof renderedExam.gradingTable]}
                                         </div>
                                     </div>
@@ -383,16 +395,16 @@ const ExamFromContent: React.FC<{ onBack: () => void }> = ({ onBack }) => {
                                         <div 
                                             contentEditable 
                                             onBlur={e => handleExamChange(section.key, 'content', e.currentTarget.innerText)}
-                                            className="whitespace-pre-wrap outline-none mb-2 text-sm leading-relaxed text-black"
+                                            className="whitespace-pre-wrap outline-none mb-2 text-sm leading-relaxed text-black font-bold"
                                             dangerouslySetInnerHTML={{ __html: renderedExam[section.key as keyof typeof renderedExam][`content`] }}
                                         ></div>
-                                        <div className="space-y-2">
+                                        <div className="space-y-3">
                                             {renderedExam[section.key as keyof typeof renderedExam].subQuestions.map((subQ: string, subIdx: number) => (
                                                 <div key={subIdx} className="flex gap-1 items-start">
                                                     <div 
                                                         contentEditable 
                                                         onBlur={e => handleExamChange(section.key, 'subQuestions', e.currentTarget.innerText, subIdx)}
-                                                        className="w-full border-b border-dotted border-gray-400 outline-none min-h-[24px] text-black"
+                                                        className="w-full outline-none min-h-[24px] text-black leading-loose"
                                                         dangerouslySetInnerHTML={{ __html: subQ }}
                                                     ></div>
                                                 </div>
@@ -405,7 +417,7 @@ const ExamFromContent: React.FC<{ onBack: () => void }> = ({ onBack }) => {
 
                         {/* Page 1 Footer */}
                         <div className="absolute bottom-10 left-0 w-full text-center font-bold italic text-black">
-                            للأسئلة بقية خلف الصفحة
+                            للأسئلة بقية خلف الورقة
                         </div>
                     </div>
 
@@ -440,13 +452,13 @@ const ExamFromContent: React.FC<{ onBack: () => void }> = ({ onBack }) => {
                         ].map((section, idx) => (
                             <div key={idx} className="mb-4 border border-black relative">
                                 <div className="bg-gray-200 text-center font-bold border-b border-black py-1 text-sm text-black">
-                                    <div contentEditable onBlur={e => handleExamChange(section.key, 'title', e.currentTarget.innerText)} className="outline-none inline-block">
+                                    <div contentEditable onBlur={e => handleExamChange(section.key, 'title', e.currentTarget.innerText)} className="outline-none inline-block text-black font-black text-base">
                                         {renderedExam[section.key as keyof typeof renderedExam][`title`]}
                                     </div>
                                 </div>
                                 <div className="flex">
                                     <div className="w-10 border-l border-black flex items-center justify-center font-bold bg-gray-50 text-sm text-black">
-                                        <div contentEditable onBlur={e => handleExamChange('gradingTable', section.key, e.currentTarget.innerText)} className="outline-none">
+                                        <div contentEditable onBlur={e => handleExamChange('gradingTable', section.key, e.currentTarget.innerText)} className="outline-none text-black">
                                             {renderedExam.gradingTable[section.key as keyof typeof renderedExam.gradingTable]}
                                         </div>
                                     </div>
@@ -454,16 +466,16 @@ const ExamFromContent: React.FC<{ onBack: () => void }> = ({ onBack }) => {
                                         <div 
                                             contentEditable 
                                             onBlur={e => handleExamChange(section.key, 'content', e.currentTarget.innerText)}
-                                            className="whitespace-pre-wrap outline-none mb-2 text-sm leading-relaxed text-black"
+                                            className="whitespace-pre-wrap outline-none mb-2 text-sm leading-relaxed text-black font-bold"
                                             dangerouslySetInnerHTML={{ __html: renderedExam[section.key as keyof typeof renderedExam][`content`] }}
                                         ></div>
-                                        <div className="space-y-2">
+                                        <div className="space-y-3">
                                             {renderedExam[section.key as keyof typeof renderedExam].subQuestions.map((subQ: string, subIdx: number) => (
                                                 <div key={subIdx} className="flex gap-1 items-start">
                                                     <div 
                                                         contentEditable 
                                                         onBlur={e => handleExamChange(section.key, 'subQuestions', e.currentTarget.innerText, subIdx)}
-                                                        className="w-full border-b border-dotted border-gray-400 outline-none min-h-[24px] text-black"
+                                                        className="w-full outline-none min-h-[24px] text-black leading-loose"
                                                         dangerouslySetInnerHTML={{ __html: subQ }}
                                                     ></div>
                                                 </div>
@@ -479,27 +491,27 @@ const ExamFromContent: React.FC<{ onBack: () => void }> = ({ onBack }) => {
                             <table className="w-full text-center border-collapse text-xs font-bold text-black">
                                 <thead>
                                     <tr className="bg-gray-200">
-                                        <td className="border border-black p-1">رقم السؤال</td>
-                                        <td className="border border-black p-1">الأول</td>
-                                        <td className="border border-black p-1">الثاني</td>
-                                        <td className="border border-black p-1">الثالث</td>
-                                        <td className="border border-black p-1">الرابع</td>
-                                        <td className="border border-black p-1">الخامس</td>
-                                        <td className="border border-black p-1">المجموع</td>
+                                        <td className="border border-black p-1 text-black">رقم السؤال</td>
+                                        <td className="border border-black p-1 text-black">الأول</td>
+                                        <td className="border border-black p-1 text-black">الثاني</td>
+                                        <td className="border border-black p-1 text-black">الثالث</td>
+                                        <td className="border border-black p-1 text-black">الرابع</td>
+                                        <td className="border border-black p-1 text-black">الخامس</td>
+                                        <td className="border border-black p-1 text-black">المجموع</td>
                                     </tr>
                                 </thead>
                                 <tbody>
                                     <tr>
-                                        <td className="border border-black p-1 bg-gray-50">الدرجة النهائية</td>
-                                        <td className="border border-black p-1">{renderedExam.gradingTable.q1}</td>
-                                        <td className="border border-black p-1">{renderedExam.gradingTable.q2}</td>
-                                        <td className="border border-black p-1">{renderedExam.gradingTable.q3}</td>
-                                        <td className="border border-black p-1">{renderedExam.gradingTable.q4}</td>
-                                        <td className="border border-black p-1">{renderedExam.gradingTable.q5}</td>
-                                        <td className="border border-black p-1">{renderedExam.gradingTable.total}</td>
+                                        <td className="border border-black p-1 bg-gray-50 text-black">الدرجة النهائية</td>
+                                        <td className="border border-black p-1 text-black">{renderedExam.gradingTable.q1}</td>
+                                        <td className="border border-black p-1 text-black">{renderedExam.gradingTable.q2}</td>
+                                        <td className="border border-black p-1 text-black">{renderedExam.gradingTable.q3}</td>
+                                        <td className="border border-black p-1 text-black">{renderedExam.gradingTable.q4}</td>
+                                        <td className="border border-black p-1 text-black">{renderedExam.gradingTable.q5}</td>
+                                        <td className="border border-black p-1 text-black">{renderedExam.gradingTable.total}</td>
                                     </tr>
                                     <tr>
-                                        <td className="border border-black p-1 bg-gray-50">الدرجة المستحقة</td>
+                                        <td className="border border-black p-1 bg-gray-50 text-black">الدرجة المستحقة</td>
                                         <td className="border border-black p-1"></td>
                                         <td className="border border-black p-1"></td>
                                         <td className="border border-black p-1"></td>
