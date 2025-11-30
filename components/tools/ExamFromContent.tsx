@@ -1,12 +1,13 @@
-
 import React, { useState, useRef } from 'react';
 import ToolHeader from '../ToolHeader';
 import { generateStructuredExam } from '../../services/geminiService';
 import ActionButtons from '../ActionButtons';
 
-// Declare libraries for file reading
+// Declare libraries for file reading and export
 declare const pdfjsLib: any;
 declare const mammoth: any;
+declare const html2canvas: any;
+declare const jspdf: any;
 
 const questionTypesList = [
     'صح / خطأ', 'اختيار من متعدد', 'ملء الفراغ', 'المقابلة (المزاوجة)', 'الترتيب',
@@ -57,15 +58,16 @@ const ExamFromContent: React.FC<{ onBack: () => void }> = ({ onBack }) => {
         time: 'ساعة ونصف',
         totalMarks: '50',
         instructions: 'أجب مستعيناً بالله عن جميع الأسئلة الآتية:',
+        customInstructions: '', // New field for specific user constraints
     });
 
     // Multi-select Question Types State with POSITION
-    // Structure: { "Type Name": { count: 5, position: "q1" } }
     const [selectedQuestionTypes, setSelectedQuestionTypes] = useState<Record<string, { count: number, position: string }>>({});
 
     // Exam State
     const [isGenerating, setIsGenerating] = useState(false);
     const [examData, setExamData] = useState<any>(null); 
+    const [isExporting, setIsExporting] = useState(false);
     
     // Initial Empty Exam Structure
     const initialExamStructure = {
@@ -79,14 +81,14 @@ const ExamFromContent: React.FC<{ onBack: () => void }> = ({ onBack }) => {
     
     const [renderedExam, setRenderedExam] = useState(initialExamStructure);
 
-    // --- Helpers ---
+    // Helpers
     const safeString = (val: any): string => {
         if (typeof val === 'string') return val;
         if (typeof val === 'number') return String(val);
         return '';
     };
 
-    // --- File Handling ---
+    // File Handling
     const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
         if (!file) return;
@@ -131,14 +133,13 @@ const ExamFromContent: React.FC<{ onBack: () => void }> = ({ onBack }) => {
         }
     };
 
-    // --- Type Selection Handlers ---
+    // Type Selection
     const handleTypeToggle = (type: string) => {
         setSelectedQuestionTypes(prev => {
             const newState = { ...prev };
             if (newState[type]) {
                 delete newState[type];
             } else {
-                // Default: 1 Question, mapped to Question 1
                 newState[type] = { count: 1, position: 'q1' }; 
             }
             return newState;
@@ -155,13 +156,12 @@ const ExamFromContent: React.FC<{ onBack: () => void }> = ({ onBack }) => {
         }));
     };
 
-    // --- AI Generation ---
+    // AI Generation
     const handleStartGeneration = async () => {
         if (!contentInput.trim()) {
             alert('الرجاء إدخال محتوى أو رفع ملف أولاً.');
             return;
         }
-        
         if (Object.keys(selectedQuestionTypes).length === 0) {
             alert('الرجاء اختيار نوع واحد على الأقل من الأسئلة.');
             return;
@@ -173,9 +173,8 @@ const ExamFromContent: React.FC<{ onBack: () => void }> = ({ onBack }) => {
         try {
             const fullConfig = {
                 ...config,
-                detailedTypes: selectedQuestionTypes // Sends Type + Count + Position
+                detailedTypes: selectedQuestionTypes
             };
-            
             const result = await generateStructuredExam(contentInput, fullConfig);
             setExamData(result);
         } catch (e) {
@@ -203,7 +202,6 @@ const ExamFromContent: React.FC<{ onBack: () => void }> = ({ onBack }) => {
         }
     };
 
-    // --- Content Editable Handlers ---
     const handleExamChange = (section: string, field: string, value: string, subIndex?: number) => {
         setRenderedExam((prev: any) => {
             if (subIndex !== undefined && Array.isArray(prev[section][field])) {
@@ -216,6 +214,41 @@ const ExamFromContent: React.FC<{ onBack: () => void }> = ({ onBack }) => {
                 return { ...prev, [section]: { ...prev[section], [field]: value } };
             }
         });
+    };
+
+    // Custom Export for Multi-Page PDF
+    const handleExportExamPDF = async () => {
+        const page1 = document.getElementById('exam-page-1');
+        const page2 = document.getElementById('exam-page-2');
+
+        if (!page1 || !page2) return;
+
+        setIsExporting(true);
+
+        try {
+            await Promise.race([document.fonts.ready, new Promise(r => setTimeout(r, 500))]);
+
+            const canvas1 = await html2canvas(page1, { scale: 2, useCORS: true, backgroundColor: '#ffffff' });
+            const imgData1 = canvas1.toDataURL('image/jpeg', 0.8);
+
+            const canvas2 = await html2canvas(page2, { scale: 2, useCORS: true, backgroundColor: '#ffffff' });
+            const imgData2 = canvas2.toDataURL('image/jpeg', 0.8);
+
+            const pdf = new jspdf.jsPDF({ orientation: 'p', unit: 'mm', format: 'a4' });
+            const pdfWidth = pdf.internal.pageSize.getWidth();
+            const pdfHeight = pdf.internal.pageSize.getHeight();
+
+            pdf.addImage(imgData1, 'JPEG', 0, 0, pdfWidth, pdfHeight);
+            pdf.addPage();
+            pdf.addImage(imgData2, 'JPEG', 0, 0, pdfWidth, pdfHeight);
+
+            pdf.save('exam.pdf');
+        } catch (error) {
+            console.error("PDF Export Error", error);
+            alert("حدث خطأ أثناء تصدير ملف PDF.");
+        } finally {
+            setIsExporting(false);
+        }
     };
 
     return (
@@ -273,7 +306,7 @@ const ExamFromContent: React.FC<{ onBack: () => void }> = ({ onBack }) => {
                         {/* Question Types Selection */}
                         <div className="mb-6 p-4 bg-gray-50 rounded-xl border border-gray-200">
                             <h4 className="font-bold text-lg mb-3 text-gray-800 border-b pb-2">اختر أنواع الأسئلة، العدد، والموضع</h4>
-                            <div className="grid grid-cols-1 gap-3 max-h-80 overflow-y-auto pr-2">
+                            <div className="grid grid-cols-1 gap-3 max-h-60 overflow-y-auto pr-2">
                                 {questionTypesList.map(type => (
                                     <div key={type} className={`flex flex-wrap items-center justify-between p-3 rounded border transition-all ${selectedQuestionTypes[type] ? 'bg-blue-50 border-blue-300 shadow-sm' : 'bg-white border-gray-200'}`}>
                                         <label className="flex items-center gap-2 cursor-pointer flex-grow min-w-[200px]">
@@ -318,6 +351,17 @@ const ExamFromContent: React.FC<{ onBack: () => void }> = ({ onBack }) => {
                             </div>
                         </div>
 
+                        {/* Custom Instructions (New Field) */}
+                        <div className="mb-6">
+                            <label className="block text-sm font-bold text-gray-700 mb-2">شروط إضافية للأسئلة (للذكاء الاصطناعي):</label>
+                            <textarea 
+                                value={config.customInstructions}
+                                onChange={e => setConfig({...config, customInstructions: e.target.value})}
+                                placeholder="مثال: اجعل الأسئلة سهلة، ركز على الوحدة الأولى، لا تستخدم كلمات صعبة..."
+                                className="w-full p-2 border rounded bg-white text-black h-20 text-sm"
+                            />
+                        </div>
+
                         <div className="flex gap-4 pt-4 border-t">
                             <button onClick={handleStartGeneration} className="flex-1 bg-green-600 text-white py-3 rounded-xl font-bold hover:bg-green-700 text-lg">ابدأ إنشاء الاختبار</button>
                             <button onClick={() => setShowModal(false)} className="px-6 py-3 bg-red-100 text-red-700 rounded-xl font-bold hover:bg-red-200">إلغاء</button>
@@ -337,17 +381,26 @@ const ExamFromContent: React.FC<{ onBack: () => void }> = ({ onBack }) => {
                     <button onClick={handleFillFields} className="neumorphic-button bg-indigo-600 text-white px-6 py-3 font-bold rounded-xl shadow-md hover:bg-indigo-700">
                         <i className="fas fa-magic ml-2"></i> تعبئة الحقول
                     </button>
-                    <ActionButtons textToCopy={JSON.stringify(renderedExam, null, 2)} elementIdToPrint="exam-export-container" />
+                    {/* Specialized Export Button that handles Multi-Page */}
+                    <button 
+                        onClick={handleExportExamPDF} 
+                        disabled={isExporting}
+                        className="neumorphic-button bg-red-600 text-white px-6 py-3 font-bold rounded-xl shadow-md hover:bg-red-700 disabled:opacity-50"
+                    >
+                        {isExporting ? <i className="fas fa-spinner fa-spin ml-2"></i> : <i className="fas fa-file-pdf ml-2"></i>}
+                        تصدير الاختبار (PDF)
+                    </button>
                 </div>
             )}
 
             {/* THE EXAM PAPERS (2 A4 Pages Layout) */}
-            <div className="flex justify-center overflow-x-auto mt-4">
-                <div id="exam-export-container">
+            <div className="flex justify-center overflow-x-auto mt-4" id="exam-export-container">
+                <div className="flex flex-col gap-8">
                     
                     {/* --- PAGE 1 --- */}
                     <div 
-                        className="bg-white text-black shadow-lg mx-auto mb-8 relative page-break"
+                        id="exam-page-1"
+                        className="bg-white text-black shadow-lg mx-auto relative page-break"
                         style={{ 
                             width: '210mm',
                             height: '297mm',
@@ -358,8 +411,7 @@ const ExamFromContent: React.FC<{ onBack: () => void }> = ({ onBack }) => {
                             textAlign: 'right',
                             color: '#000000',
                             fontSize: '12pt',
-                            position: 'relative',
-                            pageBreakAfter: 'always'
+                            position: 'relative'
                         }}
                     >
                         {/* Header Table (Page 1) */}
@@ -452,6 +504,7 @@ const ExamFromContent: React.FC<{ onBack: () => void }> = ({ onBack }) => {
 
                     {/* --- PAGE 2 --- */}
                     <div 
+                        id="exam-page-2"
                         className="bg-white text-black shadow-lg mx-auto relative page-break"
                         style={{ 
                             width: '210mm',
