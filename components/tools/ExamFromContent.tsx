@@ -1,3 +1,4 @@
+
 import React, { useState, useRef } from 'react';
 import ToolHeader from '../ToolHeader';
 import { generateStructuredExam } from '../../services/geminiService';
@@ -400,7 +401,7 @@ const ExamFromContent: React.FC<{ onBack: () => void }> = ({ onBack }) => {
                     {/* --- PAGE 1 --- */}
                     <div 
                         id="exam-page-1"
-                        className="bg-white text-black shadow-lg mx-auto relative page-break"
+                        className="bg-white text-black shadow-lg mx-auto relative page-break overflow-hidden"
                         style={{ 
                             width: '210mm',
                             height: '297mm',
@@ -427,7 +428,14 @@ const ExamFromContent: React.FC<{ onBack: () => void }> = ({ onBack }) => {
                                             <div contentEditable className="whitespace-nowrap outline-none text-black">مدارس: {safeString(config.school)}</div>
                                         </td>
                                         <td className="w-1/3 align-middle">
-                                            <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/8/88/Emblem_of_Yemen.svg/200px-Emblem_of_Yemen.svg.png" alt="Logo" className="h-20 mx-auto" />
+                                            {/* Fix Image Loading Error with onError and crossOrigin */}
+                                            <img 
+                                                src="https://upload.wikimedia.org/wikipedia/commons/thumb/8/88/Emblem_of_Yemen.svg/200px-Emblem_of_Yemen.svg.png" 
+                                                alt="Logo" 
+                                                className="h-20 mx-auto object-contain"
+                                                crossOrigin="anonymous"
+                                                onError={(e) => { e.currentTarget.style.display = 'none'; }}
+                                            />
                                             <div contentEditable className="mt-1 border border-black px-2 py-1 inline-block text-sm outline-none text-black">اختبار مادة {safeString(config.subject)}</div>
                                             <div contentEditable className="text-xs mt-1 outline-none text-black">شهر {safeString(config.month)} للفصل {safeString(config.semester)}</div>
                                             <div contentEditable className="text-xs outline-none text-black">للعام الدراسي {safeString(config.year)}</div>
@@ -472,20 +480,20 @@ const ExamFromContent: React.FC<{ onBack: () => void }> = ({ onBack }) => {
                                             {renderedExam.gradingTable[section.key as keyof typeof renderedExam.gradingTable]}
                                         </div>
                                     </div>
-                                    <div className="flex-grow p-2">
+                                    <div className="flex-grow p-2 overflow-hidden">
                                         <div 
                                             contentEditable 
                                             onBlur={e => handleExamChange(section.key, 'content', e.currentTarget.innerText)}
-                                            className="whitespace-pre-wrap outline-none text-sm leading-relaxed text-black font-bold"
+                                            className="whitespace-pre-wrap outline-none text-sm leading-relaxed text-black font-bold break-words w-full"
                                             dangerouslySetInnerHTML={{ __html: renderedExam[section.key as keyof typeof renderedExam][`content`].replace(/^\n+/, '') }}
                                         ></div>
-                                        <div className="space-y-2">
+                                        <div className="space-y-1 mt-1">
                                             {renderedExam[section.key as keyof typeof renderedExam].subQuestions.map((subQ: string, subIdx: number) => (
-                                                <div key={subIdx} className="flex gap-1 items-start">
+                                                <div key={subIdx} className="flex gap-1 items-start w-full">
                                                     <div 
                                                         contentEditable 
                                                         onBlur={e => handleExamChange(section.key, 'subQuestions', e.currentTarget.innerText, subIdx)}
-                                                        className="w-full outline-none min-h-[24px] text-black leading-relaxed whitespace-pre-wrap"
+                                                        className="w-full outline-none min-h-[20px] text-black leading-tight whitespace-pre-wrap break-words"
                                                         dangerouslySetInnerHTML={{ __html: subQ.replace(/^\n+/, '') }}
                                                     ></div>
                                                 </div>
@@ -505,7 +513,7 @@ const ExamFromContent: React.FC<{ onBack: () => void }> = ({ onBack }) => {
                     {/* --- PAGE 2 --- */}
                     <div 
                         id="exam-page-2"
-                        className="bg-white text-black shadow-lg mx-auto relative page-break"
+                        className="bg-white text-black shadow-lg mx-auto relative page-break overflow-hidden"
                         style={{ 
                             width: '210mm',
                             height: '297mm',
@@ -544,20 +552,20 @@ const ExamFromContent: React.FC<{ onBack: () => void }> = ({ onBack }) => {
                                             {renderedExam.gradingTable[section.key as keyof typeof renderedExam.gradingTable]}
                                         </div>
                                     </div>
-                                    <div className="flex-grow p-2">
+                                    <div className="flex-grow p-2 overflow-hidden">
                                         <div 
                                             contentEditable 
                                             onBlur={e => handleExamChange(section.key, 'content', e.currentTarget.innerText)}
-                                            className="whitespace-pre-wrap outline-none text-sm leading-relaxed text-black font-bold"
+                                            className="whitespace-pre-wrap outline-none mb-1 text-sm leading-relaxed text-black font-bold break-words w-full"
                                             dangerouslySetInnerHTML={{ __html: renderedExam[section.key as keyof typeof renderedExam][`content`].replace(/^\n+/, '') }}
                                         ></div>
-                                        <div className="space-y-2">
+                                        <div className="space-y-1 mt-1">
                                             {renderedExam[section.key as keyof typeof renderedExam].subQuestions.map((subQ: string, subIdx: number) => (
-                                                <div key={subIdx} className="flex gap-1 items-start">
+                                                <div key={subIdx} className="flex gap-1 items-start w-full">
                                                     <div 
                                                         contentEditable 
                                                         onBlur={e => handleExamChange(section.key, 'subQuestions', e.currentTarget.innerText, subIdx)}
-                                                        className="w-full outline-none min-h-[24px] text-black leading-relaxed whitespace-pre-wrap"
+                                                        className="w-full outline-none min-h-[20px] text-black leading-tight whitespace-pre-wrap break-words"
                                                         dangerouslySetInnerHTML={{ __html: subQ.replace(/^\n+/, '') }}
                                                     ></div>
                                                 </div>
