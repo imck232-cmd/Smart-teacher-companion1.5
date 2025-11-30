@@ -1,3 +1,4 @@
+
 import { GoogleGenAI, Modality } from "@google/genai";
 
 let ai: GoogleGenAI | null = null;
@@ -387,6 +388,60 @@ export const generateProImage = async (prompt: string, size: string) => {
         return response;
     } catch (error) {
         console.error("Error generating pro image:", error);
+        throw error;
+    }
+};
+
+export const generateStructuredExam = async (content: string, config: any) => {
+    try {
+        const client = getAiClient();
+        const prompt = `
+        بصفتك خبيراً تربوياً، قم بإنشاء اختبار مدرسي رسمي بناءً على المحتوى التالي والبيانات المحددة.
+        
+        المحتوى/الدرس:
+        ${content}
+        
+        بيانات الاختبار:
+        المادة: ${config.subject}
+        الصف: ${config.grade}
+        نوع الاختبار: ${config.examType}
+        عدد الأسئلة: ${config.questionCount}
+        الدرجة الكلية: ${config.totalMarks}
+        
+        المطلوب: قم بإنشاء الأسئلة وتوزيعها في هيكل JSON الدقيق التالي ليتم تعبئته في القالب الرسمي.
+        يجب أن تكون الأسئلة متنوعة (تذكر، فهم، تطبيق، تحليل).
+        
+        هيكل JSON المطلوب:
+        {
+            "q1": { "title": "السؤال الأول: ...", "content": "نص السؤال أو الآيات...", "subQuestions": ["أ/ ...", "ب/ ..."] },
+            "q2": { "title": "السؤال الثاني: ...", "content": "نص السؤال...", "subQuestions": ["..."] },
+            "q3": { "title": "السؤال الثالث: ...", "content": "نص السؤال...", "subQuestions": ["..."] },
+            "q4": { "title": "السؤال الرابع: ...", "content": "نص السؤال...", "subQuestions": ["..."] },
+            "q5": { "title": "السؤال الخامس: ...", "content": "نص السؤال...", "subQuestions": ["..."] },
+            "gradingTable": { "q1": 5, "q2": 5, "q3": 5, "q4": 5, "q5": 5, "total": 25 }
+        }
+        
+        ملاحظة: إذا كانت المادة لغة عربية، اجعل الأسئلة موزعة كالتالي:
+        1. القراءة والنصوص
+        2. المفردات والتراكيب
+        3. النحو
+        4. الإملاء والخط
+        5. التعبير
+        
+        إذا كانت مادة أخرى، وزع الأسئلة بشكل منطقي حسب الموضوع.
+        `;
+
+        const response = await client.models.generateContent({
+            model: "gemini-2.5-flash",
+            contents: prompt,
+            config: {
+                responseMimeType: 'application/json'
+            }
+        });
+        
+        return JSON.parse(response.text);
+    } catch (error) {
+        console.error("Error generating structured exam:", error);
         throw error;
     }
 };

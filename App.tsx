@@ -30,6 +30,7 @@ import GradeSheet from './components/tools/GradeSheet';
 import SmartLessonPlanner from './components/tools/SmartLessonPlanner';
 import TranscribeAudio from './components/tools/TranscribeAudio';
 import CurriculumDownloader from './components/tools/CurriculumDownloader';
+import ExamFromContent from './components/tools/ExamFromContent';
 import { themes, Theme } from './themes';
 import Sidebar from './components/Sidebar';
 import ScrollToTopButton from './components/ScrollToTopButton';
@@ -269,6 +270,8 @@ const App: React.FC = () => {
         return <TaskManager onBack={handleGoHome} />;
        case 'createExam':
          return <ExamCreator onBack={handleGoHome} />;
+       case 'createExamFromContent':
+         return <ExamFromContent onBack={handleGoHome} />;
       case 'createLessonPlan':
         return <LessonPlanner onBack={handleGoHome} />;
       case 'archives':

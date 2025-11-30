@@ -20,6 +20,7 @@ export type ToolKey =
   | 'createTeachingAid'
   | 'formulateQuestions'
   | 'createExam'
+  | 'createExamFromContent'
   | 'periodicTests'
   | 'createLessonPlan'
   | 'createSemesterPlan'
@@ -74,6 +75,7 @@ export const tools: Tool[] = [
   { key: 'createTeachingAid', label: 'إنشاء وسيلة لدرس', icon: 'fas fa-paint-brush' },
   { key: 'formulateQuestions', label: 'صياغة الأسئلة وتصنيفها', icon: 'fas fa-question-circle' },
   { key: 'createExam', label: 'إنشاء اختبار', icon: 'fas fa-pencil-ruler' },
+  { key: 'createExamFromContent', label: 'إنشاء اختبار من ملف', icon: 'fas fa-file-alt', isNew: true },
   { key: 'periodicTests', label: 'اختبارات دورية', icon: 'fas fa-calendar-check' },
   { key: 'createLessonPlan', label: 'إنشاء تحضير درس', icon: 'fas fa-clipboard-list' },
   { key: 'createSemesterPlan', label: 'إنشاء خطة فصلية', icon: 'fas fa-calendar-alt' },
