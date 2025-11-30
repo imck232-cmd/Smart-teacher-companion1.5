@@ -25,6 +25,14 @@ const subjectsList = [
     'القرآن الكريم', 'التربية الإسلامية', 'اللغة العربية', 'اللغة الإنجليزية', 'الرياضيات', 'العلوم', 'الكيمياء', 'الفيزياء', 'الأحياء', 'الاجتماعيات', 'الحاسوب', 'المكتبة', 'الفنية', 'المختص الاجتماعي', 'الأنشطة', 'أخرى'
 ];
 
+const positions = [
+    { id: 'q1', label: 'السؤال الأول' },
+    { id: 'q2', label: 'السؤال الثاني' },
+    { id: 'q3', label: 'السؤال الثالث' },
+    { id: 'q4', label: 'السؤال الرابع' },
+    { id: 'q5', label: 'السؤال الخامس' },
+];
+
 const ExamFromContent: React.FC<{ onBack: () => void }> = ({ onBack }) => {
     // Input State
     const [contentInput, setContentInput] = useState('');
@@ -51,14 +59,15 @@ const ExamFromContent: React.FC<{ onBack: () => void }> = ({ onBack }) => {
         instructions: 'أجب مستعيناً بالله عن جميع الأسئلة الآتية:',
     });
 
-    // Multi-select Question Types State
-    const [selectedQuestionTypes, setSelectedQuestionTypes] = useState<Record<string, number>>({});
+    // Multi-select Question Types State with POSITION
+    // Structure: { "Type Name": { count: 5, position: "q1" } }
+    const [selectedQuestionTypes, setSelectedQuestionTypes] = useState<Record<string, { count: number, position: string }>>({});
 
     // Exam State
     const [isGenerating, setIsGenerating] = useState(false);
-    const [examData, setExamData] = useState<any>(null); // Stores the JSON from AI
+    const [examData, setExamData] = useState<any>(null); 
     
-    // Initial Empty Exam Structure for Manual Entry
+    // Initial Empty Exam Structure
     const initialExamStructure = {
         q1: { title: 'السؤال الأول:', content: '', subQuestions: ['', '', ''] },
         q2: { title: 'السؤال الثاني:', content: '', subQuestions: ['', '', ''] },
@@ -68,7 +77,6 @@ const ExamFromContent: React.FC<{ onBack: () => void }> = ({ onBack }) => {
         gradingTable: { q1: 10, q2: 10, q3: 10, q4: 10, q5: 10, total: 50 }
     };
     
-    // The state that actually drives the UI
     const [renderedExam, setRenderedExam] = useState(initialExamStructure);
 
     // --- Helpers ---
@@ -130,16 +138,20 @@ const ExamFromContent: React.FC<{ onBack: () => void }> = ({ onBack }) => {
             if (newState[type]) {
                 delete newState[type];
             } else {
-                newState[type] = 1; // Default 1 question
+                // Default: 1 Question, mapped to Question 1
+                newState[type] = { count: 1, position: 'q1' }; 
             }
             return newState;
         });
     };
 
-    const handleTypeCountChange = (type: string, count: number) => {
+    const handleTypeDetailsChange = (type: string, field: 'count' | 'position', value: any) => {
         setSelectedQuestionTypes(prev => ({
             ...prev,
-            [type]: Math.max(1, count)
+            [type]: {
+                ...prev[type],
+                [field]: field === 'count' ? Math.max(1, Number(value)) : value
+            }
         }));
     };
 
@@ -159,10 +171,9 @@ const ExamFromContent: React.FC<{ onBack: () => void }> = ({ onBack }) => {
         setIsGenerating(true);
         
         try {
-            // Pass the detailed types map to the service
             const fullConfig = {
                 ...config,
-                detailedTypes: selectedQuestionTypes
+                detailedTypes: selectedQuestionTypes // Sends Type + Count + Position
             };
             
             const result = await generateStructuredExam(contentInput, fullConfig);
@@ -261,29 +272,47 @@ const ExamFromContent: React.FC<{ onBack: () => void }> = ({ onBack }) => {
 
                         {/* Question Types Selection */}
                         <div className="mb-6 p-4 bg-gray-50 rounded-xl border border-gray-200">
-                            <h4 className="font-bold text-lg mb-3 text-gray-800 border-b pb-2">اختر أنواع الأسئلة وعددها</h4>
-                            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 max-h-60 overflow-y-auto">
+                            <h4 className="font-bold text-lg mb-3 text-gray-800 border-b pb-2">اختر أنواع الأسئلة، العدد، والموضع</h4>
+                            <div className="grid grid-cols-1 gap-3 max-h-80 overflow-y-auto pr-2">
                                 {questionTypesList.map(type => (
-                                    <div key={type} className={`flex items-center justify-between p-2 rounded border ${selectedQuestionTypes[type] ? 'bg-blue-50 border-blue-300' : 'bg-white border-gray-200'}`}>
-                                        <label className="flex items-center gap-2 cursor-pointer flex-grow">
+                                    <div key={type} className={`flex flex-wrap items-center justify-between p-3 rounded border transition-all ${selectedQuestionTypes[type] ? 'bg-blue-50 border-blue-300 shadow-sm' : 'bg-white border-gray-200'}`}>
+                                        <label className="flex items-center gap-2 cursor-pointer flex-grow min-w-[200px]">
                                             <input 
                                                 type="checkbox" 
                                                 checked={!!selectedQuestionTypes[type]} 
                                                 onChange={() => handleTypeToggle(type)}
-                                                className="w-4 h-4 text-blue-600"
+                                                className="w-5 h-5 text-blue-600"
                                             />
                                             <span className="text-sm font-bold text-gray-800">{type}</span>
                                         </label>
-                                        {selectedQuestionTypes[type] ? (
-                                            <input 
-                                                type="number" 
-                                                min="1" 
-                                                max="20"
-                                                value={selectedQuestionTypes[type]} 
-                                                onChange={(e) => handleTypeCountChange(type, parseInt(e.target.value))}
-                                                className="w-12 p-1 text-center border rounded text-sm bg-white text-black font-bold"
-                                            />
-                                        ) : null}
+                                        
+                                        {selectedQuestionTypes[type] && (
+                                            <div className="flex gap-3 items-center mt-2 sm:mt-0">
+                                                <div className="flex items-center gap-1">
+                                                    <span className="text-xs text-gray-500">العدد:</span>
+                                                    <input 
+                                                        type="number" 
+                                                        min="1" 
+                                                        max="20"
+                                                        value={selectedQuestionTypes[type].count} 
+                                                        onChange={(e) => handleTypeDetailsChange(type, 'count', e.target.value)}
+                                                        className="w-16 p-1 text-center border rounded text-sm bg-white text-black font-bold"
+                                                    />
+                                                </div>
+                                                <div className="flex items-center gap-1">
+                                                    <span className="text-xs text-gray-500">الموضع:</span>
+                                                    <select 
+                                                        value={selectedQuestionTypes[type].position}
+                                                        onChange={(e) => handleTypeDetailsChange(type, 'position', e.target.value)}
+                                                        className="p-1 border rounded text-sm bg-white text-black font-bold"
+                                                    >
+                                                        {positions.map(pos => (
+                                                            <option key={pos.id} value={pos.id}>{pos.label}</option>
+                                                        ))}
+                                                    </select>
+                                                </div>
+                                            </div>
+                                        )}
                                     </div>
                                 ))}
                             </div>
@@ -301,7 +330,7 @@ const ExamFromContent: React.FC<{ onBack: () => void }> = ({ onBack }) => {
             {isGenerating ? (
                 <div className="text-center p-10 bg-white rounded-xl shadow-lg border border-gray-200 mb-8 mx-auto max-w-lg">
                     <i className="fas fa-cog fa-spin text-4xl text-blue-600 mb-4"></i>
-                    <p className="text-xl font-bold">جاري إعداد الاختبار بالذكاء الاصطناعي...</p>
+                    <p className="text-xl font-bold">جاري إعداد الاختبار وتوزيع الأسئلة...</p>
                 </div>
             ) : (
                 <div className="flex justify-center gap-4 mb-8 no-print">
@@ -404,7 +433,7 @@ const ExamFromContent: React.FC<{ onBack: () => void }> = ({ onBack }) => {
                                                     <div 
                                                         contentEditable 
                                                         onBlur={e => handleExamChange(section.key, 'subQuestions', e.currentTarget.innerText, subIdx)}
-                                                        className="w-full outline-none min-h-[24px] text-black leading-loose"
+                                                        className="w-full outline-none min-h-[24px] text-black leading-loose whitespace-pre-wrap"
                                                         dangerouslySetInnerHTML={{ __html: subQ }}
                                                     ></div>
                                                 </div>
@@ -475,7 +504,7 @@ const ExamFromContent: React.FC<{ onBack: () => void }> = ({ onBack }) => {
                                                     <div 
                                                         contentEditable 
                                                         onBlur={e => handleExamChange(section.key, 'subQuestions', e.currentTarget.innerText, subIdx)}
-                                                        className="w-full outline-none min-h-[24px] text-black leading-loose"
+                                                        className="w-full outline-none min-h-[24px] text-black leading-loose whitespace-pre-wrap"
                                                         dangerouslySetInnerHTML={{ __html: subQ }}
                                                     ></div>
                                                 </div>

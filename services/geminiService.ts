@@ -395,14 +395,30 @@ export const generateProImage = async (prompt: string, size: string) => {
 export const generateStructuredExam = async (content: string, config: any) => {
     try {
         const client = getAiClient();
-        // Generate a description string from the complex types object
-        let typesDescription = "";
+        
+        // Generate a detailed description string based on user Mapping (Type -> Count + Position)
+        let distributionInstructions = "";
+        
         if (config.detailedTypes && typeof config.detailedTypes === 'object') {
-             typesDescription = Object.entries(config.detailedTypes)
-                .map(([type, count]) => `${count} أسئلة من نوع: ${type}`)
-                .join('، ');
+             // Group by position to give clear instructions
+             const posMap: Record<string, string[]> = {};
+             
+             Object.entries(config.detailedTypes).forEach(([type, details]: [string, any]) => {
+                 const pos = details.position || 'q1';
+                 const count = details.count;
+                 if(!posMap[pos]) posMap[pos] = [];
+                 posMap[pos].push(`${count} أسئلة من نوع: ${type}`);
+             });
+
+             distributionInstructions = Object.entries(posMap).map(([posKey, typesArr]) => {
+                 const posName = posKey === 'q1' ? 'السؤال الأول' : 
+                                 posKey === 'q2' ? 'السؤال الثاني' :
+                                 posKey === 'q3' ? 'السؤال الثالث' :
+                                 posKey === 'q4' ? 'السؤال الرابع' : 'السؤال الخامس';
+                 return `في قسم "${posKey}" (${posName})، ضع: ${typesArr.join(' و ')}.`;
+             }).join('\n');
         } else {
-            typesDescription = config.examType;
+            distributionInstructions = "قم بتوزيع الأسئلة بالتساوي على الأقسام الخمسة.";
         }
 
         const prompt = `
@@ -414,28 +430,47 @@ export const generateStructuredExam = async (content: string, config: any) => {
         بيانات الاختبار:
         المادة: ${config.subject}
         الصف: ${config.grade}
-        توزيع الأسئلة المطلوب: ${typesDescription}
+        توزيع الأسئلة المطلوب بدقة: 
+        ${distributionInstructions}
+        
         الدرجة الكلية: ${config.totalMarks}
         
         المطلوب: قم بإنشاء الأسئلة وتوزيعها في هيكل JSON الدقيق التالي ليتم تعبئته في القالب الرسمي.
         
-        تعليمات تنسيق الأسئلة (مهم جداً):
-        1. **أسئلة الصواب والخطأ:** يجب أن تبدأ كل فقرة بـ قوسين فارغين ( ) في بداية السطر ليضع الطالب العلامة، مثال: ( ) تقع اليمن في قارة آسيا.
-        2. **أسئلة الاختيار من متعدد:** اكتب السؤال، ثم ضع الخيارات (أ، ب، ج، د) تحته في سطر جديد أو سطور منفصلة بشكل واضح لضمان مساحة للإجابة.
-        3. **الأسئلة المقالية/التكميل:** اترك فراغات (نقط ...............) مناسبة لطول الإجابة المتوقعة.
+        تعليمات تنسيق الأسئلة (مهم جداً جداً):
+        1. **أسئلة الصواب والخطأ:** 
+           - يجب ترقيم الفقرات (1. ، 2. ...).
+           - القوسين يجب أن يكونا واسعين جداً للإجابة: (      ). 
+           - مثال: 1. (      ) تقع اليمن في قارة آسيا.
+        
+        2. **أسئلة الاختيار من متعدد:** 
+           - استخدم صياغة مباشرة في "الجذع" (Stem) واحذف كلمات السؤال مثل (ما هو، ما هي، كم عدد) حيثما أمكن لتكون جملة خبرية ناقصة. 
+             * مثال صحيح: "عاصمة اليمن هي:" 
+             * مثال خاطئ: "ما هي عاصمة اليمن؟"
+           - الخيارات (أ، ب، ج، د) يجب أن تكون في سطر جديد أسفل السؤال وليس بجواره.
+           - افصل بين الخيارات بوضوح.
+           - مثال:
+             1. عاصمة اليمن هي:
+                أ. عدن    ب. صنعاء
+                ج. تعز    د. الحديدة
+        
+        3. **الأسئلة المقالية/التكميل/المباشرة:** 
+           - ضع فراغات الإجابة (نقط ...............) في سطر جديد أسفل السؤال، وليس بجواره.
+           - اترك مساحة كافية للإجابة.
+        
         4. **عناوين الأسئلة:** استخدم صيغ رسمية مثل "السؤال الأول:"، "السؤال الثاني:".
         
         هيكل JSON المطلوب (5 أقسام رئيسية):
         {
-            "q1": { "title": "السؤال الأول: ...", "content": "...", "subQuestions": ["( ) فقرة 1", "( ) فقرة 2"] },
-            "q2": { "title": "السؤال الثاني: ...", "content": "...", "subQuestions": ["سؤال...\\nأ. خيار 1   ب. خيار 2..."] },
+            "q1": { "title": "السؤال الأول: ...", "content": "...", "subQuestions": ["1. (      ) فقرة 1", "2. (      ) فقرة 2"] },
+            "q2": { "title": "السؤال الثاني: ...", "content": "...", "subQuestions": ["1. سؤال...\\nأ. خيار 1   ب. خيار 2..."] },
             "q3": { "title": "السؤال الثالث: ...", "content": "...", "subQuestions": ["..."] },
             "q4": { "title": "السؤال الرابع: ...", "content": "...", "subQuestions": ["..."] },
             "q5": { "title": "السؤال الخامس: ...", "content": "...", "subQuestions": ["..."] },
             "gradingTable": { "q1": 10, "q2": 10, "q3": 10, "q4": 10, "q5": 10, "total": 50 }
         }
         
-        وزع أنواع الأسئلة المطلوبة (${typesDescription}) على الأقسام الخمسة بذكاء.
+        تنبيه: التزم بتوزيع الأسئلة المذكور أعلاه في الحقول المحددة (q1, q2, q3, q4, q5). إذا لم يتم تحديد محتوى لسؤال معين، اترك عنوانه فارغاً أو اكتب "---".
         `;
 
         const response = await client.models.generateContent({
