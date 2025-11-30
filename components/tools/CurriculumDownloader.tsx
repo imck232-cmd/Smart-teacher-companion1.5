@@ -29,14 +29,14 @@ const CurriculumDownloader: React.FC<{ onBack: () => void }> = ({ onBack }) => {
         const file = e.target.files?.[0];
         if (file) {
             const url = URL.createObjectURL(file);
+            // Ensure we are storing primitives where possible or simple structure
             setMyFiles(prev => [...prev, { 
-                name: file.name, 
+                name: String(file.name), 
                 size: (file.size / 1024 / 1024).toFixed(2) + ' MB',
                 url: url,
-                type: file.type
+                type: String(file.type)
             }]);
         }
-        // Reset input to allow re-uploading the same file if deleted
         if (e.target) e.target.value = '';
     };
 
@@ -44,7 +44,7 @@ const CurriculumDownloader: React.FC<{ onBack: () => void }> = ({ onBack }) => {
         setMyFiles(prev => {
             const fileToRemove = prev[index];
             if (fileToRemove) {
-                URL.revokeObjectURL(fileToRemove.url); // Clean up memory
+                URL.revokeObjectURL(fileToRemove.url); 
             }
             return prev.filter((_, i) => i !== index);
         });
@@ -59,14 +59,11 @@ const CurriculumDownloader: React.FC<{ onBack: () => void }> = ({ onBack }) => {
             <ToolHeader title="تنزيل المنهج والتحكم به" onBack={onBack} />
             
             <div className="space-y-8">
-                {/* Section 1: Official Downloads */}
+                {/* Section 1 */}
                 <div className="neumorphic-outset p-6">
                     <h3 className="text-xl font-bold text-primary mb-4 border-b border-gray-200 pb-2">
                         <i className="fas fa-globe-americas ml-2"></i> بوابات المناهج الرسمية
                     </h3>
-                    <p className="text-sm text-gray-600 mb-6">
-                        روابط مباشرة لتحميل الكتب الدراسية:
-                    </p>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         {officialLinks.map((link, idx) => (
                             <a 
@@ -93,11 +90,11 @@ const CurriculumDownloader: React.FC<{ onBack: () => void }> = ({ onBack }) => {
                     </div>
                 </div>
 
-                {/* Section 2: Local File Management */}
+                {/* Section 2 */}
                 <div className="neumorphic-outset p-6 bg-blue-50/50 border border-blue-100">
                     <div className="flex justify-between items-center mb-4">
                         <h3 className="text-xl font-bold text-blue-800">
-                            <i className="fas fa-folder-open ml-2"></i> مكتبتي الخاصة (تنظيم المنهج)
+                            <i className="fas fa-folder-open ml-2"></i> مكتبتي الخاصة
                         </h3>
                         <button 
                             onClick={() => fileInputRef.current?.click()}
@@ -117,43 +114,30 @@ const CurriculumDownloader: React.FC<{ onBack: () => void }> = ({ onBack }) => {
                     {myFiles.length > 0 ? (
                         <div className="space-y-2">
                             {myFiles.map((file, idx) => (
-                                <div key={idx} className="flex items-center justify-between p-3 bg-white rounded-lg border border-gray-200 hover:border-blue-300 transition-colors">
+                                <div key={idx} className="flex items-center justify-between p-3 bg-white rounded-lg border border-gray-200">
                                     <div className="flex items-center gap-3">
                                         <i className={`fas ${file.type.includes('image') ? 'fa-image text-purple-500' : 'fa-file-pdf text-red-500'} text-xl`}></i>
                                         <div>
-                                            <p className="font-bold text-sm text-gray-800">{file.name}</p>
-                                            <p className="text-xs text-gray-500">{file.size}</p>
+                                            {/* Strictly render strings */}
+                                            <p className="font-bold text-sm text-gray-800">{String(file.name)}</p>
+                                            <p className="text-xs text-gray-500">{String(file.size)}</p>
                                         </div>
                                     </div>
                                     <div className="flex gap-2">
-                                        <button 
-                                            onClick={() => handleOpenFile(file)}
-                                            className="w-8 h-8 flex items-center justify-center rounded-full bg-gray-100 text-gray-600 hover:bg-blue-100 hover:text-blue-600 transition-colors"
-                                            title="فتح الملف"
-                                        >
-                                            <i className="fas fa-eye"></i>
-                                        </button>
-                                        <button 
-                                            onClick={() => handleDeleteFile(idx)}
-                                            className="w-8 h-8 flex items-center justify-center rounded-full bg-gray-100 text-gray-600 hover:bg-red-100 hover:text-red-600 transition-colors"
-                                            title="حذف الملف"
-                                        >
-                                            <i className="fas fa-trash"></i>
-                                        </button>
+                                        <button onClick={() => handleOpenFile(file)} className="w-8 h-8 flex items-center justify-center rounded-full bg-gray-100 hover:bg-blue-100 text-gray-600 hover:text-blue-600"><i className="fas fa-eye"></i></button>
+                                        <button onClick={() => handleDeleteFile(idx)} className="w-8 h-8 flex items-center justify-center rounded-full bg-gray-100 hover:bg-red-100 text-gray-600 hover:text-red-600"><i className="fas fa-trash"></i></button>
                                     </div>
                                 </div>
                             ))}
                         </div>
                     ) : (
                         <div className="text-center py-8 border-2 border-dashed border-gray-300 rounded-xl bg-white/50">
-                            <i className="fas fa-cloud-upload-alt text-4xl text-gray-300 mb-2"></i>
-                            <p className="text-gray-500 font-medium">لم تقم بإضافة أي ملفات للمنهج بعد.</p>
-                            <p className="text-xs text-gray-400 mt-1">يمكنك رفع ملفات PDF أو Word لتنظيمها هنا.</p>
+                            <p className="text-gray-500">لم تقم بإضافة ملفات بعد.</p>
                         </div>
                     )}
                 </div>
 
-                {/* Section 3: PDF Tools */}
+                {/* Section 3 */}
                 <div className="neumorphic-outset p-6 bg-red-50/50 border border-red-100">
                     <h3 className="text-xl font-bold text-red-800 mb-4 border-b border-red-200 pb-2">
                         <i className="fas fa-file-pdf ml-2"></i> أدوات PDF
@@ -170,11 +154,11 @@ const CurriculumDownloader: React.FC<{ onBack: () => void }> = ({ onBack }) => {
                             </div>
                             <div>
                                 <h4 className="font-bold text-lg text-gray-800">التحكم بملف PDF</h4>
-                                <p className="text-sm text-gray-500">أدوات مجانية لدمج، ضغط، وتحويل ملفات PDF (PDF24)</p>
+                                <p className="text-sm text-gray-500">دمج، ضغط، وتحويل ملفات PDF (PDF24)</p>
                             </div>
                          </div>
                          <div className="neumorphic-button bg-red-600 text-white px-4 py-2 text-sm font-bold flex items-center">
-                            فتح الأدوات <i className="fas fa-external-link-alt mr-2"></i>
+                            فتح <i className="fas fa-external-link-alt mr-2"></i>
                          </div>
                     </a>
                 </div>

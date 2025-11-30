@@ -1,12 +1,8 @@
-
 import { GoogleGenAI, Modality } from "@google/genai";
 
 let ai: GoogleGenAI | null = null;
 
 const getAiClient = (): GoogleGenAI => {
-    // We do not cache the client (singleton) anymore because the API Key might change 
-    // during the session (e.g. via window.aistudio.openSelectKey() for Pro models).
-    // Always creating a new instance ensures we use the current process.env.API_KEY.
     const API_KEY = process.env.API_KEY;
     if (!API_KEY) {
         console.error("API_KEY environment variable is not set.");
@@ -108,10 +104,26 @@ export const solveQuestionsFromText = async (text: string) => {
 
 
 export const fillLessonPlanFromText = async (pastedText: string) => {
+    // This function analyzes an existing lesson plan text and extracts data into the JSON schema
     const prompt = `
-        You are an expert educational assistant. Analyze the following lesson plan text and extract the information to fill a structured form. Provide the output as a JSON object with the following keys: 'lessonTitle', 'subject', 'classLevel', 'teachingMethods', 'teachingAids', 'lessonIntro', 'behavioralObjectives' (as an array of strings), 'lessonContent', 'lessonClosure', 'homework'. If a field is not mentioned, leave its value as an empty string.
+        You are an expert educational assistant. Analyze the following lesson plan text and extract the information to fill a structured JSON object.
+        
+        Strict constraints for output:
+        1. 'intro.text': Must be summarized to maximum 2 lines.
+        2. 'content': Must be summarized into exactly 5-6 bullet points max.
+        
+        Output JSON keys: 
+        'lessonTitle', 'subject', 'classLevel', 'methods' (array), 'aids' (array), 
+        'intro': { "text": "...", "type": "..." }, 
+        'objectives' (array of objects with domain, level, text, evaluation), 
+        'content', 
+        'activities',
+        'teacherRole', 'learnerRole',
+        'closure': { "text": "...", "type": "..." }, 
+        'homework': { "text": "...", "type": "..." },
+        'reflection'.
 
-        Lesson Plan Text:
+        Text to analyze:
         ---
         ${pastedText}
         ---
@@ -270,9 +282,11 @@ export const generateSpeech = async (text: string) => {
 export const generateSmartLessonPlan = async (inputText: string, context: any) => {
     try {
         const client = getAiClient();
-        // Enforce limits in prompt: 2 lines intro, 6 points content
+        // Enforce limits in prompt: 2 lines intro, 5-6 points content
         const prompt = `
-        بصفتك خبيراً تربوياً، قم بإعداد تحضير درس نموذجي ومختصر جداً بناءً على:
+        بصفتك خبيراً تربوياً، قم بإعداد تحضير درس نموذجي ومختصر جداً ليتناسب مع صفحة A4 واحدة.
+        
+        المعلومات الأساسية:
         النص/الموضوع: ${inputText}
         المادة: ${context.subject || 'عام'}
         الصف: ${context.grade || 'عام'}
@@ -280,10 +294,10 @@ export const generateSmartLessonPlan = async (inputText: string, context: any) =
         المخرجات بتنسيق JSON حصراً:
         {
             "lessonTitle": "عنوان الدرس (إن لم يحدد)",
-            "intro": { "text": "سطرين كحد أقصى", "type": "نوع التمهيد" },
+            "intro": { "text": "اكتب تمهيداً مختصراً جداً (سطرين كحد أقصى)", "type": "نوع التمهيد" },
             "methods": ["طريقة 1", "طريقة 2", "طريقة 3", "طريقة 4", "طريقة 5"],
             "aids": ["وسيلة 1", "وسيلة 2", "وسيلة 3", "وسيلة 4", "وسيلة 5"],
-            "activities": "وصف موجز للأنشطة",
+            "activities": "اذكر نشاطاً واحداً أو اثنين باختصار شديد",
             "objectives": [
                 { "domain": "معرفي", "level": "...", "text": "...", "evaluation": "..." },
                 { "domain": "معرفي", "level": "...", "text": "...", "evaluation": "..." },
@@ -292,18 +306,15 @@ export const generateSmartLessonPlan = async (inputText: string, context: any) =
                 { "domain": "مهاري", "level": "...", "text": "...", "evaluation": "..." },
                 { "domain": "وجداني", "level": "...", "text": "...", "evaluation": "..." }
             ],
-            "teacherRole": "دور المعلم باختصار",
-            "learnerRole": "دور الطالب باختصار",
-            "content": "محتوى الدرس في 6 نقاط فقط (قائمة منقطة مركزة)",
-            "closure": { "text": "خاتمة في سطر واحد", "type": "نوع الغلق" },
+            "teacherRole": "دور المعلم (جملة واحدة)",
+            "learnerRole": "دور الطالب (جملة واحدة)",
+            "content": "محتوى الدرس في شكل نقاط مركزة (5 إلى 6 نقاط فقط).",
+            "closure": { "text": "خاتمة (سطر واحد)", "type": "نوع الغلق" },
             "homework": { "text": "الواجب", "type": "نوعه" },
             "reflection": "خاطرة قصيرة"
         }
         
-        قيود صارمة:
-        1. التمهيد لا يتجاوز سطرين.
-        2. محتوى الدرس يجب أن يكون 6 نقاط فقط.
-        3. الاختصار قدر الإمكان لتناسب ورقة A4 واحدة.
+        تنبيه هام: التزم بالاختصار الشديد في "التمهيد" و"المحتوى" لضمان عدم تجاوز الصفحة الواحدة عند الطباعة.
         `;
 
         const response = await client.models.generateContent({

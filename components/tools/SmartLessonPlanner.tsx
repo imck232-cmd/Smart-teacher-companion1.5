@@ -1,7 +1,7 @@
 
 import React, { useState, useRef, useEffect } from 'react';
 import ToolHeader from '../ToolHeader';
-import { generateSmartLessonPlan } from '../../services/geminiService';
+import { generateSmartLessonPlan, fillLessonPlanFromText } from '../../services/geminiService';
 import ActionButtons from '../ActionButtons';
 
 // Declare libraries for export and file reading
@@ -27,40 +27,30 @@ interface LessonPlanState {
     day: string;
     date: string;
     subject: string;
-    subjectBranch: string; // New Field
+    subjectBranch: string;
     // Header Center
     lessonTitle: string;
-    // Row 1
+    // Meta Data
     classLevel: string;
     division: string;
     period: string;
     behavior: string;
-    // Row 2 & 3
+    // Content
     methods: string[];
     aids: string[];
-    // Row 4
     introText: string;
     introType: string;
-    // Row 5
     activities: string;
-    // Row 6 (Objectives)
     objectives: Objective[];
-    // Row 7
     teacherRole: string;
     learnerRole: string;
-    // Row 8
     content: string;
-    // Row 9
     closureText: string;
     closureType: string;
-    // Row 10
     homeworkText: string;
     homeworkType: string;
-    // Row 11
     adminNotes: string;
-    // Row 12
     reflection: string;
-    // Footer
     teacherName: string;
 }
 
@@ -104,7 +94,7 @@ const initialState: LessonPlanState = {
     teacherName: ''
 };
 
-// --- Constants for Dropdowns ---
+// --- Constants ---
 const subjectsList = [
     'القرآن الكريم', 'التربية الإسلامية', 'اللغة العربية', 'اللغة الإنجليزية', 
     'الرياضيات', 'العلوم', 'الكيمياء', 'الفيزياء', 'الأحياء', 
@@ -134,39 +124,33 @@ const gradesList = [
 
 const divisions = ['أ', 'ب', 'ج', 'د', 'هـ', 'و', 'ز', 'ح', 'ط', 'ي', 'ك'];
 const periods = ['الأولى', 'الثانية', 'الثالثة', 'الرابعة', 'الخامسة', 'السادسة', 'السابعة'];
-const methodsList = ['الحوار والمناقشة', 'التعلم التعاوني', 'العصف الذهني', 'حل المشكلات', 'الاكتشاف', 'القصة', 'لعب الأدوار', 'الخرائط الذهنية', 'التعلم الذاتي'];
-const aidsList = ['السبورة', 'الكتاب المدرسي', 'جهاز العرض (Data Show)', 'بطاقات', 'مجسمات', 'فيديوهات', 'رسوم توضيحية', 'عينات حقيقية'];
 
 const SmartLessonPlanner: React.FC<{ onBack: () => void }> = ({ onBack }) => {
     // --- State ---
     const [plan, setPlan] = useState<LessonPlanState>(initialState);
     const [aiInput, setAiInput] = useState('');
+    const [pasteForAnalysis, setPasteForAnalysis] = useState('');
     
-    // Modal Data State
     const [showModal, setShowModal] = useState(false);
     const [modalData, setModalData] = useState(initialState);
     
-    // Processing State
     const [isGenerating, setIsGenerating] = useState(false);
+    const [isAnalyzing, setIsAnalyzing] = useState(false);
     const [isReadingFile, setIsReadingFile] = useState(false);
-    const [generatedResult, setGeneratedResult] = useState<any>(null); // Store raw AI result
-    const [isExporting, setIsExporting] = useState(false);
     
-    // Images
     const [eagleImage, setEagleImage] = useState<string>('https://upload.wikimedia.org/wikipedia/commons/thumb/8/88/Emblem_of_Yemen.svg/1200px-Emblem_of_Yemen.svg.png');
     const [schoolLogo, setSchoolLogo] = useState<string>('https://cdn-icons-png.flaticon.com/512/2921/2921226.png');
 
-    // Refs for file inputs
     const eagleInputRef = useRef<HTMLInputElement>(null);
     const logoInputRef = useRef<HTMLInputElement>(null);
     const contentFileInputRef = useRef<HTMLInputElement>(null);
 
-    // Helper to safe string to prevent Error #31
     const safeString = (val: any): string => {
         if (val === null || val === undefined) return '';
         if (typeof val === 'string') return val;
         if (typeof val === 'number') return String(val);
-        // If object, try to get a meaningful property or stringify safely
+        if (React.isValidElement(val)) return ''; 
+        if (Array.isArray(val)) return val.map(safeString).join(', ');
         if (typeof val === 'object') {
             return val.text || val.content || val.value || '';
         }
@@ -175,7 +159,6 @@ const SmartLessonPlanner: React.FC<{ onBack: () => void }> = ({ onBack }) => {
 
     // --- Effects ---
     useEffect(() => {
-        // Load saved persistent data (School, Teacher, District) to save user time
         const savedMeta = localStorage.getItem('lessonPlannerMeta');
         if (savedMeta) {
             try {
@@ -185,7 +168,6 @@ const SmartLessonPlanner: React.FC<{ onBack: () => void }> = ({ onBack }) => {
                     district: safeString(parsed.district),
                     school: safeString(parsed.school),
                     teacherName: safeString(parsed.teacherName),
-                    // Default date/day logic
                     date: new Date().toISOString().split('T')[0],
                     day: new Date().toLocaleDateString('ar-EG', { weekday: 'long' })
                 }));
@@ -198,20 +180,24 @@ const SmartLessonPlanner: React.FC<{ onBack: () => void }> = ({ onBack }) => {
             }));
         }
 
-        // Load Saved Images
         const savedImages = localStorage.getItem('lessonPlannerImages');
         if (savedImages) {
             try {
                 const parsed = JSON.parse(savedImages);
                 if (parsed.eagle) setEagleImage(parsed.eagle);
                 if (parsed.logo) setSchoolLogo(parsed.logo);
-            } catch (e) {
-                console.error("Failed to load saved images", e);
-            }
+            } catch (e) { console.error(e); }
+        }
+        
+        const savedWork = localStorage.getItem('currentLessonPlan');
+        if (savedWork) {
+            try {
+                 const parsedWork = JSON.parse(savedWork);
+                 setPlan({ ...initialState, ...parsedWork });
+            } catch(e) { console.error(e); }
         }
     }, []);
 
-    // Auto-update day when date changes in modal
     const handleModalDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const dateVal = e.target.value;
         const dateObj = new Date(dateVal);
@@ -219,16 +205,13 @@ const SmartLessonPlanner: React.FC<{ onBack: () => void }> = ({ onBack }) => {
         setModalData(prev => ({ ...prev, date: dateVal, day: dayName }));
     };
 
-    // --- Handlers ---
-
     const handleInputChange = (field: keyof LessonPlanState, value: any) => {
         setPlan(prev => ({ ...prev, [field]: value }));
     };
 
-    const handleArrayChange = (field: 'methods' | 'aids', index: number, value: string) => {
-        const newArray = [...plan[field]];
-        newArray[index] = value;
-        setPlan(prev => ({ ...prev, [field]: newArray }));
+    const handleContentEditableChange = (field: keyof LessonPlanState, e: React.FormEvent<HTMLDivElement>) => {
+        const value = e.currentTarget.innerText;
+        handleInputChange(field, value);
     };
 
     const handleObjectiveChange = (index: number, field: keyof Objective, value: string) => {
@@ -244,26 +227,17 @@ const SmartLessonPlanner: React.FC<{ onBack: () => void }> = ({ onBack }) => {
                 if (ev.target?.result) {
                     const result = ev.target.result as string;
                     setter(result);
-                    
-                    // Save image persistence
                     const currentImagesStr = localStorage.getItem('lessonPlannerImages');
                     const currentImages = currentImagesStr ? JSON.parse(currentImagesStr) : {};
-                    // Identify if we are setting eagle or logo based on the state setter
                     if (setter === setEagleImage) currentImages.eagle = result;
                     if (setter === setSchoolLogo) currentImages.logo = result;
-                    
-                    try {
-                        localStorage.setItem('lessonPlannerImages', JSON.stringify(currentImages));
-                    } catch (err) {
-                        console.warn("Image too large to save to local storage");
-                    }
+                    try { localStorage.setItem('lessonPlannerImages', JSON.stringify(currentImages)); } catch (err) {}
                 }
             };
             reader.readAsDataURL(e.target.files[0]);
         }
     };
 
-    // --- File Reading for Content ---
     const handleContentFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
         if (!file) return;
@@ -271,83 +245,63 @@ const SmartLessonPlanner: React.FC<{ onBack: () => void }> = ({ onBack }) => {
         setIsReadingFile(true);
         try {
             let extractedText = '';
-
-            // 1. PDF Handling
             if (file.type === 'application/pdf') {
                 if (typeof pdfjsLib === 'undefined') throw new Error("مكتبة PDF غير محملة");
-                
                 const arrayBuffer = await file.arrayBuffer();
                 const loadingTask = pdfjsLib.getDocument({ data: arrayBuffer });
                 const pdf = await loadingTask.promise;
-                
-                let fullText = '';
-                // Limit to first 5 pages to prevent freezing on large books
                 const maxPages = Math.min(pdf.numPages, 5);
-                
                 for (let i = 1; i <= maxPages; i++) {
                     const page = await pdf.getPage(i);
                     const textContent = await page.getTextContent();
-                    const pageText = textContent.items.map((item: any) => item.str).join(' ');
-                    // Filter out very short lines or garbage
-                    if (pageText.length > 20) {
-                        fullText += pageText + '\n\n';
-                    }
+                    extractedText += textContent.items.map((item: any) => item.str).join(' ') + '\n\n';
                 }
-                extractedText = fullText;
-            } 
-            // 2. Word (DOCX) Handling
-            else if (file.type === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document') {
+            } else if (file.type === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document') {
                 if (typeof mammoth === 'undefined') throw new Error("مكتبة Mammoth غير محملة");
-                
                 const arrayBuffer = await file.arrayBuffer();
                 const result = await mammoth.extractRawText({ arrayBuffer: arrayBuffer });
                 extractedText = result.value;
-            }
-            // 3. Plain Text
-            else if (file.type === 'text/plain') {
+            } else if (file.type === 'text/plain') {
                  extractedText = await file.text();
-            }
-            else {
-                alert('نوع الملف غير مدعوم حالياً. يرجى استخدام PDF, DOCX, أو TXT.');
-                setIsReadingFile(false);
-                return;
-            }
-
-            if (extractedText.trim().length === 0) {
-                 alert('لم يتم العثور على نص قابل للقراءة في الملف. قد يكون صورة ممسوحة ضوئياً.');
             } else {
-                 setAiInput(prev => prev + '\n\n' + extractedText);
-                 alert('تم استخراج النص من الملف بنجاح! يمكنك الآن الضغط على زر "أنشئ التحضير".');
+                alert('نوع الملف غير مدعوم حالياً.');
+                setIsReadingFile(false); return;
             }
 
+            if (extractedText.trim().length === 0) alert('لم يتم العثور على نص.');
+            else {
+                 setAiInput(prev => prev + '\n\n' + extractedText);
+                 setPasteForAnalysis(prev => prev + '\n\n' + extractedText);
+                 alert('تم استخراج النص!');
+            }
         } catch (error) {
             console.error(error);
-            alert('حدث خطأ أثناء قراءة الملف. يرجى التأكد من أن الملف سليم وغير محمي بكلمة مرور.');
+            alert('حدث خطأ أثناء قراءة الملف.');
         } finally {
             setIsReadingFile(false);
-            if (e.target) e.target.value = ''; // Reset input
+            if (e.target) e.target.value = '';
         }
     };
 
     const handleNewLesson = () => {
-        if (window.confirm('هل أنت متأكد من إنشاء درس جديد؟ سيتم مسح البيانات الحالية.')) {
+        if (window.confirm('هل أنت متأكد من إنشاء درس جديد؟ سيتم فقدان البيانات غير المحفوظة.')) {
             setPlan(initialState);
-            setGeneratedResult(null);
             setAiInput('');
+            setPasteForAnalysis('');
+            localStorage.removeItem('currentLessonPlan');
         }
     };
 
-    // --- Modal Logic ---
-    const openCreationModal = () => {
-        if (!aiInput.trim()) {
-            alert('الرجاء كتابة موضوع الدرس أو المحتوى أولاً في الحقل المخصص.');
-            return;
+    const handleSaveLesson = () => {
+        try {
+            localStorage.setItem('currentLessonPlan', JSON.stringify(plan));
+            alert('تم حفظ التحضير الحالي بنجاح.');
+        } catch (e) {
+            alert('تعذر الحفظ.');
         }
-        setShowModal(true);
     };
 
     const confirmCreation = async () => {
-        // Save metadata for next time
         localStorage.setItem('lessonPlannerMeta', JSON.stringify({
             district: modalData.district,
             school: modalData.school,
@@ -358,498 +312,352 @@ const SmartLessonPlanner: React.FC<{ onBack: () => void }> = ({ onBack }) => {
 
         setShowModal(false);
         setIsGenerating(true);
-        setGeneratedResult(null); // Reset previous result
 
         try {
-            // Pass context to AI including the specific Branch and Title
-            const context = {
-                subject: `${modalData.subject} (${modalData.subjectBranch})`,
-                grade: modalData.classLevel
-            };
-            
-            const result = await generateSmartLessonPlan(aiInput, context);
-            
-            // Store the raw AI result temporarily so user can "Fill Fields" later
-            setGeneratedResult(result);
-            
-            // Also pre-fill the "Plan" state with the Modal Data (Metadata) immediately
+            let result: any = null;
+            if (aiInput.trim().length > 0) {
+                 const context = {
+                    subject: `${modalData.subject} (${modalData.subjectBranch})`,
+                    grade: modalData.classLevel
+                };
+                result = await generateSmartLessonPlan(aiInput, context);
+            }
+
             setPlan(prev => ({
                 ...prev,
-                ...modalData, // Overwrite metadata
-                // Don't overwrite content yet, wait for user to click "Fill Fields"
+                ...modalData,
+                // Prioritize user input for lesson title
+                lessonTitle: (modalData.lessonTitle && modalData.lessonTitle.trim()) 
+                    ? modalData.lessonTitle 
+                    : (result ? safeString(result.lessonTitle) : prev.lessonTitle),
+                introText: result ? safeString(result.intro?.text) : prev.introText,
+                introType: result ? safeString(result.intro?.type) : prev.introType,
+                methods: result && Array.isArray(result.methods) ? [...result.methods.map(safeString), ...Array(5).fill('')].slice(0, 5) : prev.methods,
+                aids: result && Array.isArray(result.aids) ? [...result.aids.map(safeString), ...Array(5).fill('')].slice(0, 5) : prev.aids,
+                activities: result ? safeString(result.activities) : prev.activities,
+                teacherRole: result ? safeString(result.teacherRole) : prev.teacherRole,
+                learnerRole: result ? safeString(result.learnerRole) : prev.learnerRole,
+                content: result ? safeString(result.content) : prev.content,
+                closureText: result ? safeString(result.closure?.text) : prev.closureText,
+                closureType: result ? safeString(result.closure?.type) : prev.closureType,
+                homeworkText: result ? safeString(result.homework?.text) : prev.homeworkText,
+                homeworkType: result ? safeString(result.homework?.type) : prev.homeworkType,
+                reflection: result ? safeString(result.reflection) : prev.reflection,
+                objectives: result && Array.isArray(result.objectives) 
+                    ? [...result.objectives.map((obj: any) => ({
+                        domain: safeString(obj.domain),
+                        level: safeString(obj.level),
+                        text: safeString(obj.text),
+                        evaluation: safeString(obj.evaluation)
+                    })), ...initialObjectives].slice(0, 6)
+                    : prev.objectives
             }));
+            
+            setTimeout(() => document.getElementById('lesson-plan-export')?.scrollIntoView({ behavior: 'smooth' }), 500);
 
         } catch (error) {
-            alert('حدث خطأ أثناء التوليد بالذكاء الاصطناعي. حاول مرة أخرى.');
-            console.error(error);
+            alert('حدث خطأ أثناء الاتصال بالذكاء الاصطناعي، تم تطبيق البيانات اليدوية.');
+            setPlan(prev => ({ ...prev, ...modalData }));
         } finally {
             setIsGenerating(false);
         }
     };
 
-    const applyGeneratedContent = () => {
-        if (!generatedResult) return;
-
-        setPlan(prev => ({
-            ...prev,
-            // Keep metadata from modal, overwrite content from AI
-            // Use safeString to ensure no objects are passed to React state
-            lessonTitle: safeString(generatedResult.lessonTitle || prev.lessonTitle),
-            introText: safeString(generatedResult.intro?.text),
-            introType: safeString(generatedResult.intro?.type),
-            
-            // Ensure methods is array of strings
-            methods: Array.isArray(generatedResult.methods) 
-                ? generatedResult.methods.map((m: any) => safeString(m)).slice(0, 5) 
-                : prev.methods,
-            
-            // Ensure aids is array of strings
-            aids: Array.isArray(generatedResult.aids) 
-                ? generatedResult.aids.map((a: any) => safeString(a)).slice(0, 5) 
-                : prev.aids,
-            
-            activities: safeString(generatedResult.activities),
-            teacherRole: safeString(generatedResult.teacherRole),
-            learnerRole: safeString(generatedResult.learnerRole),
-            content: safeString(generatedResult.content),
-            closureText: safeString(generatedResult.closure?.text),
-            closureType: safeString(generatedResult.closure?.type),
-            homeworkText: safeString(generatedResult.homework?.text),
-            homeworkType: safeString(generatedResult.homework?.type),
-            reflection: safeString(generatedResult.reflection),
-            
-            // Ensure objectives are strictly sanitized
-            objectives: generatedResult.objectives && Array.isArray(generatedResult.objectives) 
-                ? generatedResult.objectives.slice(0, 6).map((obj: any, i: number) => ({
-                    domain: safeString(obj.domain) || prev.objectives[i]?.domain || 'معرفي',
-                    level: safeString(obj.level),
-                    text: safeString(obj.text),
-                    evaluation: safeString(obj.evaluation)
-                }))
-                : prev.objectives
-        }));
-        
-        // Scroll to the plan
-        document.getElementById('lesson-plan-export')?.scrollIntoView({ behavior: 'smooth' });
+    const handleAnalyzePaste = async () => {
+        if (!pasteForAnalysis.trim()) { alert('الرجاء لصق نص التحضير أولاً.'); return; }
+        setIsAnalyzing(true);
+        try {
+            const result = await fillLessonPlanFromText(pasteForAnalysis);
+            setPlan(prev => ({
+                ...prev,
+                lessonTitle: result.lessonTitle ? safeString(result.lessonTitle) : prev.lessonTitle,
+                subject: result.subject ? safeString(result.subject) : prev.subject,
+                classLevel: result.classLevel ? safeString(result.classLevel) : prev.classLevel,
+                introText: result.intro ? safeString(result.intro.text) : prev.introText,
+                introType: result.intro ? safeString(result.intro.type) : prev.introType,
+                methods: result.methods ? result.methods.map(safeString).slice(0, 5) : prev.methods,
+                aids: result.aids ? result.aids.map(safeString).slice(0, 5) : prev.aids,
+                activities: result.activities ? safeString(result.activities) : prev.activities,
+                content: result.content ? safeString(result.content) : prev.content,
+                closureText: result.closure ? safeString(result.closure.text) : prev.closureText,
+                closureType: result.closure ? safeString(result.closure.type) : prev.closureType,
+                homeworkText: result.homework ? safeString(result.homework.text) : prev.homeworkText,
+                homeworkType: result.homework ? safeString(result.homework.type) : prev.homeworkType,
+                teacherRole: result.teacherRole ? safeString(result.teacherRole) : prev.teacherRole,
+                learnerRole: result.learnerRole ? safeString(result.learnerRole) : prev.learnerRole,
+                objectives: result.objectives ? [...result.objectives.map((obj: any) => ({
+                        domain: safeString(obj.domain), level: safeString(obj.level), text: safeString(obj.text), evaluation: safeString(obj.evaluation)
+                    })), ...initialObjectives].slice(0, 6) : prev.objectives
+            }));
+            setTimeout(() => document.getElementById('lesson-plan-export')?.scrollIntoView({ behavior: 'smooth' }), 500);
+        } catch (error) { alert('حدث خطأ أثناء تحليل النص.'); } 
+        finally { setIsAnalyzing(false); }
     };
 
     return (
         <div className="pb-20">
-            <ToolHeader title="رفيقك في التحضير الإلكتروني" onBack={onBack} />
-
-            {/* TOP SECTION: Input Only (No initial fields here) */}
-            <div className="neumorphic-outset p-6 mb-8 no-print">
-                <h3 className="text-xl font-bold text-indigo-700 mb-4 border-b pb-2">1. إنشاء تحضير إلكتروني كامل (مُستحسن)</h3>
-                <p className="text-sm text-gray-600 mb-2">اكتب موضوع الدرس (مثال: الفاعل في اللغة العربية) أو الصق محتوى الدرس هنا، أو قم برفع ملف (PDF/Word) ليقوم الذكاء الاصطناعي بقراءته.</p>
-                <textarea 
-                    value={aiInput}
-                    onChange={e => setAiInput(e.target.value)}
-                    placeholder="اكتب هنا أو الصق النص..."
-                    className="w-full h-32 p-3 border rounded-lg bg-white text-black mb-4"
-                />
-                
-                <div className="flex flex-wrap gap-4 items-center">
-                    <button 
-                        onClick={openCreationModal} 
-                        disabled={isGenerating || isReadingFile}
-                        className="neumorphic-button py-3 px-8 bg-green-600 text-white font-bold text-lg shadow-lg hover:bg-green-700 transition-all disabled:opacity-50"
-                    >
-                        {isGenerating ? 'جاري الإنشاء...' : 'أنشئ التحضير إلكترونياً'}
+            <div className="flex justify-between items-center mb-6">
+                <ToolHeader title="رفيقك في التحضير الإلكتروني" onBack={onBack} />
+                <div className="flex gap-2 no-print">
+                     <button onClick={handleNewLesson} className="neumorphic-button bg-blue-600 text-white px-4 py-2 text-sm font-bold shadow-lg hover:bg-blue-700">
+                        <i className="fas fa-plus ml-2"></i> درس جديد
                     </button>
-                    
-                    <button 
-                        onClick={() => contentFileInputRef.current?.click()} 
-                        disabled={isReadingFile}
-                        className="neumorphic-button bg-gray-200 text-gray-700 px-6 py-3 font-bold hover:bg-gray-300 disabled:opacity-60"
-                    >
-                        {isReadingFile ? (
-                            <span><i className="fas fa-spinner fa-spin ml-2"></i> جاري قراءة الملف...</span>
-                        ) : (
-                            <span><i className="fas fa-file-upload ml-2"></i> أدرج ملف (PDF, DOCX, TXT)</span>
-                        )}
+                    <button onClick={handleSaveLesson} className="neumorphic-button bg-green-600 text-white px-4 py-2 text-sm font-bold shadow-lg hover:bg-green-700">
+                        <i className="fas fa-save ml-2"></i> حفظ العمل
                     </button>
-                    <input 
-                        id="upload-file" 
-                        type="file" 
-                        ref={contentFileInputRef}
-                        accept=".pdf,.docx,.txt"
-                        className="hidden" 
-                        onChange={handleContentFileUpload} 
-                    />
                 </div>
             </div>
 
-            {/* 2. EXTRACTION SECTION (Manual Paste) */}
-            <div className="neumorphic-outset p-6 mb-8 bg-blue-50 border border-blue-100 no-print">
-                <h3 className="text-xl font-bold text-blue-800 mb-2">2. استخلاص المعلومات من تحضير جاهز</h3>
-                <p className="text-sm text-gray-600 mb-2">لديك تحضير مكتوب بالفعل؟ الصقه هنا لاستخلاص المعلومات وتعبئة الحقول بالأسفل تلقائياً.</p>
-                <textarea 
-                    placeholder="مثال: عنوان الدرس: الفاعل. المادة: لغة عربية. الصف: الخامس..."
-                    className="w-full h-20 p-3 border rounded-lg bg-white text-black mb-3 text-sm"
-                />
-                <button className="bg-blue-600 text-white px-6 py-2 rounded font-bold hover:bg-blue-700">تحليل النص</button>
+            <div className="neumorphic-outset p-6 mb-8 no-print text-center">
+                 <h3 className="text-2xl font-bold text-indigo-800 mb-6">ماذا تريد أن تفعل اليوم؟</h3>
+                 <div className="mb-8">
+                     <div className="flex flex-col items-center gap-4">
+                        <textarea 
+                            value={aiInput}
+                            onChange={e => setAiInput(e.target.value)}
+                            placeholder="اكتب موضوع الدرس هنا (مثال: أركان الصلاة)..."
+                            className="w-full max-w-2xl h-24 p-3 border rounded-lg bg-white text-black mb-2 focus:ring-2 focus:ring-green-500"
+                        />
+                         <div className="flex flex-wrap gap-4 justify-center">
+                             <button onClick={() => setShowModal(true)} className="neumorphic-button py-4 px-10 bg-green-600 text-white font-bold text-xl shadow-xl hover:scale-105 transition-transform rounded-2xl">
+                                <i className="fas fa-magic ml-2"></i> إنشاء التحضير إلكترونياً
+                            </button>
+                            <button onClick={() => contentFileInputRef.current?.click()} disabled={isReadingFile} className="neumorphic-button bg-gray-200 text-gray-700 px-6 py-4 font-bold hover:bg-gray-300 disabled:opacity-60 rounded-xl">
+                                {isReadingFile ? <i className="fas fa-spinner fa-spin"></i> : <i className="fas fa-file-upload ml-2"></i>} إدراج ملف (PDF/Word)
+                            </button>
+                             <input type="file" ref={contentFileInputRef} accept=".pdf,.docx,.txt" className="hidden" onChange={handleContentFileUpload} />
+                         </div>
+                     </div>
+                 </div>
+                 <div className="border-t border-gray-300 my-8 relative"><span className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-[#f3f4f6] px-4 text-gray-500 font-bold">أو</span></div>
+                 <div className="bg-blue-50 p-6 rounded-xl border border-blue-100">
+                     <h4 className="text-lg font-bold text-blue-800 mb-2">استخلاص المعلومات من تحضير جاهز</h4>
+                     <textarea value={pasteForAnalysis} onChange={e => setPasteForAnalysis(e.target.value)} placeholder="الصق نص التحضير هنا..." className="w-full h-32 p-3 border rounded-lg bg-white text-black mb-3" />
+                    <button onClick={handleAnalyzePaste} disabled={isAnalyzing} className="neumorphic-button bg-blue-600 text-white px-6 py-2 font-bold hover:bg-blue-700 disabled:opacity-50">{isAnalyzing ? 'جاري التحليل...' : 'تحليل الدرس وتعبئة الحقول'}</button>
+                 </div>
             </div>
 
-            {/* DATA ENTRY MODAL */}
             {showModal && (
                 <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 no-print">
-                    <div className="bg-white rounded-2xl shadow-2xl w-full max-w-3xl max-h-[90vh] overflow-y-auto p-6 animate-scaleIn">
-                        <h3 className="text-2xl font-bold text-center text-indigo-800 mb-6 border-b pb-4">تفاصيل إنشاء الدرس</h3>
-                        
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                            {/* School Info */}
-                            <div>
-                                <label className="block text-sm font-bold text-gray-700 mb-1">المنطقة التعليمية</label>
-                                <input type="text" value={modalData.district} onChange={e => setModalData({...modalData, district: e.target.value})} className="w-full p-2 border rounded bg-gray-50 focus:bg-white" />
-                            </div>
-                            <div>
-                                <label className="block text-sm font-bold text-gray-700 mb-1">اسم المدرسة</label>
-                                <input type="text" value={modalData.school} onChange={e => setModalData({...modalData, school: e.target.value})} className="w-full p-2 border rounded bg-gray-50 focus:bg-white" />
-                            </div>
-
-                            {/* Subject & Branch */}
-                            <div>
-                                <label className="block text-sm font-bold text-gray-700 mb-1">الماده *</label>
-                                <select value={modalData.subject} onChange={e => setModalData({...modalData, subject: e.target.value, subjectBranch: ''})} className="w-full p-2 border rounded bg-gray-50 focus:bg-white">
-                                    <option value="">اختر المادة...</option>
-                                    {subjectsList.map(s => <option key={s} value={s}>{s}</option>)}
-                                </select>
-                            </div>
-                            <div>
-                                <label className="block text-sm font-bold text-gray-700 mb-1">فرع المادة</label>
-                                {modalData.subject === 'أخرى' ? (
-                                    <input type="text" value={modalData.subjectBranch} onChange={e => setModalData({...modalData, subjectBranch: e.target.value})} placeholder="اكتب الفرع..." className="w-full p-2 border rounded bg-gray-50 focus:bg-white" />
-                                ) : (
-                                    <select value={modalData.subjectBranch} onChange={e => setModalData({...modalData, subjectBranch: e.target.value})} className="w-full p-2 border rounded bg-gray-50 focus:bg-white">
-                                        <option value="">اختر الفرع...</option>
-                                        {(subjectBranchesMap[modalData.subject] || []).map(b => <option key={b} value={b}>{b}</option>)}
-                                    </select>
-                                )}
-                            </div>
-
-                            {/* Lesson Details */}
-                            <div className="md:col-span-2">
-                                <label className="block text-sm font-bold text-gray-700 mb-1">عنوان الدرس *</label>
-                                <input type="text" value={modalData.lessonTitle} onChange={e => setModalData({...modalData, lessonTitle: e.target.value})} className="w-full p-2 border rounded bg-gray-50 focus:bg-white font-bold text-lg" />
-                            </div>
-
-                            {/* Class Info */}
-                            <div>
-                                <label className="block text-sm font-bold text-gray-700 mb-1">الصف *</label>
-                                <select value={modalData.classLevel} onChange={e => setModalData({...modalData, classLevel: e.target.value})} className="w-full p-2 border rounded bg-gray-50 focus:bg-white">
-                                    <option value="">اختر الصف...</option>
-                                    {gradesList.map(g => <option key={g} value={g}>{g}</option>)}
-                                </select>
-                            </div>
-                            <div>
-                                <label className="block text-sm font-bold text-gray-700 mb-1">الشعبة</label>
-                                <select value={modalData.division} onChange={e => setModalData({...modalData, division: e.target.value})} className="w-full p-2 border rounded bg-gray-50 focus:bg-white">
-                                    <option value="">اختر...</option>
-                                    {divisions.map(d => <option key={d} value={d}>{d}</option>)}
-                                </select>
-                            </div>
-
-                            {/* Time Info */}
-                            <div>
-                                <label className="block text-sm font-bold text-gray-700 mb-1">التاريخ</label>
-                                <input type="date" value={modalData.date} onChange={handleModalDateChange} className="w-full p-2 border rounded bg-gray-50 focus:bg-white" />
-                            </div>
-                            <div>
-                                <label className="block text-sm font-bold text-gray-700 mb-1">اليوم</label>
-                                <input type="text" value={modalData.day} readOnly className="w-full p-2 border rounded bg-gray-200 text-gray-600 cursor-not-allowed" />
-                            </div>
-                            <div>
-                                <label className="block text-sm font-bold text-gray-700 mb-1">الحصة</label>
-                                <select value={modalData.period} onChange={e => setModalData({...modalData, period: e.target.value})} className="w-full p-2 border rounded bg-gray-50 focus:bg-white">
-                                    <option value="">اختر...</option>
-                                    {periods.map(p => <option key={p} value={p}>{p}</option>)}
-                                </select>
-                            </div>
-                            <div>
-                                <label className="block text-sm font-bold text-gray-700 mb-1">اسم المعلم/ة</label>
-                                <input type="text" value={modalData.teacherName} onChange={e => setModalData({...modalData, teacherName: e.target.value})} className="w-full p-2 border rounded bg-gray-50 focus:bg-white" />
-                            </div>
+                    <div className="bg-white rounded-2xl shadow-2xl w-full max-w-4xl max-h-[95vh] overflow-y-auto p-6 animate-scaleIn">
+                        <h3 className="text-2xl font-bold text-center text-indigo-800 mb-6 border-b pb-4">بيانات الدرس الجديد</h3>
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                            <div><label className="block text-sm font-bold text-gray-700">المنطقة التعليمية</label><input type="text" value={modalData.district} onChange={e => setModalData({...modalData, district: e.target.value})} className="w-full p-2 border rounded bg-white text-black" /></div>
+                            <div><label className="block text-sm font-bold text-gray-700">المدرسة</label><input type="text" value={modalData.school} onChange={e => setModalData({...modalData, school: e.target.value})} className="w-full p-2 border rounded bg-white text-black" /></div>
+                            <div><label className="block text-sm font-bold text-gray-700">المعلم</label><input type="text" value={modalData.teacherName} onChange={e => setModalData({...modalData, teacherName: e.target.value})} className="w-full p-2 border rounded bg-white text-black" /></div>
+                            <div><label className="block text-sm font-bold text-gray-700">المادة</label><select value={modalData.subject} onChange={e => setModalData({...modalData, subject: e.target.value, subjectBranch: ''})} className="w-full p-2 border rounded bg-white text-black"><option value="">اختر...</option>{subjectsList.map(s => <option key={s} value={s}>{s}</option>)}</select></div>
+                            <div><label className="block text-sm font-bold text-gray-700">فرع المادة</label>{modalData.subject && subjectBranchesMap[modalData.subject] ? (<select value={modalData.subjectBranch} onChange={e => setModalData({...modalData, subjectBranch: e.target.value})} className="w-full p-2 border rounded bg-white text-black"><option value="">اختر الفرع...</option>{subjectBranchesMap[modalData.subject].map(b => <option key={b} value={b}>{b}</option>)}</select>) : (<input type="text" placeholder="اكتب فرع المادة..." value={modalData.subjectBranch} onChange={e => setModalData({...modalData, subjectBranch: e.target.value})} className="w-full p-2 border rounded bg-white text-black" />)}</div>
+                             <div><label className="block text-sm font-bold text-gray-700">عنوان الدرس</label><input type="text" value={modalData.lessonTitle} onChange={e => setModalData({...modalData, lessonTitle: e.target.value})} className="w-full p-2 border rounded bg-white text-black font-bold" /></div>
+                            <div><label className="block text-sm font-bold text-gray-700">الصف</label><select value={modalData.classLevel} onChange={e => setModalData({...modalData, classLevel: e.target.value})} className="w-full p-2 border rounded bg-white text-black"><option value="">اختر...</option>{gradesList.map(g => <option key={g} value={g}>{g}</option>)}</select></div>
+                            <div><label className="block text-sm font-bold text-gray-700">الشعبة</label><select value={modalData.division} onChange={e => setModalData({...modalData, division: e.target.value})} className="w-full p-2 border rounded bg-white text-black"><option value="">اختر...</option>{divisions.map(d => <option key={d} value={d}>{d}</option>)}</select></div>
+                            <div><label className="block text-sm font-bold text-gray-700">الحصة</label><select value={modalData.period} onChange={e => setModalData({...modalData, period: e.target.value})} className="w-full p-2 border rounded bg-white text-black"><option value="">اختر...</option>{periods.map(p => <option key={p} value={p}>{p}</option>)}</select></div>
+                            <div><label className="block text-sm font-bold text-gray-700">التاريخ</label><input type="date" value={modalData.date} onChange={handleModalDateChange} className="w-full p-2 border rounded bg-white text-black" /></div>
+                            <div><label className="block text-sm font-bold text-gray-700">اليوم</label><input type="text" value={modalData.day} readOnly className="w-full p-2 border rounded bg-gray-100 text-gray-600" /></div>
                         </div>
-
-                        <div className="flex gap-4 mt-8">
-                            <button onClick={confirmCreation} className="flex-1 bg-green-600 text-white py-3 rounded-xl font-bold text-lg hover:bg-green-700 transition-colors shadow-lg">
-                                ابدأ التحضير إلكترونياً
-                            </button>
-                            <button onClick={() => setShowModal(false)} className="px-6 py-3 bg-gray-200 text-gray-700 rounded-xl font-bold hover:bg-gray-300">
-                                إلغاء
-                            </button>
+                        <div className="flex gap-4 mt-8 pt-4 border-t">
+                             {isGenerating ? <button disabled className="flex-1 bg-gray-400 text-white py-3 rounded-xl font-bold cursor-wait">جاري الإنشاء...</button> : <button onClick={confirmCreation} className="flex-1 bg-green-600 text-white py-3 rounded-xl font-bold hover:bg-green-700 text-lg"><i className="fas fa-check ml-2"></i> ابدأ التحضير</button>}
+                            <button onClick={() => setShowModal(false)} className="px-6 py-3 bg-red-100 text-red-700 rounded-xl font-bold hover:bg-red-200">إلغاء</button>
                         </div>
                     </div>
                 </div>
             )}
 
-            {/* AI RESULT REVIEW SECTION */}
-            {generatedResult && (
-                <div className="neumorphic-outset p-6 mb-8 bg-green-50 border border-green-200 animate-fadeIn no-print">
-                    <h3 className="text-xl font-bold text-green-800 mb-4">التحضير الإلكتروني المقترح:</h3>
-                    <div className="bg-white p-4 rounded-lg border border-gray-300 max-h-60 overflow-y-auto mb-4 text-sm">
-                        <pre className="whitespace-pre-wrap font-sans text-gray-700">
-                            {`**الأهداف السلوكية:**\n` + 
-                             (Array.isArray(generatedResult.objectives) ? generatedResult.objectives.map((o:any) => `- **(${safeString(o.domain)})** ${safeString(o.text)}`).join('\n') : '') + 
-                             `\n\n**المحتوى:**\n${safeString(generatedResult.content)?.substring(0, 150)}...`}
-                        </pre>
-                    </div>
-                    <div className="flex flex-wrap gap-3">
-                        <button onClick={applyGeneratedContent} className="neumorphic-button bg-green-600 text-white px-6 py-2 font-bold shadow-md animate-pulse">
-                            <i className="fas fa-check-circle ml-2"></i> تعبئة الحقول أدناه
-                        </button>
-                        <button onClick={() => { navigator.clipboard.writeText(JSON.stringify(generatedResult, null, 2)); alert('تم نسخ النص'); }} className="neumorphic-button bg-blue-500 text-white px-4 py-2 font-bold">
-                            نسخ النص
-                        </button>
-                    </div>
-                </div>
-            )}
-
-            <div className="w-full h-2 bg-gray-300 my-8 rounded-full no-print"></div>
-
-            {/* CONTROLS FOR EXPORT/NEW */}
-            <div className="flex flex-wrap gap-4 mb-6 justify-center no-print">
-                <button onClick={handleNewLesson} className="neumorphic-button bg-yellow-500 text-white px-6 py-2 font-bold"><i className="fas fa-plus"></i> درس جديد</button>
-                <button onClick={() => alert('تم الحفظ تلقائياً')} className="neumorphic-button bg-green-600 text-white px-6 py-2 font-bold"><i className="fas fa-save"></i> حفظ</button>
-            </div>
-
-            {/* ------------------------------------------------------- */}
-            {/* BOTTOM SECTION: The "Canvas" (Exportable Area) */}
-            {/* ------------------------------------------------------- */}
-            <div className="flex justify-center overflow-x-auto">
+            {/* A4 Export Area - The Core Design Change */}
+            <div className="flex justify-center overflow-x-auto mt-8">
                 <div 
                     id="lesson-plan-export" 
-                    className={`bg-white text-black shadow-2xl mx-auto origin-top transition-transform duration-300 ${isExporting ? 'w-[210mm] p-[5mm] pt-[2mm]' : 'w-full max-w-[210mm] p-8'}`}
+                    className="bg-white text-black shadow-2xl mx-auto origin-top [&_[contenteditable]]:text-black [&_input]:text-black"
                     style={{ 
-                        minHeight: isExporting ? '297mm' : 'auto', 
+                        width: '210mm',
+                        minHeight: '297mm',
+                        padding: '10mm',
                         border: '1px solid #ccc',
-                        fontSize: isExporting ? '9pt' : '12pt' // Compact font
+                        fontFamily: "'Times New Roman', serif",
+                        fontSize: '11pt',
+                        direction: 'rtl',
+                        textAlign: 'right',
+                        color: '#000000'
                     }}
                 >
-                    {/* HEADER */}
-                    <div className={`flex justify-between items-start border-b-4 border-double border-black pb-1 ${isExporting ? 'mb-1' : 'mb-3'}`}>
-                        {/* Right */}
-                        <div className="text-right w-1/4 font-bold space-y-1" style={{ fontSize: isExporting ? '8pt' : '10pt' }}>
+                    {/* Header - 3 Columns */}
+                    <div className="flex justify-between items-start mb-2 w-full">
+                         {/* Right: Ministry Info */}
+                         <div className="text-right w-1/3 font-bold space-y-1 text-[11px] leading-tight text-black">
                             <p>الجمهورية اليمنية</p>
-                            <p>{safeString(plan.ministry)}</p>
-                            <div className="flex items-center gap-1">
-                                <span>المنطقة:</span>
-                                {isExporting ? <span>{safeString(plan.district)}</span> : <input type="text" value={plan.district} onChange={e => handleInputChange('district', e.target.value)} className="border-b border-dotted border-black w-24 bg-transparent focus:outline-none" />}
+                            <p>وزارة التربية والتعليم والبحث العلمي</p>
+                            <div className="flex items-center gap-1"><span>المنطقة:</span> <div contentEditable onBlur={(e) => handleContentEditableChange('district', e)} className="border-b border-black min-w-[80px] px-1 bg-transparent text-center focus:outline-none font-bold text-black" dangerouslySetInnerHTML={{ __html: plan.district }}></div></div>
+                            <div className="flex items-center gap-1"><span>المدارس:</span> <div contentEditable onBlur={(e) => handleContentEditableChange('school', e)} className="border-b border-black min-w-[80px] px-1 bg-transparent text-center focus:outline-none font-bold text-black" dangerouslySetInnerHTML={{ __html: plan.school }}></div></div>
+                         </div>
+                         
+                         {/* Center: Logos & Title */}
+                         <div className="text-center w-1/3 flex flex-col items-center">
+                            <div className="flex justify-center gap-6 mb-2">
+                                <img src={schoolLogo} className="w-12 h-12 object-contain cursor-pointer" onClick={() => logoInputRef.current?.click()} title="تغيير الشعار" />
+                                <img src={eagleImage} className="w-14 h-14 object-contain cursor-pointer" onClick={() => eagleInputRef.current?.click()} title="تغيير الشعار" />
+                                <input type="file" ref={logoInputRef} className="hidden" onChange={e => handleImageUpload(e, setSchoolLogo)} />
+                                <input type="file" ref={eagleInputRef} className="hidden" onChange={e => handleImageUpload(e, setEagleImage)} />
                             </div>
-                            <div className="flex items-center gap-1">
-                                <span>المدرسة:</span>
-                                {isExporting ? <span>{safeString(plan.school)}</span> : <input type="text" value={plan.school} onChange={e => handleInputChange('school', e.target.value)} className="border-b border-dotted border-black w-24 bg-transparent focus:outline-none" />}
-                            </div>
-                        </div>
-
-                        {/* Center */}
-                        <div className="text-center flex-grow flex flex-col items-center">
-                            <div className={`flex gap-4 ${isExporting ? 'mb-0 -mt-2' : 'mb-1'}`}>
-                                {/* School Logo */}
-                                <div className="relative group w-14 h-14 cursor-pointer" onClick={() => !isExporting && logoInputRef.current?.click()}>
-                                    <img src={schoolLogo} alt="School Logo" className={`w-full h-full object-contain ${isExporting ? 'scale-75' : ''}`} />
-                                    {!isExporting && <div className="absolute inset-0 bg-black/20 hidden group-hover:flex items-center justify-center text-white text-xs rounded">تغيير</div>}
-                                    <input type="file" ref={logoInputRef} className="hidden" onChange={e => handleImageUpload(e, setSchoolLogo)} />
-                                </div>
-                                {/* Eagle */}
-                                <div className="relative group w-16 h-16 cursor-pointer" onClick={() => !isExporting && eagleInputRef.current?.click()}>
-                                    <img src={eagleImage} alt="Eagle" className={`w-full h-full object-contain ${isExporting ? 'scale-75' : ''}`} />
-                                    {!isExporting && <div className="absolute inset-0 bg-black/20 hidden group-hover:flex items-center justify-center text-white text-xs rounded">تغيير</div>}
-                                    <input type="file" ref={eagleInputRef} className="hidden" onChange={e => handleImageUpload(e, setEagleImage)} />
+                            {/* REPLACED INPUT WITH DIV FOR TITLE - Auto width for long titles */}
+                            <div className="relative mt-1">
+                                <div className="border-2 border-black px-4 py-2 font-black text-lg rounded-lg shadow-[2px_2px_0px_rgba(0,0,0,0.1)] inline-block min-w-[150px] whitespace-nowrap">
+                                    <div contentEditable onBlur={(e) => handleContentEditableChange('lessonTitle', e)} className="bg-transparent text-center focus:outline-none text-black" dangerouslySetInnerHTML={{ __html: plan.lessonTitle || 'عنوان الدرس' }}></div>
                                 </div>
                             </div>
-                            {/* Lesson Title */}
-                            <h2 className={`font-black text-blue-900 my-1 ${isExporting ? 'text-lg' : 'text-2xl'}`}>
-                                خطة الدرس اليومي
-                            </h2>
-                        </div>
+                         </div>
+                         
+                         {/* Left: Date/Day/Subject */}
+                         <div className="text-left w-1/3 font-bold space-y-1 text-[11px] leading-tight flex flex-col items-end text-black">
+                             <div className="flex items-center gap-2 justify-end w-full"><span>اليوم:</span> <span className="border-b border-black min-w-[60px] text-center">{plan.day}</span></div>
+                             <div className="flex items-center gap-2 justify-end w-full"><span>التاريخ:</span> <span className="border-b border-black min-w-[60px] text-center">{plan.date}</span></div>
+                             <div className="flex items-center gap-2 justify-end w-full"><span>المادة:</span> <span className="border-b border-black min-w-[60px] text-center">{plan.subject}</span></div>
+                             <div className="flex items-center gap-2 justify-end w-full"><span>الفرع:</span> <span className="border-b border-black min-w-[60px] text-center">{plan.subjectBranch}</span></div>
+                         </div>
+                    </div>
 
-                        {/* Left */}
-                        <div className="text-left w-1/4 font-bold space-y-1" dir="ltr" style={{ fontSize: isExporting ? '8pt' : '10pt' }}>
-                            <div className="flex items-center justify-end gap-1">
-                                {isExporting ? <span>{safeString(plan.day)}</span> : <input type="text" value={plan.day} onChange={e => handleInputChange('day', e.target.value)} className="border-b border-dotted border-black w-24 text-right bg-transparent focus:outline-none" />}
-                                <span>:اليوم</span>
-                            </div>
-                            <div className="flex items-center justify-end gap-1">
-                                {isExporting ? <span>{safeString(plan.date)}</span> : <input type="date" value={plan.date} onChange={e => handleInputChange('date', e.target.value)} className="border-b border-dotted border-black w-24 text-right bg-transparent focus:outline-none" />}
-                                <span>:التاريخ</span>
-                            </div>
+                    {/* Double Line Separator */}
+                    <div className="border-t-2 border-double border-gray-800 mb-2 mx-1"></div>
+
+                    {/* Row 1: Class Info Grid */}
+                    <div className="grid grid-cols-4 border border-black text-center mb-2 divide-x divide-x-reverse divide-black font-bold text-[11px] bg-gray-50 text-black">
+                        <div className="p-1 flex items-center justify-center gap-1"><span>الصف:</span> <span>{plan.classLevel}</span></div>
+                        <div className="p-1 flex items-center justify-center gap-1"><span>الشعبة:</span> <span>{plan.division}</span></div>
+                        <div className="p-1 flex items-center justify-center gap-1"><span>الحصة:</span> <span>{plan.period}</span></div>
+                        <div className="p-1 flex items-center justify-center gap-1"><span>السلوك:</span> <div contentEditable onBlur={(e) => handleContentEditableChange('behavior', e)} className="bg-transparent min-w-[40px] border-b border-dotted border-black text-center focus:outline-none inline-block text-black" dangerouslySetInnerHTML={{ __html: plan.behavior }}></div></div>
+                    </div>
+
+                    {/* Row 2: Methods & Aids */}
+                    <div className="grid grid-cols-2 gap-0 mb-2 text-[11px] border border-black text-black">
+                        <div className="border-l border-black p-1">
+                             <span className="font-bold underline block mb-1">طرق وأساليب التدريس:</span>
+                             <div className="flex flex-wrap gap-2 text-[10px] pr-2">
+                                 {plan.methods.filter(m => m.trim()).map((m, i) => <span key={i}>• {m}</span>)}
+                                 {plan.methods.every(m => !m.trim()) && <span className="text-gray-400">..................................................</span>}
+                             </div>
+                        </div>
+                        <div className="p-1">
+                             <span className="font-bold underline block mb-1">الوسائل التعليمية:</span>
+                             <div className="flex flex-wrap gap-2 text-[10px] pr-2">
+                                 {plan.aids.filter(a => a.trim()).map((a, i) => <span key={i}>• {a}</span>)}
+                                 {plan.aids.every(a => !a.trim()) && <span className="text-gray-400">..................................................</span>}
+                             </div>
                         </div>
                     </div>
 
-                    {/* INFO ROW 1 */}
-                    <div className="flex flex-wrap border-b border-gray-400 pb-2 mb-2 text-sm font-bold items-center justify-between gap-2" style={{ fontSize: isExporting ? '9pt' : '10pt' }}>
-                        
-                        {/* Subject & Branch */}
-                        <div className="flex gap-4 border-l border-gray-400 pl-4">
-                            <div className="flex items-center gap-1">
-                                <span className="text-red-800">المادة:</span>
-                                {isExporting ? <span className="px-1">{safeString(plan.subject)}</span> : 
-                                <select value={plan.subject} onChange={e => handleInputChange('subject', e.target.value)} className="border-b border-black bg-transparent w-28">
-                                    <option value=""></option>
-                                    {subjectsList.map(s => <option key={s} value={s}>{s}</option>)}
-                                </select>}
-                            </div>
-                            <div className="flex items-center gap-1">
-                                <span className="text-red-800">فرع المادة:</span>
-                                {isExporting ? <span className="px-1">{safeString(plan.subjectBranch)}</span> : 
-                                <input type="text" value={plan.subjectBranch} onChange={e => handleInputChange('subjectBranch', e.target.value)} className="border-b border-black bg-transparent w-20" placeholder="نحو/أدب..." />}
-                            </div>
-                        </div>
-
-                        {/* Lesson Title (In Row) */}
-                        <div className="flex items-center gap-1 flex-grow justify-center bg-gray-50 px-2 rounded border border-gray-200">
-                            <span className="text-red-800">عنوان الدرس:</span>
-                            {isExporting ? <span className="font-black px-2">{safeString(plan.lessonTitle)}</span> : <input type="text" value={plan.lessonTitle} onChange={e => handleInputChange('lessonTitle', e.target.value)} className="bg-transparent w-full font-black text-center focus:outline-none" />}
-                        </div>
+                    {/* Row 3: Intro */}
+                    <div className="border border-black p-1 mb-2 text-[11px] relative text-black">
+                         <div className="absolute top-1 left-2 bg-gray-100 border border-black px-2 rounded text-[10px]">نوع التمهيد: {plan.introType}</div>
+                         <span className="font-bold underline block mb-1">التمهيد للدرس:</span>
+                         <div 
+                            contentEditable
+                            onBlur={(e) => handleContentEditableChange('introText', e)}
+                            className="w-full bg-transparent focus:outline-none leading-relaxed min-h-[40px] whitespace-pre-wrap break-words text-black"
+                            dir="rtl"
+                            dangerouslySetInnerHTML={{ __html: plan.introText }}
+                         ></div>
                     </div>
 
-                    {/* INFO ROW 2 */}
-                    <div className="flex flex-wrap border-b-2 border-black pb-2 mb-3 text-sm font-bold gap-3 items-center" style={{ fontSize: isExporting ? '9pt' : '10pt' }}>
-                        <div className="flex items-center gap-1">
-                            <span className="text-red-800">الصف:</span>
-                            {isExporting ? <span className="px-1">{safeString(plan.classLevel)}</span> : 
-                            <select value={plan.classLevel} onChange={e => handleInputChange('classLevel', e.target.value)} className="border-b border-black bg-transparent w-24">
-                                <option value=""></option>
-                                {gradesList.map(g => <option key={g} value={g}>{g}</option>)}
-                            </select>}
-                        </div>
-                        <div className="flex items-center gap-1">
-                            <span className="text-red-800">الشعبة:</span>
-                            {isExporting ? <span className="px-1">{safeString(plan.division)}</span> : 
-                            <select value={plan.division} onChange={e => handleInputChange('division', e.target.value)} className="border-b border-black bg-transparent w-12">
-                                <option value=""></option>
-                                {divisions.map(d => <option key={d} value={d}>{d}</option>)}
-                            </select>}
-                        </div>
-                        <div className="flex items-center gap-1">
-                            <span className="text-red-800">الحصة:</span>
-                            {isExporting ? <span className="px-1">{safeString(plan.period)}</span> : 
-                            <select value={plan.period} onChange={e => handleInputChange('period', e.target.value)} className="border-b border-black bg-transparent w-16">
-                                <option value=""></option>
-                                {periods.map(p => <option key={p} value={p}>{p}</option>)}
-                            </select>}
-                        </div>
+                    {/* Row 4: Objectives Table - Increased Eval Width */}
+                    <div className="mb-2">
+                        <table className="w-full border-collapse border border-black text-[10px] table-fixed text-black">
+                            <thead>
+                                <tr className="bg-gray-200">
+                                    <th className="border border-black p-1 w-16">المجال</th>
+                                    <th className="border border-black p-1 w-16">المستوى</th>
+                                    <th className="border border-black p-1">الأهداف السلوكية (صياغة الهدف)</th>
+                                    <th className="border border-black p-1 w-48">التقويم</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {plan.objectives.map((obj, i) => (
+                                    <tr key={i}>
+                                        <td className="border border-black p-1 font-bold text-center bg-gray-50 text-black">{obj.domain}</td>
+                                        <td className="border border-black p-0 align-middle"><div contentEditable onBlur={(e) => handleObjectiveChange(i, 'level', e.currentTarget.innerText)} className="w-full h-full min-h-[20px] text-center bg-transparent focus:outline-none font-medium flex items-center justify-center whitespace-pre-wrap text-black" dangerouslySetInnerHTML={{__html: obj.level}}></div></td>
+                                        <td className="border border-black p-0 align-middle"><div contentEditable onBlur={(e) => handleObjectiveChange(i, 'text', e.currentTarget.innerText)} className="w-full h-full min-h-[20px] px-1 bg-transparent focus:outline-none font-medium text-right flex items-center whitespace-pre-wrap text-black" dangerouslySetInnerHTML={{__html: obj.text}}></div></td>
+                                        <td className="border border-black p-0 align-middle"><div contentEditable onBlur={(e) => handleObjectiveChange(i, 'evaluation', e.currentTarget.innerText)} className="w-full h-full min-h-[20px] px-1 bg-transparent focus:outline-none text-center font-medium flex items-center justify-center whitespace-pre-wrap text-black" dangerouslySetInnerHTML={{__html: obj.evaluation}}></div></td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
                     </div>
 
-                    {/* OBJECTIVES */}
-                    <div className="mb-3">
-                        <h4 className="font-bold text-red-800 mb-1 border-b border-gray-300 inline-block">الأهداف السلوكية</h4>
-                        <div className="space-y-1">
-                            {plan.objectives.map((obj, i) => (
-                                <div key={i} className="flex items-start gap-1 text-sm" style={{ fontSize: isExporting ? '9pt' : '10pt' }}>
-                                    <span className="font-bold min-w-[80px] text-gray-700 text-xs pt-1">
-                                        {obj.domain === 'معرفي' ? '🧠 (معرفي)' : obj.domain === 'مهاري' ? '✋ (مهاري)' : '❤️ (وجداني)'}
-                                    </span>
-                                    {isExporting ? (
-                                        <div className="flex-grow border-b border-dotted border-gray-300 pb-1 leading-tight">
-                                            <span className="font-bold text-gray-600 mx-1">[{safeString(obj.level)}]:</span>
-                                            {safeString(obj.text)} 
-                                            <span className="text-gray-500 text-xs mx-2">(التقويم: {safeString(obj.evaluation)})</span>
-                                        </div>
-                                    ) : (
-                                        <div className="flex-grow flex gap-1">
-                                            <input value={obj.level} onChange={e => handleObjectiveChange(i, 'level', e.target.value)} placeholder="المستوى" className="w-20 border-b border-gray-300 text-xs" />
-                                            <input value={obj.text} onChange={e => handleObjectiveChange(i, 'text', e.target.value)} placeholder="أن..." className="flex-grow border-b border-gray-300" />
-                                            <input value={obj.evaluation} onChange={e => handleObjectiveChange(i, 'evaluation', e.target.value)} placeholder="التقويم" className="w-32 border-b border-gray-300 text-xs" />
-                                        </div>
-                                    )}
-                                </div>
-                            ))}
-                        </div>
-                    </div>
-
-                    {/* METHODS & AIDS (Compact Grid) */}
-                    <div className="grid grid-cols-2 gap-4 mb-3 pb-2 border-b border-gray-300">
-                        <div>
-                            <h4 className="font-bold text-red-800 text-sm mb-1">الوسائل والاستراتيجيات</h4>
-                            <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-gray-800">
-                                {plan.methods.slice(0, 3).map((m, i) => m && <span key={i}>• {safeString(m)}</span>)}
-                                {plan.aids.slice(0, 3).map((a, i) => a && <span key={i}>• {safeString(a)}</span>)}
-                            </div>
-                        </div>
-                        <div>
-                            <h4 className="font-bold text-red-800 text-sm mb-1">طرق التدريس</h4>
-                            <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-gray-800">
-                                {plan.methods.map((m, i) => isExporting ? (m && <span key={i}>◻ {safeString(m)}</span>) : <input key={i} list="methods-list" value={m} onChange={e => handleArrayChange('methods', i, e.target.value)} className="w-20 border-b border-dotted border-gray-400 bg-transparent focus:outline-none text-xs" />)}
-                                <datalist id="methods-list">{methodsList.map(m => <option key={m} value={m} />)}</datalist>
-                            </div>
-                        </div>
-                    </div>
-
-                    {/* CONTENT AREA */}
-                    <div className="mb-3">
-                        <div className="flex justify-between mb-1">
-                            <h4 className="font-bold text-red-800 text-sm">سير الدرس</h4>
-                            <div className="text-xs font-bold flex gap-4">
-                                <span>التمهيد: {safeString(plan.introType)}</span>
-                            </div>
+                    {/* Row 5: Content Area */}
+                    <div className="border border-black p-1 mb-2 flex-grow flex flex-col text-black" style={{ minHeight: '180px' }}>
+                        <div className="flex border-b border-black pb-1 mb-1 text-[11px] font-bold">
+                            <div className="w-1/2 border-l border-black pl-2 flex items-center">دور المعلم: <div contentEditable onBlur={(e) => handleContentEditableChange('teacherRole', e)} className="font-normal flex-grow bg-transparent border-b border-dotted border-gray-400 focus:outline-none inline-block ml-1 text-black" dangerouslySetInnerHTML={{__html: plan.teacherRole}}></div></div>
+                            <div className="w-1/2 pr-2 flex items-center">دور المتعلم: <div contentEditable onBlur={(e) => handleContentEditableChange('learnerRole', e)} className="font-normal flex-grow bg-transparent border-b border-dotted border-gray-400 focus:outline-none inline-block ml-1 text-black" dangerouslySetInnerHTML={{__html: plan.learnerRole}}></div></div>
                         </div>
                         
-                        {/* Intro - Reduced vertical padding */}
-                        <div className="mb-2 p-1 bg-gray-50 border border-gray-200 rounded text-sm leading-snug" style={{ fontSize: isExporting ? '9pt' : '10pt' }}>
-                            <span className="font-bold text-red-800 ml-2">التمهيد:</span>
-                            {isExporting ? safeString(plan.introText) : <input value={plan.introText} onChange={e => handleInputChange('introText', e.target.value)} className="bg-transparent w-3/4" />}
-                        </div>
-
-                        {/* Main Content - Compact Box */}
-                        <div className="border border-gray-300 rounded p-2 min-h-[80px] text-justify leading-relaxed" style={{ fontSize: isExporting ? '9pt' : '10pt' }}>
-                            <h5 className="font-bold text-red-800 mb-1">محتوى الدرس والأنشطة</h5>
-                            {isExporting ? (
-                                <div className="whitespace-pre-wrap">{safeString(plan.content)}</div>
-                            ) : (
-                                <textarea 
-                                    value={plan.content} 
-                                    onChange={e => handleInputChange('content', e.target.value)} 
-                                    className="w-full h-full min-h-[150px] bg-transparent focus:outline-none resize-y"
-                                />
-                            )}
-                        </div>
-                    </div>
-
-                    {/* ROLES & CLOSURE */}
-                    <div className="grid grid-cols-2 gap-2 mb-2">
-                        <div className="border border-gray-200 p-1 rounded">
-                            <span className="font-bold text-red-800 text-xs block">أدوار الطالب</span>
-                            <p className="text-xs leading-tight">{safeString(plan.learnerRole)}</p>
-                        </div>
-                        <div className="border border-gray-200 p-1 rounded">
-                            <span className="font-bold text-red-800 text-xs block">أدوار المعلم</span>
-                            <p className="text-xs leading-tight">{safeString(plan.teacherRole)}</p>
-                        </div>
-                    </div>
-
-                    {/* FOOTER SECTION */}
-                    <div className="bg-gray-50 p-2 rounded border border-gray-200">
-                        <div className="flex justify-between text-sm mb-1">
-                            <span className="font-bold text-red-800">التقويم والخاتمة</span>
-                            <span className="font-bold text-red-800">الختامة والتقويم</span>
-                        </div>
-                        <p className="text-xs mb-2 border-b border-dotted border-gray-300 pb-1">{safeString(plan.closureText)}</p>
+                        <h5 className="font-bold underline mb-1 text-[11px] text-black">محتوى الدرس:</h5>
+                        <div 
+                            contentEditable
+                            onBlur={(e) => handleContentEditableChange('content', e)}
+                            className="w-full flex-grow bg-transparent focus:outline-none text-[11px] leading-6 whitespace-pre-wrap break-words min-h-[100px] text-black"
+                            style={{ backgroundImage: 'linear-gradient(transparent 95%, #f5f5f5 95%)', backgroundSize: '100% 1.5em', lineHeight: '1.5em' }}
+                            dir="rtl"
+                            dangerouslySetInnerHTML={{ __html: plan.content }}
+                        ></div>
                         
-                        <div className="flex justify-between text-sm mb-1">
-                            <span className="font-bold text-red-800">الواجب المنزلي</span>
-                        </div>
-                        <p className="text-xs">{safeString(plan.homeworkText)}</p>
-                    </div>
-
-                    {/* SIGNATURES - Modified to move Teacher to LEFT */}
-                    <div className="mt-4 pt-1 border-t-2 border-black text-xs font-bold flex justify-end">
-                        <div className="flex items-center gap-2">
-                            <span className="text-red-800">اسم المعلم/ة:</span>
-                            {isExporting ? <span>{safeString(plan.teacherName)}</span> : <input type="text" value={plan.teacherName} onChange={e => handleInputChange('teacherName', e.target.value)} className="border-b border-black w-32 bg-transparent text-center" />}
+                        <div className="border-t border-black pt-1 mt-1 flex gap-2 text-[11px] items-center">
+                            <span className="font-bold whitespace-nowrap text-black">الأنشطة المصاحبة:</span>
+                            <div contentEditable onBlur={(e) => handleContentEditableChange('activities', e)} className="flex-grow bg-transparent border-b border-dotted border-black focus:outline-none text-black" dangerouslySetInnerHTML={{ __html: plan.activities }}></div>
                         </div>
                     </div>
 
+                    {/* Row 6: Closure & Homework */}
+                    <div className="grid grid-cols-2 border border-black mb-2 text-[11px] text-black">
+                        <div className="border-l border-black p-1">
+                            <div className="flex justify-between mb-1"><span className="font-bold underline">غلق الدرس:</span> <span className="text-[9px] border border-black px-1 rounded">نوعه: {plan.closureType}</span></div>
+                            <div 
+                                contentEditable
+                                onBlur={(e) => handleContentEditableChange('closureText', e)}
+                                className="w-full bg-transparent focus:outline-none whitespace-pre-wrap break-words min-h-[40px] text-black"
+                                dir="rtl"
+                                dangerouslySetInnerHTML={{ __html: plan.closureText }}
+                            ></div>
+                        </div>
+                        <div className="p-1">
+                            <div className="flex justify-between mb-1"><span className="font-bold underline">الواجب المنزلي:</span> <span className="text-[9px] border border-black px-1 rounded">نوعه: {plan.homeworkType}</span></div>
+                            <div 
+                                contentEditable
+                                onBlur={(e) => handleContentEditableChange('homeworkText', e)}
+                                className="w-full bg-transparent focus:outline-none whitespace-pre-wrap break-words min-h-[40px] text-black"
+                                dir="rtl"
+                                dangerouslySetInnerHTML={{ __html: plan.homeworkText }}
+                            ></div>
+                        </div>
+                    </div>
+
+                    {/* Row 7: Admin Notes & Reflection - STACKED */}
+                    <div className="border border-black p-1 mb-2 text-[10px] flex flex-col gap-1 text-black">
+                        <div className="flex gap-1 items-start w-full">
+                            <span className="font-bold whitespace-nowrap pt-1">ملاحظات إدارية:</span>
+                            <div contentEditable onBlur={(e) => handleContentEditableChange('adminNotes', e)} className="flex-grow border-b border-dotted border-black bg-transparent focus:outline-none min-h-[20px] whitespace-pre-wrap text-black" dangerouslySetInnerHTML={{__html: plan.adminNotes}}></div>
+                        </div>
+                        <div className="flex gap-1 items-start w-full">
+                            <span className="font-bold whitespace-nowrap pt-1">ترنيمة قلم:</span>
+                            <div contentEditable onBlur={(e) => handleContentEditableChange('reflection', e)} className="flex-grow border-b border-dotted border-black bg-transparent focus:outline-none min-h-[20px] whitespace-pre-wrap text-black" dangerouslySetInnerHTML={{__html: plan.reflection}}></div>
+                        </div>
+                    </div>
+
+                    {/* Footer */}
+                    <div className="flex justify-between items-end mt-auto text-[12px] pt-1 border-t-2 border-black text-black">
+                        <div className="text-right">
+                            <p className="font-bold mb-3">اسم المعلم/ة: <span className="font-normal text-black">{plan.teacherName}</span></p>
+                            <p className="font-bold">التوقيع: ..........................</p>
+                        </div>
+                        <div className="font-black italic text-base opacity-80 text-center">
+                            دفتر المعلم الاحترافي
+                        </div>
+                        <div className="text-left">
+                            <p className="font-bold mb-3">يعتمد / مدير المدرسة</p>
+                            <p className="font-bold">التوقيع: ..........................</p>
+                        </div>
+                    </div>
                 </div>
             </div>
-            
-             {/* Action Buttons for Printing */}
-            <div className="mt-8 no-print">
-                 <ActionButtons 
-                    textToCopy={JSON.stringify(plan, null, 2)} 
-                    elementIdToPrint="lesson-plan-export" 
-                />
+
+            <div className="mt-8 no-print flex justify-center gap-4">
+                 <ActionButtons textToCopy={JSON.stringify(plan, null, 2)} elementIdToPrint="lesson-plan-export" />
             </div>
         </div>
     );
