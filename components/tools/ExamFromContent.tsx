@@ -427,7 +427,7 @@ const ExamFromContent: React.FC<{ onBack: () => void }> = ({ onBack }) => {
                                             <div contentEditable className="whitespace-nowrap outline-none text-black">مدارس: {safeString(config.school)}</div>
                                         </td>
                                         <td className="w-1/3 align-middle">
-                                            <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/8/88/Emblem_of_Yemen.svg/1200px-Emblem_of_Yemen.svg.png" alt="Logo" className="h-20 mx-auto" />
+                                            <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/8/88/Emblem_of_Yemen.svg/200px-Emblem_of_Yemen.svg.png" alt="Logo" className="h-20 mx-auto" />
                                             <div contentEditable className="mt-1 border border-black px-2 py-1 inline-block text-sm outline-none text-black">اختبار مادة {safeString(config.subject)}</div>
                                             <div contentEditable className="text-xs mt-1 outline-none text-black">شهر {safeString(config.month)} للفصل {safeString(config.semester)}</div>
                                             <div contentEditable className="text-xs outline-none text-black">للعام الدراسي {safeString(config.year)}</div>
@@ -476,17 +476,17 @@ const ExamFromContent: React.FC<{ onBack: () => void }> = ({ onBack }) => {
                                         <div 
                                             contentEditable 
                                             onBlur={e => handleExamChange(section.key, 'content', e.currentTarget.innerText)}
-                                            className="whitespace-pre-wrap outline-none mb-2 text-sm leading-relaxed text-black font-bold"
-                                            dangerouslySetInnerHTML={{ __html: renderedExam[section.key as keyof typeof renderedExam][`content`] }}
+                                            className="whitespace-pre-wrap outline-none text-sm leading-relaxed text-black font-bold"
+                                            dangerouslySetInnerHTML={{ __html: renderedExam[section.key as keyof typeof renderedExam][`content`].replace(/^\n+/, '') }}
                                         ></div>
-                                        <div className="space-y-3">
+                                        <div className="space-y-2">
                                             {renderedExam[section.key as keyof typeof renderedExam].subQuestions.map((subQ: string, subIdx: number) => (
                                                 <div key={subIdx} className="flex gap-1 items-start">
                                                     <div 
                                                         contentEditable 
                                                         onBlur={e => handleExamChange(section.key, 'subQuestions', e.currentTarget.innerText, subIdx)}
-                                                        className="w-full outline-none min-h-[24px] text-black leading-loose whitespace-pre-wrap"
-                                                        dangerouslySetInnerHTML={{ __html: subQ }}
+                                                        className="w-full outline-none min-h-[24px] text-black leading-relaxed whitespace-pre-wrap"
+                                                        dangerouslySetInnerHTML={{ __html: subQ.replace(/^\n+/, '') }}
                                                     ></div>
                                                 </div>
                                             ))}
@@ -548,17 +548,17 @@ const ExamFromContent: React.FC<{ onBack: () => void }> = ({ onBack }) => {
                                         <div 
                                             contentEditable 
                                             onBlur={e => handleExamChange(section.key, 'content', e.currentTarget.innerText)}
-                                            className="whitespace-pre-wrap outline-none mb-2 text-sm leading-relaxed text-black font-bold"
-                                            dangerouslySetInnerHTML={{ __html: renderedExam[section.key as keyof typeof renderedExam][`content`] }}
+                                            className="whitespace-pre-wrap outline-none text-sm leading-relaxed text-black font-bold"
+                                            dangerouslySetInnerHTML={{ __html: renderedExam[section.key as keyof typeof renderedExam][`content`].replace(/^\n+/, '') }}
                                         ></div>
-                                        <div className="space-y-3">
+                                        <div className="space-y-2">
                                             {renderedExam[section.key as keyof typeof renderedExam].subQuestions.map((subQ: string, subIdx: number) => (
                                                 <div key={subIdx} className="flex gap-1 items-start">
                                                     <div 
                                                         contentEditable 
                                                         onBlur={e => handleExamChange(section.key, 'subQuestions', e.currentTarget.innerText, subIdx)}
-                                                        className="w-full outline-none min-h-[24px] text-black leading-loose whitespace-pre-wrap"
-                                                        dangerouslySetInnerHTML={{ __html: subQ }}
+                                                        className="w-full outline-none min-h-[24px] text-black leading-relaxed whitespace-pre-wrap"
+                                                        dangerouslySetInnerHTML={{ __html: subQ.replace(/^\n+/, '') }}
                                                     ></div>
                                                 </div>
                                             ))}
