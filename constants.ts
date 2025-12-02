@@ -39,6 +39,7 @@ export type ToolKey =
   | 'innovate'
   | 'archives'
   | 'creativeIdeas'
+  | 'pauseWithUs'
   | 'chatBot'
   | 'imageAnalyzer'
   | 'textToSpeechInternal'
@@ -94,6 +95,7 @@ export const tools: Tool[] = [
   { key: 'importantDates', label: 'تواريخ تهمك', icon: 'fas fa-calendar-day', isNew: true },
   { key: 'innovate', label: 'ابتكر', icon: 'fas fa-lightbulb' },
   { key: 'archives', label: 'المحفوظات', icon: 'fas fa-archive' },
+  { key: 'pauseWithUs', label: 'قف معنا قليلاً', icon: 'fas fa-hand-holding-heart', isNew: true },
   { key: 'chatBot', label: 'المحادثة الفورية (أساسي)', icon: 'fas fa-comments' },
   { key: 'imageAnalyzer', label: 'تحليل الصور', icon: 'fas fa-camera-retro' },
 ];
@@ -101,6 +103,8 @@ export const tools: Tool[] = [
 interface ExternalLink {
     name: string;
     url: string;
+    icon: string;
+    color: string;
 }
 
 export const externalLinkTools: Record<ToolKey, { title: string; links: ExternalLink[] }> = {

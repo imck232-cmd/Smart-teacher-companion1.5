@@ -31,6 +31,7 @@ import SmartLessonPlanner from './components/tools/SmartLessonPlanner';
 import TranscribeAudio from './components/tools/TranscribeAudio';
 import CurriculumDownloader from './components/tools/CurriculumDownloader';
 import ExamFromContent from './components/tools/ExamFromContent';
+import PauseWithUs from './components/tools/PauseWithUs'; // Import New Tool
 import { themes, Theme } from './themes';
 import Sidebar from './components/Sidebar';
 import ScrollToTopButton from './components/ScrollToTopButton';
@@ -67,7 +68,100 @@ const App: React.FC = () => {
       cardColor: '',
   });
 
+  // --- Pause With Us State ---
+  const [tickerText, setTickerText] = useState('');
+  const [showTicker, setShowTicker] = useState(false);
+  const [overlayImage, setOverlayImage] = useState<string | null>(null);
+  const [flashImagesEnabled, setFlashImagesEnabled] = useState(false);
+  
   const clickSoundRef = useRef<HTMLAudioElement | null>(null);
+  const flashTimerRef = useRef<any>(null); // For the 15-min interval
+
+  // Function to load Pause With Us data
+  const loadPauseSettings = () => {
+      try {
+          const savedPhrases = localStorage.getItem('pause_phrases');
+          const savedSettings = localStorage.getItem('pause_settings');
+          
+          // Ticker Logic
+          if (savedPhrases) {
+              const phrases = JSON.parse(savedPhrases);
+              const activePhrase = phrases.find((p: any) => p.isActive);
+              if (activePhrase) setTickerText(activePhrase.text);
+              else setTickerText('');
+          } else {
+              // Initialize with default if nothing saved
+              const defaultText = 'فقدنا الأخ العزيز والكبير رئيس الإشراف التربوي الأستاذ خليل المخلافي رحمه الله رحمة واسعة وأسكنه فسيح جناته وتقبله في الشهداء.';
+              setTickerText(defaultText);
+              localStorage.setItem('pause_phrases', JSON.stringify([{ id: 'default-1', text: defaultText, isActive: true }]));
+          }
+          
+          if (savedSettings) {
+              const settings = JSON.parse(savedSettings);
+              setShowTicker(!!settings.tickerEnabled);
+              setFlashImagesEnabled(!!settings.imagesEnabled);
+          } else {
+              // Default on
+              setShowTicker(true); 
+              setFlashImagesEnabled(true);
+          }
+      } catch (e) {
+          console.error("Error loading pause settings", e);
+      }
+  };
+
+  // Initial Load & Event Listener for PauseWithUs updates
+  useEffect(() => {
+      loadPauseSettings();
+      
+      const handleStorageUpdate = () => {
+          loadPauseSettings();
+      };
+      
+      window.addEventListener('storage-update-pause-tool', handleStorageUpdate);
+      return () => window.removeEventListener('storage-update-pause-tool', handleStorageUpdate);
+  }, []);
+
+  // Flash Image Timer Logic
+  useEffect(() => {
+      if (!flashImagesEnabled) {
+          if (flashTimerRef.current) clearInterval(flashTimerRef.current);
+          return;
+      }
+
+      // Initial Flash on Load (after 3 seconds as requested)
+      const initialTimeout = setTimeout(() => {
+          showRandomImage(3000); // Show for 3 seconds initially
+      }, 3000); 
+
+      // Periodic Flash (Every 15 minutes)
+      flashTimerRef.current = setInterval(() => {
+          showRandomImage(2000); // Show for 2 seconds periodically
+      }, 15 * 60 * 1000); // 15 Minutes
+
+      return () => {
+          clearTimeout(initialTimeout);
+          if (flashTimerRef.current) clearInterval(flashTimerRef.current);
+      };
+  }, [flashImagesEnabled]);
+
+  const showRandomImage = (duration: number) => {
+      try {
+          const savedImages = localStorage.getItem('pause_images');
+          if (savedImages) {
+              const images = JSON.parse(savedImages);
+              if (Array.isArray(images) && images.length > 0) {
+                  // Pick random image
+                  const randomImg = images[Math.floor(Math.random() * images.length)];
+                  if (randomImg && randomImg.url) {
+                      setOverlayImage(randomImg.url);
+                      setTimeout(() => setOverlayImage(null), duration);
+                  }
+              }
+          }
+      } catch(e) { console.error(e); }
+  };
+
 
   // Theme loading and application effect
   useEffect(() => {
@@ -278,6 +372,8 @@ const App: React.FC = () => {
         return <Archives onBack={handleGoHome} />;
       case 'creativeIdeas':
         return <CreativeIdeas onBack={handleGoHome} />;
+      case 'pauseWithUs':
+        return <PauseWithUs onBack={handleGoHome} />;
       case 'chatBot':
         return <ChatBot onBack={handleGoHome} />;
       case 'imageAnalyzer':
@@ -307,12 +403,22 @@ const App: React.FC = () => {
   };
 
   return (
-    <div className="flex flex-col min-h-screen font-sans">
+    <div className="flex flex-col min-h-screen font-sans relative">
       <Header 
         onToggleThemeSwitcher={() => setIsThemeSwitcherOpen(true)} 
         onToggleAppearance={() => setIsAppearanceSettingsOpen(true)}
         onToggleSidebar={() => setIsSidebarOpen(!isSidebarOpen)}
+        tickerText={showTicker ? tickerText : undefined} 
       />
+      
+      {/* Flash Image Overlay */}
+      {overlayImage && (
+          <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/90 animate-fadeIn pointer-events-none">
+              <div className="relative max-w-4xl max-h-[90vh] p-4">
+                  <img src={overlayImage} alt="Flash" className="max-w-full max-h-full rounded-xl shadow-2xl border-4 border-white/20" />
+              </div>
+          </div>
+      )}
       
       {isThemeSwitcherOpen && (
         <ThemeSwitcher 
@@ -336,7 +442,7 @@ const App: React.FC = () => {
         onSelectTool={handleSelectTool}
         onClose={() => setIsSidebarOpen(false)}
       />
-      <main className="flex-grow container mx-auto p-4 pt-24">
+      <main className="flex-grow container mx-auto p-4 pt-8">
         {renderTool()}
       </main>
       <Footer />

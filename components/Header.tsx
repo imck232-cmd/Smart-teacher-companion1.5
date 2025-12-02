@@ -5,9 +5,10 @@ interface HeaderProps {
     onToggleThemeSwitcher: () => void;
     onToggleAppearance: () => void;
     onToggleSidebar: () => void;
+    tickerText?: string; // Added prop for ticker text
 }
 
-const Header: React.FC<HeaderProps> = ({ onToggleThemeSwitcher, onToggleAppearance, onToggleSidebar }) => {
+const Header: React.FC<HeaderProps> = ({ onToggleThemeSwitcher, onToggleAppearance, onToggleSidebar, tickerText }) => {
   const [isCollapsed, setIsCollapsed] = useState(false);
   const whatsappUrl = "https://wa.me/967780804012";
 
@@ -47,6 +48,19 @@ const Header: React.FC<HeaderProps> = ({ onToggleThemeSwitcher, onToggleAppearan
                 <i className="fas fa-palette text-icon"></i>
             </button>
        </div>
+
+       {/* TICKER BAR SECTION - Positioned specifically between Left Buttons and Right Button */}
+       {tickerText && (
+           <div className={`absolute left-28 right-20 z-10 overflow-hidden transition-all duration-300 pointer-events-none ${isCollapsed ? 'top-1/2 -translate-y-1/2' : 'bottom-4 h-8'}`}>
+                <div className="w-full h-full flex items-center text-heading-text font-bold opacity-90">
+                    <div className="w-full overflow-hidden">
+                        <div className="animate-ticker whitespace-nowrap text-sm md:text-base">
+                            {tickerText}
+                        </div>
+                    </div>
+                </div>
+           </div>
+       )}
 
        {/* Right Action Button (Sidebar) */}
        <div className={`absolute right-4 z-20 transition-all duration-300 ${isCollapsed ? 'top-1/2 -translate-y-1/2' : 'bottom-4'}`}>
