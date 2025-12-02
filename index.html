@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
@@ -293,17 +294,15 @@
         }
 
         /* Ticker Animation for PauseWithUs Tool */
-        @keyframes scroll-text {
+        @keyframes scroll-left-to-right {
             0% { transform: translateX(-100%); }
             100% { transform: translateX(100%); }
         }
-        /* RTL support: Start from right */
-        html[dir="rtl"] .animate-ticker {
-            animation: scroll-text-rtl 20s linear infinite;
-        }
-        @keyframes scroll-text-rtl {
-            0% { transform: translateX(100%); }
-            100% { transform: translateX(-100%); }
+        
+        .animate-ticker {
+            /* Default LTR animation (moves right to left visually if content is LTR, but we want visual L->R) */
+             /* Actually, if we want text to move FROM Left TO Right: */
+             animation: scroll-left-to-right 20s linear infinite;
         }
     </style>
 <script type="importmap">

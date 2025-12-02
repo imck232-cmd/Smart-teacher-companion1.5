@@ -73,9 +73,10 @@ const App: React.FC = () => {
   const [showTicker, setShowTicker] = useState(false);
   const [overlayImage, setOverlayImage] = useState<string | null>(null);
   const [flashImagesEnabled, setFlashImagesEnabled] = useState(false);
+  const [flashSettings, setFlashSettings] = useState({ intervalMinutes: 15, durationSeconds: 2 });
   
   const clickSoundRef = useRef<HTMLAudioElement | null>(null);
-  const flashTimerRef = useRef<any>(null); // For the 15-min interval
+  const flashTimerRef = useRef<any>(null); 
 
   // Function to load Pause With Us data
   const loadPauseSettings = () => {
@@ -93,15 +94,19 @@ const App: React.FC = () => {
               // Initialize with default if nothing saved
               const defaultText = 'فقدنا الأخ العزيز والكبير رئيس الإشراف التربوي الأستاذ خليل المخلافي رحمه الله رحمة واسعة وأسكنه فسيح جناته وتقبله في الشهداء.';
               setTickerText(defaultText);
-              localStorage.setItem('pause_phrases', JSON.stringify([{ id: 'default-1', text: defaultText, isActive: true }]));
+              // No need to save to LS here, PauseWithUs component handles initial save if missing
           }
           
           if (savedSettings) {
               const settings = JSON.parse(savedSettings);
               setShowTicker(!!settings.tickerEnabled);
               setFlashImagesEnabled(!!settings.imagesEnabled);
+              setFlashSettings({
+                  intervalMinutes: settings.intervalMinutes || 15,
+                  durationSeconds: settings.durationSeconds || 2
+              });
           } else {
-              // Default on
+              // Default state
               setShowTicker(true); 
               setFlashImagesEnabled(true);
           }
@@ -129,21 +134,27 @@ const App: React.FC = () => {
           return;
       }
 
+      // Clear any existing interval to respect new settings
+      if (flashTimerRef.current) clearInterval(flashTimerRef.current);
+
       // Initial Flash on Load (after 3 seconds as requested)
+      // Note: This runs every time component mounts or settings change. 
+      // To prevent it running on every navigation, we might need a flag, 
+      // but for now we assume user navigates away and back infrequently or wants the splash.
       const initialTimeout = setTimeout(() => {
           showRandomImage(3000); // Show for 3 seconds initially
       }, 3000); 
 
-      // Periodic Flash (Every 15 minutes)
+      // Periodic Flash (Configurable Interval)
       flashTimerRef.current = setInterval(() => {
-          showRandomImage(2000); // Show for 2 seconds periodically
-      }, 15 * 60 * 1000); // 15 Minutes
+          showRandomImage(flashSettings.durationSeconds * 1000); 
+      }, flashSettings.intervalMinutes * 60 * 1000);
 
       return () => {
           clearTimeout(initialTimeout);
           if (flashTimerRef.current) clearInterval(flashTimerRef.current);
       };
-  }, [flashImagesEnabled]);
+  }, [flashImagesEnabled, flashSettings.intervalMinutes, flashSettings.durationSeconds]);
 
   const showRandomImage = (duration: number) => {
       try {
@@ -166,11 +177,9 @@ const App: React.FC = () => {
   // Theme loading and application effect
   useEffect(() => {
     const savedThemeName = localStorage.getItem('app-theme-name');
-    // Logic: Try saved theme -> Try 'غابة عميقة' -> Default to first index
     const savedTheme = themes.find(t => t.name === savedThemeName) || themes.find(t => t.name === 'غابة عميقة') || themes[0];
     setTheme(savedTheme);
     
-    // Load custom appearance with strict validation
     const savedAppearance = localStorage.getItem('app-custom-appearance');
     if (savedAppearance) {
         try {
@@ -186,7 +195,6 @@ const App: React.FC = () => {
             }
         } catch (e) {
             console.error("Failed to parse saved appearance", e);
-            // Reset if corrupted
             localStorage.removeItem('app-custom-appearance');
         }
     }
@@ -194,22 +202,17 @@ const App: React.FC = () => {
 
   useEffect(() => {
     const root = document.documentElement;
-    // Apply theme colors
     for (const [key, value] of Object.entries(theme.colors)) {
         root.style.setProperty(key, value as string);
     }
-    // Apply theme fonts
     root.style.setProperty('--font-body', theme.fonts.body);
     root.style.setProperty('--font-heading', theme.fonts.heading);
 
-    // --- Apply Custom Overrides ---
-    // Font Family Override
     if (customAppearance.fontFamily) {
          root.style.setProperty('--font-body', customAppearance.fontFamily);
          root.style.setProperty('--font-heading', customAppearance.fontFamily);
     }
     
-    // Text Color Override (Main Text)
     if (customAppearance.textColor) {
         const rgb = hexToRgb(customAppearance.textColor);
         if (rgb) {
@@ -218,21 +221,18 @@ const App: React.FC = () => {
         }
     }
 
-    // Font Weight Override
     if (customAppearance.fontWeight) {
          root.style.setProperty('--font-weight-base', customAppearance.fontWeight);
     } else {
          root.style.removeProperty('--font-weight-base');
     }
 
-    // Input/Field Text Color Override
     if (customAppearance.inputColor) {
         root.style.setProperty('--color-input-override', customAppearance.inputColor);
     } else {
         root.style.removeProperty('--color-input-override');
     }
 
-    // Tool Card Text/Icon Color Override
     if (customAppearance.cardColor) {
         root.style.setProperty('--color-tool-text-override', customAppearance.cardColor);
     } else {
@@ -278,7 +278,6 @@ const App: React.FC = () => {
     return () => document.removeEventListener('click', playSound);
   }, []);
 
-  // Usage Tracking Logic
   const trackToolUsage = (key: ToolKey) => {
       try {
           const usageData = localStorage.getItem('toolUsage');
@@ -292,7 +291,7 @@ const App: React.FC = () => {
 
   const handleSelectTool = (toolKey: ToolKey) => {
     trackToolUsage(toolKey);
-    setLastActiveTool(toolKey); // Save for return scroll
+    setLastActiveTool(toolKey); 
     setSelectedTool(toolKey);
     setIsSidebarOpen(false); 
   };
@@ -306,7 +305,6 @@ const App: React.FC = () => {
 
   const handleGoHome = () => {
     setSelectedTool(null);
-    // Scroll restoration logic is handled inside Home component via useEffect on mount
   };
   
   const handleResetAppearance = () => {
@@ -334,7 +332,6 @@ const App: React.FC = () => {
         return <MostUsedTools onBack={handleGoHome} onSelectTool={handleSelectTool} />;
     }
 
-    // Check if it's an external link tool
     if (Object.keys(externalLinkTools).includes(selectedTool)) {
         const tool = tools.find(t => t.key === selectedTool);
         return <ExternalLinksViewer toolKey={selectedTool} onBack={handleGoHome} title={tool ? tool.label : ''} />;
@@ -382,8 +379,6 @@ const App: React.FC = () => {
         return <TextToSpeechTool onBack={handleGoHome} />;
       case 'createFlashcards':
         return <FlashcardsCreator onBack={handleGoHome} />;
-      
-      // New Tools
       case 'transcribeAudio':
           return <TranscribeAudio onBack={handleGoHome} />;
       case 'addNote':

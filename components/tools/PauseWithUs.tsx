@@ -14,6 +14,11 @@ interface TickerPhrase {
     isActive: boolean;
 }
 
+interface FlashSettings {
+    intervalMinutes: number;
+    durationSeconds: number;
+}
+
 const PauseWithUs: React.FC<{ onBack: () => void }> = ({ onBack }) => {
     // --- State ---
     const [images, setImages] = useState<FlashImage[]>([]);
@@ -22,6 +27,12 @@ const PauseWithUs: React.FC<{ onBack: () => void }> = ({ onBack }) => {
     // Feature Toggles
     const [imagesEnabled, setImagesEnabled] = useState(true);
     const [tickerEnabled, setTickerEnabled] = useState(true);
+
+    // Timer Settings
+    const [flashSettings, setFlashSettings] = useState<FlashSettings>({
+        intervalMinutes: 15,
+        durationSeconds: 2
+    });
 
     // Inputs
     const [newPhrase, setNewPhrase] = useState('');
@@ -33,6 +44,9 @@ const PauseWithUs: React.FC<{ onBack: () => void }> = ({ onBack }) => {
             const savedImages = localStorage.getItem('pause_images');
             if (savedImages) {
                 setImages(JSON.parse(savedImages));
+            } else {
+                // Initialize default images logic here if URLs were provided
+                // Since we can't access external URLs easily without CORS, we leave empty or use placeholders if needed.
             }
 
             const savedPhrases = localStorage.getItem('pause_phrases');
@@ -41,12 +55,13 @@ const PauseWithUs: React.FC<{ onBack: () => void }> = ({ onBack }) => {
             } else {
                 // Initialize default phrase
                 const defaultText = 'فقدنا الأخ العزيز والكبير رئيس الإشراف التربوي الأستاذ خليل المخلافي رحمه الله رحمة واسعة وأسكنه فسيح جناته وتقبله في الشهداء.';
-                setPhrases([{
+                const initialPhrases = [{
                     id: 'default-1',
                     text: defaultText,
                     isActive: true
-                }]);
-                localStorage.setItem('pause_phrases', JSON.stringify([{ id: 'default-1', text: defaultText, isActive: true }]));
+                }];
+                setPhrases(initialPhrases);
+                localStorage.setItem('pause_phrases', JSON.stringify(initialPhrases));
             }
 
             const savedSettings = localStorage.getItem('pause_settings');
@@ -54,6 +69,10 @@ const PauseWithUs: React.FC<{ onBack: () => void }> = ({ onBack }) => {
                 const settings = JSON.parse(savedSettings);
                 setImagesEnabled(settings.imagesEnabled ?? true);
                 setTickerEnabled(settings.tickerEnabled ?? true);
+                setFlashSettings({
+                    intervalMinutes: settings.intervalMinutes || 15,
+                    durationSeconds: settings.durationSeconds || 2
+                });
             }
         } catch (e) {
             console.error("Error loading pause data", e);
@@ -61,10 +80,21 @@ const PauseWithUs: React.FC<{ onBack: () => void }> = ({ onBack }) => {
     }, []);
 
     // --- Save Data ---
-    const saveToLocalStorage = (newImages: FlashImage[], newPhrases: TickerPhrase[], imgEnabled: boolean, tickEnabled: boolean) => {
+    const saveAllSettings = (
+        newImages: FlashImage[], 
+        newPhrases: TickerPhrase[], 
+        imgEnabled: boolean, 
+        tickEnabled: boolean,
+        fSettings: FlashSettings
+    ) => {
         localStorage.setItem('pause_images', JSON.stringify(newImages));
         localStorage.setItem('pause_phrases', JSON.stringify(newPhrases));
-        localStorage.setItem('pause_settings', JSON.stringify({ imagesEnabled: imgEnabled, tickerEnabled: tickEnabled }));
+        localStorage.setItem('pause_settings', JSON.stringify({ 
+            imagesEnabled: imgEnabled, 
+            tickerEnabled: tickEnabled,
+            intervalMinutes: fSettings.intervalMinutes,
+            durationSeconds: fSettings.durationSeconds
+        }));
         
         // Dispatch event for App.tsx to pick up changes
         window.dispatchEvent(new Event('storage-update-pause-tool'));
@@ -74,17 +104,18 @@ const PauseWithUs: React.FC<{ onBack: () => void }> = ({ onBack }) => {
     const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
         if (file) {
+            // Check size - limit to 1MB to be safe for LocalStorage
+            if (file.size > 1000000) {
+                alert('حجم الصورة كبير جداً. يرجى اختيار صورة أقل من 1 ميجابايت.');
+                return;
+            }
+
             const reader = new FileReader();
             reader.onloadend = () => {
                 const base64 = reader.result as string;
-                // Limit size roughly to avoid LS issues (e.g. < 500KB ideally)
-                if (base64.length > 2000000) { // Approx 1.5MB limit
-                    alert('الصورة كبيرة جداً، يرجى اختيار صورة أصغر (أقل من 1.5 ميجابايت).');
-                    return;
-                }
                 const newImgs = [...images, { id: Date.now().toString(), url: base64 }];
                 setImages(newImgs);
-                saveToLocalStorage(newImgs, phrases, imagesEnabled, tickerEnabled);
+                saveAllSettings(newImgs, phrases, imagesEnabled, tickerEnabled, flashSettings);
             };
             reader.readAsDataURL(file);
         }
@@ -94,7 +125,7 @@ const PauseWithUs: React.FC<{ onBack: () => void }> = ({ onBack }) => {
         if (window.confirm('هل أنت متأكد من حذف هذه الصورة؟')) {
             const newImgs = images.filter(img => img.id !== id);
             setImages(newImgs);
-            saveToLocalStorage(newImgs, phrases, imagesEnabled, tickerEnabled);
+            saveAllSettings(newImgs, phrases, imagesEnabled, tickerEnabled, flashSettings);
         }
     };
 
@@ -103,58 +134,57 @@ const PauseWithUs: React.FC<{ onBack: () => void }> = ({ onBack }) => {
         if (!newPhrase.trim()) return;
         const newPhrases = [...phrases, { id: Date.now().toString(), text: newPhrase, isActive: false }];
         setPhrases(newPhrases);
-        saveToLocalStorage(images, newPhrases, imagesEnabled, tickerEnabled);
+        saveAllSettings(images, newPhrases, imagesEnabled, tickerEnabled, flashSettings);
         setNewPhrase('');
     };
 
     const handleActivatePhrase = (id: string) => {
-        // Only one active at a time. Toggle selection.
+        // Toggle: If clicking active, deactive. If inactive, active (and deactive others)
+        // Logic requested: "العبارة التي عليها علامة صح تكون ظاهرة" (The checked phrase is visible)
         const newPhrases = phrases.map(p => ({
             ...p,
             isActive: p.id === id ? !p.isActive : false
         }));
         setPhrases(newPhrases);
-        saveToLocalStorage(images, newPhrases, imagesEnabled, tickerEnabled);
+        saveAllSettings(images, newPhrases, imagesEnabled, tickerEnabled, flashSettings);
     };
 
     const handleDeletePhrase = (id: string) => {
         const newPhrases = phrases.filter(p => p.id !== id);
         setPhrases(newPhrases);
-        saveToLocalStorage(images, newPhrases, imagesEnabled, tickerEnabled);
+        saveAllSettings(images, newPhrases, imagesEnabled, tickerEnabled, flashSettings);
     };
 
-    // --- Toggle Logic ---
+    // --- Toggle & Settings Logic ---
     const toggleImagesFeature = () => {
         const newVal = !imagesEnabled;
         setImagesEnabled(newVal);
-        saveToLocalStorage(images, phrases, newVal, tickerEnabled);
+        saveAllSettings(images, phrases, newVal, tickerEnabled, flashSettings);
     };
 
     const toggleTickerFeature = () => {
         const newVal = !tickerEnabled;
         setTickerEnabled(newVal);
-        saveToLocalStorage(images, phrases, imagesEnabled, newVal);
+        saveAllSettings(images, phrases, imagesEnabled, newVal, flashSettings);
+    };
+
+    const handleSettingChange = (field: keyof FlashSettings, value: number) => {
+        const newSettings = { ...flashSettings, [field]: value };
+        setFlashSettings(newSettings);
+        saveAllSettings(images, phrases, imagesEnabled, tickerEnabled, newSettings);
     };
 
     return (
         <div>
             <ToolHeader title="قف معنا قليلاً" onBack={onBack} />
             
-            {/* Intro / Toggles */}
+            {/* Settings & Toggles */}
             <div className="neumorphic-outset p-6 mb-8 bg-gradient-to-r from-gray-50 to-gray-100">
                 <h3 className="text-xl font-bold mb-4 text-gray-800">إعدادات العرض</h3>
-                <div className="flex flex-col sm:flex-row gap-6">
-                    <div className="flex items-center gap-3 bg-white p-4 rounded-xl shadow-sm border flex-1">
-                        <div className={`w-12 h-6 rounded-full p-1 cursor-pointer transition-colors ${imagesEnabled ? 'bg-green-500' : 'bg-gray-300'}`} onClick={toggleImagesFeature}>
-                            <div className={`bg-white w-4 h-4 rounded-full shadow-md transform transition-transform ${imagesEnabled ? 'translate-x-6' : 'translate-x-0'}`}></div>
-                        </div>
-                        <div>
-                            <h4 className="font-bold text-gray-700">الصور الفلاشية</h4>
-                            <p className="text-xs text-gray-500">تظهر صورة كل 15 دقيقة لمدة ثانيتين.</p>
-                        </div>
-                    </div>
-
-                    <div className="flex items-center gap-3 bg-white p-4 rounded-xl shadow-sm border flex-1">
+                
+                <div className="flex flex-col gap-6">
+                    {/* Ticker Toggle */}
+                    <div className="flex items-center gap-3 bg-white p-4 rounded-xl shadow-sm border">
                         <div className={`w-12 h-6 rounded-full p-1 cursor-pointer transition-colors ${tickerEnabled ? 'bg-green-500' : 'bg-gray-300'}`} onClick={toggleTickerFeature}>
                             <div className={`bg-white w-4 h-4 rounded-full shadow-md transform transition-transform ${tickerEnabled ? 'translate-x-6' : 'translate-x-0'}`}></div>
                         </div>
@@ -162,6 +192,44 @@ const PauseWithUs: React.FC<{ onBack: () => void }> = ({ onBack }) => {
                             <h4 className="font-bold text-gray-700">شريط العبارات</h4>
                             <p className="text-xs text-gray-500">شريط متحرك أعلى الشاشة.</p>
                         </div>
+                    </div>
+
+                    {/* Flash Images Settings */}
+                    <div className="bg-white p-4 rounded-xl shadow-sm border">
+                        <div className="flex items-center gap-3 mb-4">
+                            <div className={`w-12 h-6 rounded-full p-1 cursor-pointer transition-colors ${imagesEnabled ? 'bg-green-500' : 'bg-gray-300'}`} onClick={toggleImagesFeature}>
+                                <div className={`bg-white w-4 h-4 rounded-full shadow-md transform transition-transform ${imagesEnabled ? 'translate-x-6' : 'translate-x-0'}`}></div>
+                            </div>
+                            <div>
+                                <h4 className="font-bold text-gray-700">الصور الفلاشية</h4>
+                                <p className="text-xs text-gray-500">تظهر بشكل دوري وتختفي تلقائياً.</p>
+                            </div>
+                        </div>
+                        
+                        {imagesEnabled && (
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 bg-gray-50 p-3 rounded-lg">
+                                <div>
+                                    <label className="block text-xs font-bold text-gray-600 mb-1">تظهر كل (دقيقة):</label>
+                                    <input 
+                                        type="number" 
+                                        min="1" 
+                                        value={flashSettings.intervalMinutes}
+                                        onChange={(e) => handleSettingChange('intervalMinutes', Math.max(1, parseInt(e.target.value)))}
+                                        className="w-full p-2 border rounded text-center text-black font-bold"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-xs font-bold text-gray-600 mb-1">مدة الظهور (ثانية):</label>
+                                    <input 
+                                        type="number" 
+                                        min="1" 
+                                        value={flashSettings.durationSeconds}
+                                        onChange={(e) => handleSettingChange('durationSeconds', Math.max(1, parseInt(e.target.value)))}
+                                        className="w-full p-2 border rounded text-center text-black font-bold"
+                                    />
+                                </div>
+                            </div>
+                        )}
                     </div>
                 </div>
             </div>
@@ -182,7 +250,7 @@ const PauseWithUs: React.FC<{ onBack: () => void }> = ({ onBack }) => {
                 {images.length > 0 ? (
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                         {images.map((img, index) => (
-                            <div key={img.id} className="relative group rounded-lg overflow-hidden border-2 border-gray-200">
+                            <div key={img.id} className="relative group rounded-lg overflow-hidden border-2 border-gray-200 shadow-sm">
                                 <img src={img.url} alt={`Flash ${index}`} className="w-full h-32 object-cover" />
                                 <button 
                                     onClick={() => handleDeleteImage(img.id)}
@@ -195,7 +263,10 @@ const PauseWithUs: React.FC<{ onBack: () => void }> = ({ onBack }) => {
                         ))}
                     </div>
                 ) : (
-                    <p className="text-center text-gray-500 py-8">لا توجد صور محملة. قم برفع صور لتظهر في الواجهة.</p>
+                    <div className="text-center py-8 bg-gray-50 rounded-xl border-2 border-dashed border-gray-300">
+                        <p className="text-gray-500">لا توجد صور محملة.</p>
+                        <p className="text-xs text-gray-400 mt-1">الصور المرفوعة ستظهر في الواجهة حسب التوقيت المحدد.</p>
+                    </div>
                 )}
             </div>
 
@@ -218,16 +289,16 @@ const PauseWithUs: React.FC<{ onBack: () => void }> = ({ onBack }) => {
 
                 <div className="space-y-3">
                     {phrases.map(phrase => (
-                        <div key={phrase.id} className={`flex items-center gap-3 p-3 rounded-xl border ${phrase.isActive ? 'bg-green-50 border-green-300' : 'bg-white border-gray-200'}`}>
+                        <div key={phrase.id} className={`flex items-center gap-3 p-3 rounded-xl border transition-all ${phrase.isActive ? 'bg-green-50 border-green-500 shadow-md' : 'bg-white border-gray-200'}`}>
                             <button 
                                 onClick={() => handleActivatePhrase(phrase.id)}
-                                className={`w-6 h-6 rounded-full border-2 flex items-center justify-center transition-colors ${phrase.isActive ? 'border-green-600 bg-green-600 text-white' : 'border-gray-400 text-transparent hover:border-green-500'}`}
+                                className={`w-8 h-8 rounded-full border-2 flex items-center justify-center transition-colors ${phrase.isActive ? 'border-green-600 bg-green-600 text-white' : 'border-gray-400 text-transparent hover:border-green-500'}`}
                                 title={phrase.isActive ? "إلغاء التفعيل" : "تفعيل"}
                             >
-                                <i className="fas fa-check text-xs"></i>
+                                <i className="fas fa-check text-sm"></i>
                             </button>
                             <p className={`flex-grow font-bold ${phrase.isActive ? 'text-green-800' : 'text-gray-700'}`}>{phrase.text}</p>
-                            <button onClick={() => handleDeletePhrase(phrase.id)} className="text-red-500 hover:bg-red-100 p-2 rounded-full transition-colors">
+                            <button onClick={() => handleDeletePhrase(phrase.id)} className="text-red-400 hover:text-red-600 hover:bg-red-50 p-2 rounded-full transition-colors">
                                 <i className="fas fa-trash"></i>
                             </button>
                         </div>
