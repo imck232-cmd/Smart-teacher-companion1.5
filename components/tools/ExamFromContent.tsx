@@ -484,7 +484,7 @@ const ExamFromContent: React.FC<{ onBack: () => void }> = ({ onBack }) => {
                                         <div 
                                             contentEditable 
                                             onBlur={e => handleExamChange(section.key, 'content', e.currentTarget.innerText)}
-                                            className="whitespace-pre-wrap outline-none text-sm leading-relaxed text-black font-bold break-words w-full"
+                                            className="whitespace-pre-wrap outline-none mb-1 text-sm leading-relaxed text-black font-bold break-words w-full"
                                             dangerouslySetInnerHTML={{ __html: renderedExam[section.key as keyof typeof renderedExam][`content`].replace(/^\n+/, '') }}
                                         ></div>
                                         <div className="space-y-1 mt-1">
