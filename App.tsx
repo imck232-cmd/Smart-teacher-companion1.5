@@ -94,19 +94,20 @@ const App: React.FC = () => {
               // Initialize with default if nothing saved
               const defaultText = 'فقدنا الأخ العزيز والكبير رئيس الإشراف التربوي الأستاذ خليل المخلافي رحمه الله رحمة واسعة وأسكنه فسيح جناته وتقبله في الشهداء.';
               setTickerText(defaultText);
-              // No need to save to LS here, PauseWithUs component handles initial save if missing
+              localStorage.setItem('pause_phrases', JSON.stringify([{ id: 'default-1', text: defaultText, isActive: true }]));
           }
           
           if (savedSettings) {
               const settings = JSON.parse(savedSettings);
               setShowTicker(!!settings.tickerEnabled);
               setFlashImagesEnabled(!!settings.imagesEnabled);
+              // Load custom timers if present
               setFlashSettings({
                   intervalMinutes: settings.intervalMinutes || 15,
                   durationSeconds: settings.durationSeconds || 2
               });
           } else {
-              // Default state
+              // Default on
               setShowTicker(true); 
               setFlashImagesEnabled(true);
           }
@@ -134,18 +135,15 @@ const App: React.FC = () => {
           return;
       }
 
-      // Clear any existing interval to respect new settings
+      // Clear any existing interval to reset with new settings
       if (flashTimerRef.current) clearInterval(flashTimerRef.current);
 
-      // Initial Flash on Load (after 3 seconds as requested)
-      // Note: This runs every time component mounts or settings change. 
-      // To prevent it running on every navigation, we might need a flag, 
-      // but for now we assume user navigates away and back infrequently or wants the splash.
+      // Initial Flash on Load (after small delay to ensure component mounted)
       const initialTimeout = setTimeout(() => {
-          showRandomImage(3000); // Show for 3 seconds initially
+          showRandomImage(flashSettings.durationSeconds * 1000); 
       }, 3000); 
 
-      // Periodic Flash (Configurable Interval)
+      // Periodic Flash (Using configured interval)
       flashTimerRef.current = setInterval(() => {
           showRandomImage(flashSettings.durationSeconds * 1000); 
       }, flashSettings.intervalMinutes * 60 * 1000);

@@ -45,8 +45,14 @@ const PauseWithUs: React.FC<{ onBack: () => void }> = ({ onBack }) => {
             if (savedImages) {
                 setImages(JSON.parse(savedImages));
             } else {
-                // Initialize default images logic here if URLs were provided
-                // Since we can't access external URLs easily without CORS, we leave empty or use placeholders if needed.
+                // Initialize default images if list is empty
+                // Using placeholders that represent the requested images
+                const defaultImgs = [
+                    { id: 'def-1', url: 'https://upload.wikimedia.org/wikipedia/commons/thumb/8/88/Emblem_of_Yemen.svg/200px-Emblem_of_Yemen.svg.png', isDefault: true },
+                    { id: 'def-2', url: 'https://cdn-icons-png.flaticon.com/512/2921/2921226.png', isDefault: true } // Placeholder for the second image
+                ];
+                setImages(defaultImgs);
+                localStorage.setItem('pause_images', JSON.stringify(defaultImgs));
             }
 
             const savedPhrases = localStorage.getItem('pause_phrases');
@@ -104,15 +110,13 @@ const PauseWithUs: React.FC<{ onBack: () => void }> = ({ onBack }) => {
     const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
         if (file) {
-            // Check size - limit to 1MB to be safe for LocalStorage
-            if (file.size > 1000000) {
-                alert('حجم الصورة كبير جداً. يرجى اختيار صورة أقل من 1 ميجابايت.');
-                return;
-            }
-
             const reader = new FileReader();
             reader.onloadend = () => {
                 const base64 = reader.result as string;
+                if (base64.length > 3000000) { // Limit to ~3MB
+                    alert('الصورة كبيرة جداً، يرجى اختيار صورة أصغر (أقل من 3 ميجابايت).');
+                    return;
+                }
                 const newImgs = [...images, { id: Date.now().toString(), url: base64 }];
                 setImages(newImgs);
                 saveAllSettings(newImgs, phrases, imagesEnabled, tickerEnabled, flashSettings);
@@ -139,8 +143,6 @@ const PauseWithUs: React.FC<{ onBack: () => void }> = ({ onBack }) => {
     };
 
     const handleActivatePhrase = (id: string) => {
-        // Toggle: If clicking active, deactive. If inactive, active (and deactive others)
-        // Logic requested: "العبارة التي عليها علامة صح تكون ظاهرة" (The checked phrase is visible)
         const newPhrases = phrases.map(p => ({
             ...p,
             isActive: p.id === id ? !p.isActive : false
@@ -190,7 +192,7 @@ const PauseWithUs: React.FC<{ onBack: () => void }> = ({ onBack }) => {
                         </div>
                         <div>
                             <h4 className="font-bold text-gray-700">شريط العبارات</h4>
-                            <p className="text-xs text-gray-500">شريط متحرك أعلى الشاشة.</p>
+                            <p className="text-xs text-gray-500">شريط متحرك في أعلى واجهة البرنامج.</p>
                         </div>
                     </div>
 

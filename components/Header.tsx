@@ -14,7 +14,7 @@ const Header: React.FC<HeaderProps> = ({ onToggleThemeSwitcher, onToggleAppearan
 
   return (
     <header 
-        className={`relative shadow-lg sticky top-0 z-50 transition-all duration-300 ${isCollapsed ? 'py-2' : 'py-4'}`} 
+        className={`relative shadow-lg sticky top-0 z-50 transition-all duration-300 ${isCollapsed ? 'py-1' : 'py-4'}`} 
         style={{ backgroundColor: 'rgb(var(--color-component-bg))' }}
     >
        
@@ -30,7 +30,7 @@ const Header: React.FC<HeaderProps> = ({ onToggleThemeSwitcher, onToggleAppearan
        </div>
 
        {/* Left Action Buttons (Theme/Appearance) */}
-       <div className={`absolute left-4 flex gap-3 z-20 transition-all duration-300 ${isCollapsed ? 'top-1/2 -translate-y-1/2' : 'bottom-4'}`} id="header-left-controls">
+       <div className={`absolute left-4 flex gap-3 z-20 transition-all duration-300 ${isCollapsed ? 'top-1/2 -translate-y-1/2' : 'top-4'}`} id="header-left-controls">
            <button 
                 onClick={onToggleAppearance}
                 className="neumorphic-button w-10 h-10 flex items-center justify-center hover:!transform-none"
@@ -49,22 +49,8 @@ const Header: React.FC<HeaderProps> = ({ onToggleThemeSwitcher, onToggleAppearan
             </button>
        </div>
 
-       {/* TICKER BAR SECTION - Positioned specifically between Left Buttons and Right Button */}
-       {tickerText && (
-           <div className={`absolute left-28 right-20 z-10 overflow-hidden transition-all duration-300 pointer-events-none ${isCollapsed ? 'top-1/2 -translate-y-1/2' : 'bottom-4 h-8'}`}>
-                <div className="w-full h-full flex items-center text-heading-text font-bold opacity-90">
-                    <div className="w-full overflow-hidden">
-                        {/* animate-ticker moves Left to Right as defined in global CSS */}
-                        <div className="animate-ticker whitespace-nowrap text-sm md:text-base">
-                            {tickerText}
-                        </div>
-                    </div>
-                </div>
-           </div>
-       )}
-
        {/* Right Action Button (Sidebar) */}
-       <div className={`absolute right-4 z-20 transition-all duration-300 ${isCollapsed ? 'top-1/2 -translate-y-1/2' : 'bottom-4'}`} id="header-right-controls">
+       <div className={`absolute right-4 z-20 transition-all duration-300 ${isCollapsed ? 'top-1/2 -translate-y-1/2' : 'top-4'}`} id="header-right-controls">
             <button 
                 onClick={onToggleSidebar}
                 className="neumorphic-button w-10 h-10 flex items-center justify-center hover:!transform-none"
@@ -76,30 +62,41 @@ const Header: React.FC<HeaderProps> = ({ onToggleThemeSwitcher, onToggleAppearan
        </div>
 
       {/* Collapsible Main Content */}
-      <div className={`container mx-auto px-4 text-center text-heading-text transition-all duration-300 overflow-hidden ${isCollapsed ? 'max-h-0 opacity-0' : 'max-h-40 opacity-100'}`}>
-        <h1 className="text-4xl md:text-5xl font-bold font-heading mb-2">
+      <div className={`container mx-auto px-16 text-center text-heading-text transition-all duration-300 overflow-hidden ${isCollapsed ? 'max-h-0 opacity-0' : 'max-h-60 opacity-100'}`}>
+        <h1 className="text-3xl md:text-5xl font-bold font-heading mb-2">
           رفيق المعلم الذكي
         </h1>
         
-        {/* Combined Info Line - As requested */}
-        <div className="flex flex-wrap items-center justify-center gap-3 text-sm md:text-base mt-2 opacity-90">
+        {/* Combined Info Line: Author + WhatsApp */}
+        <div className="flex flex-wrap items-center justify-center gap-3 text-sm md:text-base mt-2 opacity-90 mb-3">
             <span className="hidden md:inline-block w-8 h-px bg-current/30"></span>
-            <p>إعداد المستشار الإداري والتربوي إبراهيم دخان</p>
+            <p className="font-bold">إعداد المستشار الإداري والتربوي إبراهيم دخان</p>
             <span className="mx-2 text-current/50">|</span>
-            <div className="flex items-center gap-2">
-                <span>للتواصل:</span>
+            <div className="flex items-center gap-2" title="تواصل معنا عبر واتساب">
+                <span className="font-bold">للتواصل:</span>
                 <a 
                     href={whatsappUrl} 
                     target="_blank" 
                     rel="noopener noreferrer"
-                    className="hover:opacity-75 transition-opacity duration-200 text-green-600 bg-white rounded-full p-1"
+                    className="hover:opacity-75 transition-opacity duration-200 text-green-600 bg-white rounded-full p-1 shadow-sm flex items-center justify-center w-8 h-8"
                     aria-label="Contact via WhatsApp"
                 >
-                    <i className="fab fa-whatsapp text-lg"></i>
+                    <i className="fab fa-whatsapp text-xl"></i>
                 </a>
             </div>
             <span className="hidden md:inline-block w-8 h-px bg-current/30"></span>
         </div>
+
+        {/* TICKER BAR SECTION - Positioned BELOW the text, cleanly separated */}
+        {tickerText && (
+           <div className="w-full max-w-4xl mx-auto mt-2 overflow-hidden rounded-lg bg-black/5 border border-black/10 py-1.5 shadow-inner">
+                <div className="w-full overflow-hidden">
+                    <div className="animate-ticker whitespace-nowrap text-sm font-bold text-heading-text px-4">
+                        {tickerText}
+                    </div>
+                </div>
+           </div>
+        )}
       </div>
     </header>
   );
