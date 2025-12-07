@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useRef } from 'react';
 import ToolHeader from '../ToolHeader';
 
@@ -38,18 +37,33 @@ const PauseWithUs: React.FC<{ onBack: () => void }> = ({ onBack }) => {
     const [newPhrase, setNewPhrase] = useState('');
     const fileInputRef = useRef<HTMLInputElement>(null);
 
+    // Helper to safely stringify
+    const safeString = (val: any): string => {
+        if (typeof val === 'string') return val;
+        if (typeof val === 'number') return String(val);
+        return '';
+    };
+
     // --- Load Data ---
     useEffect(() => {
         try {
             const savedImages = localStorage.getItem('pause_images');
             if (savedImages) {
-                setImages(JSON.parse(savedImages));
+                const parsed = JSON.parse(savedImages);
+                if (Array.isArray(parsed)) {
+                    // Sanitize loaded images
+                    const cleanImages = parsed.map((img: any) => ({
+                        id: safeString(img.id) || Date.now().toString(),
+                        url: safeString(img.url),
+                        isDefault: Boolean(img.isDefault)
+                    })).filter(img => img.url); // Ensure URL exists
+                    setImages(cleanImages);
+                }
             } else {
                 // Initialize default images if list is empty
-                // Using placeholders that represent the requested images
                 const defaultImgs = [
                     { id: 'def-1', url: 'https://upload.wikimedia.org/wikipedia/commons/thumb/8/88/Emblem_of_Yemen.svg/200px-Emblem_of_Yemen.svg.png', isDefault: true },
-                    { id: 'def-2', url: 'https://cdn-icons-png.flaticon.com/512/2921/2921226.png', isDefault: true } // Placeholder for the second image
+                    { id: 'def-2', url: 'https://cdn-icons-png.flaticon.com/512/2921/2921226.png', isDefault: true }
                 ];
                 setImages(defaultImgs);
                 localStorage.setItem('pause_images', JSON.stringify(defaultImgs));
@@ -57,7 +71,15 @@ const PauseWithUs: React.FC<{ onBack: () => void }> = ({ onBack }) => {
 
             const savedPhrases = localStorage.getItem('pause_phrases');
             if (savedPhrases) {
-                setPhrases(JSON.parse(savedPhrases));
+                 const parsed = JSON.parse(savedPhrases);
+                 if (Array.isArray(parsed)) {
+                     const cleanPhrases = parsed.map((p: any) => ({
+                         id: safeString(p.id) || Date.now().toString(),
+                         text: safeString(p.text),
+                         isActive: Boolean(p.isActive)
+                     }));
+                     setPhrases(cleanPhrases);
+                 }
             } else {
                 // Initialize default phrase
                 const defaultText = 'فقدنا الأخ العزيز والكبير رئيس الإشراف التربوي الأستاذ خليل المخلافي رحمه الله رحمة واسعة وأسكنه فسيح جناته وتقبله في الشهداء.';
@@ -73,11 +95,11 @@ const PauseWithUs: React.FC<{ onBack: () => void }> = ({ onBack }) => {
             const savedSettings = localStorage.getItem('pause_settings');
             if (savedSettings) {
                 const settings = JSON.parse(savedSettings);
-                setImagesEnabled(settings.imagesEnabled ?? true);
-                setTickerEnabled(settings.tickerEnabled ?? true);
+                setImagesEnabled(Boolean(settings.imagesEnabled));
+                setTickerEnabled(Boolean(settings.tickerEnabled));
                 setFlashSettings({
-                    intervalMinutes: settings.intervalMinutes || 15,
-                    durationSeconds: settings.durationSeconds || 2
+                    intervalMinutes: Number(settings.intervalMinutes) || 15,
+                    durationSeconds: Number(settings.durationSeconds) || 2
                 });
             }
         } catch (e) {
@@ -113,7 +135,8 @@ const PauseWithUs: React.FC<{ onBack: () => void }> = ({ onBack }) => {
             const reader = new FileReader();
             reader.onloadend = () => {
                 const base64 = reader.result as string;
-                if (base64.length > 3000000) { // Limit to ~3MB
+                // Limit size roughly to avoid LS issues (e.g. < 3MB ideally)
+                if (base64.length > 3000000) { 
                     alert('الصورة كبيرة جداً، يرجى اختيار صورة أصغر (أقل من 3 ميجابايت).');
                     return;
                 }
@@ -192,7 +215,7 @@ const PauseWithUs: React.FC<{ onBack: () => void }> = ({ onBack }) => {
                         </div>
                         <div>
                             <h4 className="font-bold text-gray-700">شريط العبارات</h4>
-                            <p className="text-xs text-gray-500">شريط متحرك في أعلى واجهة البرنامج.</p>
+                            <p className="text-xs text-gray-500">شريط متحرك أعلى الشاشة.</p>
                         </div>
                     </div>
 
@@ -253,7 +276,8 @@ const PauseWithUs: React.FC<{ onBack: () => void }> = ({ onBack }) => {
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                         {images.map((img, index) => (
                             <div key={img.id} className="relative group rounded-lg overflow-hidden border-2 border-gray-200 shadow-sm">
-                                <img src={img.url} alt={`Flash ${index}`} className="w-full h-32 object-cover" />
+                                {/* Use safeString for URL */}
+                                <img src={safeString(img.url)} alt={`Flash ${index}`} className="w-full h-32 object-cover" />
                                 <button 
                                     onClick={() => handleDeleteImage(img.id)}
                                     className="absolute top-2 right-2 bg-red-500 text-white w-8 h-8 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity shadow-md"
@@ -299,7 +323,8 @@ const PauseWithUs: React.FC<{ onBack: () => void }> = ({ onBack }) => {
                             >
                                 <i className="fas fa-check text-sm"></i>
                             </button>
-                            <p className={`flex-grow font-bold ${phrase.isActive ? 'text-green-800' : 'text-gray-700'}`}>{phrase.text}</p>
+                            {/* Use safeString for text */}
+                            <p className={`flex-grow font-bold ${phrase.isActive ? 'text-green-800' : 'text-gray-700'}`}>{safeString(phrase.text)}</p>
                             <button onClick={() => handleDeletePhrase(phrase.id)} className="text-red-400 hover:text-red-600 hover:bg-red-50 p-2 rounded-full transition-colors">
                                 <i className="fas fa-trash"></i>
                             </button>

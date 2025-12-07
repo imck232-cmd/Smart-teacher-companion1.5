@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useRef } from 'react';
 import { ToolKey, tools, externalLinkTools } from './constants';
 import Header from './components/Header';
@@ -78,6 +77,13 @@ const App: React.FC = () => {
   const clickSoundRef = useRef<HTMLAudioElement | null>(null);
   const flashTimerRef = useRef<any>(null); 
 
+  // Helper for safety
+  const safeString = (val: any) => (typeof val === 'string' || typeof val === 'number') ? String(val) : '';
+  const safeNumber = (val: any, fallback: number) => {
+      const num = Number(val);
+      return isNaN(num) ? fallback : num;
+  };
+
   // Function to load Pause With Us data
   const loadPauseSettings = () => {
       try {
@@ -87,11 +93,13 @@ const App: React.FC = () => {
           // Ticker Logic
           if (savedPhrases) {
               const phrases = JSON.parse(savedPhrases);
-              const activePhrase = phrases.find((p: any) => p.isActive);
-              if (activePhrase) setTickerText(activePhrase.text);
-              else setTickerText('');
+              if (Array.isArray(phrases)) {
+                  const activePhrase = phrases.find((p: any) => p.isActive);
+                  if (activePhrase) setTickerText(safeString(activePhrase.text));
+                  else setTickerText('');
+              }
           } else {
-              // Initialize with default if nothing saved
+              // Initialize with default
               const defaultText = 'فقدنا الأخ العزيز والكبير رئيس الإشراف التربوي الأستاذ خليل المخلافي رحمه الله رحمة واسعة وأسكنه فسيح جناته وتقبله في الشهداء.';
               setTickerText(defaultText);
               localStorage.setItem('pause_phrases', JSON.stringify([{ id: 'default-1', text: defaultText, isActive: true }]));
@@ -99,15 +107,14 @@ const App: React.FC = () => {
           
           if (savedSettings) {
               const settings = JSON.parse(savedSettings);
-              setShowTicker(!!settings.tickerEnabled);
-              setFlashImagesEnabled(!!settings.imagesEnabled);
+              setShowTicker(Boolean(settings.tickerEnabled));
+              setFlashImagesEnabled(Boolean(settings.imagesEnabled));
               // Load custom timers if present
               setFlashSettings({
-                  intervalMinutes: settings.intervalMinutes || 15,
-                  durationSeconds: settings.durationSeconds || 2
+                  intervalMinutes: safeNumber(settings.intervalMinutes, 15),
+                  durationSeconds: safeNumber(settings.durationSeconds, 2)
               });
           } else {
-              // Default on
               setShowTicker(true); 
               setFlashImagesEnabled(true);
           }
@@ -138,21 +145,25 @@ const App: React.FC = () => {
       // Clear any existing interval to reset with new settings
       if (flashTimerRef.current) clearInterval(flashTimerRef.current);
 
-      // Initial Flash on Load (after small delay to ensure component mounted)
+      // Validate inputs to avoid loops
+      const intervalMs = Math.max(1, flashSettings.intervalMinutes) * 60 * 1000;
+      const durationMs = Math.max(1, flashSettings.durationSeconds) * 1000;
+
+      // Initial Flash on Load (after 3 seconds as requested originally, or small delay)
       const initialTimeout = setTimeout(() => {
-          showRandomImage(flashSettings.durationSeconds * 1000); 
+          showRandomImage(durationMs); 
       }, 3000); 
 
       // Periodic Flash (Using configured interval)
       flashTimerRef.current = setInterval(() => {
-          showRandomImage(flashSettings.durationSeconds * 1000); 
-      }, flashSettings.intervalMinutes * 60 * 1000);
+          showRandomImage(durationMs); 
+      }, intervalMs);
 
       return () => {
           clearTimeout(initialTimeout);
           if (flashTimerRef.current) clearInterval(flashTimerRef.current);
       };
-  }, [flashImagesEnabled, flashSettings.intervalMinutes, flashSettings.durationSeconds]);
+  }, [flashImagesEnabled, flashSettings]);
 
   const showRandomImage = (duration: number) => {
       try {
@@ -163,7 +174,7 @@ const App: React.FC = () => {
                   // Pick random image
                   const randomImg = images[Math.floor(Math.random() * images.length)];
                   if (randomImg && randomImg.url) {
-                      setOverlayImage(randomImg.url);
+                      setOverlayImage(safeString(randomImg.url));
                       setTimeout(() => setOverlayImage(null), duration);
                   }
               }
@@ -184,11 +195,11 @@ const App: React.FC = () => {
             const parsed = JSON.parse(savedAppearance);
             if (parsed && typeof parsed === 'object' && !Array.isArray(parsed)) {
                  setCustomAppearance({
-                     fontFamily: typeof parsed.fontFamily === 'string' ? parsed.fontFamily : '',
-                     textColor: typeof parsed.textColor === 'string' ? parsed.textColor : '',
-                     fontWeight: typeof parsed.fontWeight === 'string' ? parsed.fontWeight : '',
-                     inputColor: typeof parsed.inputColor === 'string' ? parsed.inputColor : '',
-                     cardColor: typeof parsed.cardColor === 'string' ? parsed.cardColor : '',
+                     fontFamily: safeString(parsed.fontFamily),
+                     textColor: safeString(parsed.textColor),
+                     fontWeight: safeString(parsed.fontWeight),
+                     inputColor: safeString(parsed.inputColor),
+                     cardColor: safeString(parsed.cardColor),
                  });
             }
         } catch (e) {
@@ -242,7 +253,6 @@ const App: React.FC = () => {
     localStorage.setItem('app-custom-appearance', JSON.stringify(customAppearance));
   }, [theme, customAppearance]);
 
-  // Scroll-to-top button visibility logic
   useEffect(() => {
     const toggleVisibility = () => {
       if (window.pageYOffset > 300) {
@@ -255,7 +265,6 @@ const App: React.FC = () => {
     return () => window.removeEventListener('scroll', toggleVisibility);
   }, []);
 
-  // Global click sound effect logic
   useEffect(() => {
     clickSoundRef.current = new Audio(CLICK_SOUND_DATA_URL);
     clickSoundRef.current.volume = 0.7; 
