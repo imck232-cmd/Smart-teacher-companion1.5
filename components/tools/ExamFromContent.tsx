@@ -470,29 +470,29 @@ const ExamFromContent: React.FC<{ onBack: () => void }> = ({ onBack }) => {
                         ].map((section, idx) => (
                             <div key={idx} className="mb-4 border border-black relative">
                                 <div className="bg-gray-200 text-center font-bold border-b border-black py-1 text-sm text-black">
-                                    <div contentEditable onBlur={e => handleExamChange(section.key, 'title', e.currentTarget.innerText)} className="outline-none inline-block text-black font-black text-base">
-                                        {renderedExam[section.key as keyof typeof renderedExam][`title`]}
+                                    <div contentEditable onBlur={e => { const v = e.currentTarget.innerText; handleExamChange(section.key, 'title', v); }} className="outline-none inline-block text-black font-black text-base">
+                                        {(renderedExam[section.key as keyof typeof renderedExam] as any).title}
                                     </div>
                                 </div>
                                 <div className="flex">
                                     <div className="w-10 border-l border-black flex items-center justify-center font-bold bg-gray-50 text-sm text-black">
-                                        <div contentEditable onBlur={e => handleExamChange('gradingTable', section.key, e.currentTarget.innerText)} className="outline-none text-black">
+                                        <div contentEditable onBlur={e => { const v = e.currentTarget.innerText; handleExamChange('gradingTable', section.key, v); }} className="outline-none text-black">
                                             {renderedExam.gradingTable[section.key as keyof typeof renderedExam.gradingTable]}
                                         </div>
                                     </div>
                                     <div className="flex-grow p-2 overflow-hidden">
                                         <div 
                                             contentEditable 
-                                            onBlur={e => handleExamChange(section.key, 'content', e.currentTarget.innerText)}
+                                            onBlur={e => { const v = e.currentTarget.innerText; handleExamChange(section.key, 'content', v); }}
                                             className="whitespace-pre-wrap outline-none mb-1 text-sm leading-relaxed text-black font-bold break-words w-full"
-                                            dangerouslySetInnerHTML={{ __html: renderedExam[section.key as keyof typeof renderedExam][`content`].replace(/^\n+/, '') }}
+                                            dangerouslySetInnerHTML={{ __html: (renderedExam[section.key as keyof typeof renderedExam] as any).content.replace(/^\n+/, '') }}
                                         ></div>
                                         <div className="space-y-1 mt-1">
-                                            {renderedExam[section.key as keyof typeof renderedExam].subQuestions.map((subQ: string, subIdx: number) => (
+                                            {(renderedExam[section.key as keyof typeof renderedExam] as any).subQuestions.map((subQ: string, subIdx: number) => (
                                                 <div key={subIdx} className="flex gap-1 items-start w-full">
                                                     <div 
                                                         contentEditable 
-                                                        onBlur={e => handleExamChange(section.key, 'subQuestions', e.currentTarget.innerText, subIdx)}
+                                                        onBlur={e => { const v = e.currentTarget.innerText; handleExamChange(section.key, 'subQuestions', v, subIdx); }}
                                                         className="w-full outline-none min-h-[20px] text-black leading-tight whitespace-pre-wrap break-words"
                                                         dangerouslySetInnerHTML={{ __html: subQ.replace(/^\n+/, '') }}
                                                     ></div>
@@ -542,29 +542,29 @@ const ExamFromContent: React.FC<{ onBack: () => void }> = ({ onBack }) => {
                         ].map((section, idx) => (
                             <div key={idx} className="mb-4 border border-black relative">
                                 <div className="bg-gray-200 text-center font-bold border-b border-black py-1 text-sm text-black">
-                                    <div contentEditable onBlur={e => handleExamChange(section.key, 'title', e.currentTarget.innerText)} className="outline-none inline-block text-black font-black text-base">
-                                        {renderedExam[section.key as keyof typeof renderedExam][`title`]}
+                                    <div contentEditable onBlur={e => { const v = e.currentTarget.innerText; handleExamChange(section.key, 'title', v); }} className="outline-none inline-block text-black font-black text-base">
+                                        {(renderedExam[section.key as keyof typeof renderedExam] as any).title}
                                     </div>
                                 </div>
                                 <div className="flex">
                                     <div className="w-10 border-l border-black flex items-center justify-center font-bold bg-gray-50 text-sm text-black">
-                                        <div contentEditable onBlur={e => handleExamChange('gradingTable', section.key, e.currentTarget.innerText)} className="outline-none text-black">
+                                        <div contentEditable onBlur={e => { const v = e.currentTarget.innerText; handleExamChange('gradingTable', section.key, v); }} className="outline-none text-black">
                                             {renderedExam.gradingTable[section.key as keyof typeof renderedExam.gradingTable]}
                                         </div>
                                     </div>
                                     <div className="flex-grow p-2 overflow-hidden">
                                         <div 
                                             contentEditable 
-                                            onBlur={e => handleExamChange(section.key, 'content', e.currentTarget.innerText)}
+                                            onBlur={e => { const v = e.currentTarget.innerText; handleExamChange(section.key, 'content', v); }}
                                             className="whitespace-pre-wrap outline-none mb-1 text-sm leading-relaxed text-black font-bold break-words w-full"
-                                            dangerouslySetInnerHTML={{ __html: renderedExam[section.key as keyof typeof renderedExam][`content`].replace(/^\n+/, '') }}
+                                            dangerouslySetInnerHTML={{ __html: (renderedExam[section.key as keyof typeof renderedExam] as any).content.replace(/^\n+/, '') }}
                                         ></div>
                                         <div className="space-y-1 mt-1">
-                                            {renderedExam[section.key as keyof typeof renderedExam].subQuestions.map((subQ: string, subIdx: number) => (
+                                            {(renderedExam[section.key as keyof typeof renderedExam] as any).subQuestions.map((subQ: string, subIdx: number) => (
                                                 <div key={subIdx} className="flex gap-1 items-start w-full">
                                                     <div 
                                                         contentEditable 
-                                                        onBlur={e => handleExamChange(section.key, 'subQuestions', e.currentTarget.innerText, subIdx)}
+                                                        onBlur={e => { const v = e.currentTarget.innerText; handleExamChange(section.key, 'subQuestions', v, subIdx); }}
                                                         className="w-full outline-none min-h-[20px] text-black leading-tight whitespace-pre-wrap break-words"
                                                         dangerouslySetInnerHTML={{ __html: subQ.replace(/^\n+/, '') }}
                                                     ></div>

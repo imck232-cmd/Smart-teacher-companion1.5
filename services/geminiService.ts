@@ -12,6 +12,70 @@ const getAiClient = (): GoogleGenAI => {
     return new GoogleGenAI({ apiKey: API_KEY });
 };
 
+/**
+ * Robust JSON cleaner for AI responses
+ * Strips markdown code blocks and handles common syntax issues like trailing commas
+ */
+const cleanJsonString = (str: string): string => {
+    let cleaned = str.trim();
+    // Remove markdown code blocks if present
+    cleaned = cleaned.replace(/^```json\s*/, '').replace(/```$/, '');
+    // Remove trailing commas before closing braces/brackets
+    cleaned = cleaned.replace(/,\s*([}\]])/g, '$1');
+    return cleaned;
+};
+
+/**
+ * Generates bulk educational content for multiple lessons
+ */
+export const generateBulkSemesterContent = async (lessons: {title: string}[], subject: string) => {
+    try {
+        const client = getAiClient();
+        const titles = lessons.map(l => l.title).join(' | ');
+        const prompt = `
+        بصفتك خبيراً تربوياً، قم بتوليد محتوى تعليمي مفصل لكل درس من الدروس التالية لمادة ${subject}.
+        الدروس: [${titles}]
+        
+        المطلوب لكل درس تعبئة القيم التالية بدقة:
+        - objectives: الأهداف التعليمية السلوكية.
+        - methods: استراتيجيات وطرائق التدريس.
+        - aids: الوسائل التعليمية المقترحة.
+        - activitiesIn: الأنشطة الصفية.
+        - activitiesOut: الأنشطة اللاصفية.
+        - values: القيم التربوية.
+        - evaluation: أساليب التقويم.
+        
+        اجعل العبارات تربوية، دقيقة ومختصرة لتناسب الجداول.
+        
+        أرجع النتيجة بتنسيق JSON حصراً كمصفوفة كائنات بنفس ترتيب الدروس:
+        [
+            {
+                "objectives": "...",
+                "methods": "...",
+                "aids": "...",
+                "activitiesIn": "...",
+                "activitiesOut": "...",
+                "values": "...",
+                "evaluation": "..."
+            }
+        ]
+        `;
+
+        const response = await client.models.generateContent({
+            model: "gemini-2.5-flash",
+            contents: prompt,
+            config: {
+                responseMimeType: 'application/json'
+            }
+        });
+        
+        const cleanedText = cleanJsonString(response.text || '');
+        return JSON.parse(cleanedText);
+    } catch (error) {
+        console.error("Error generating bulk content:", error);
+        throw error;
+    }
+};
 
 export const performSearch = async (query: string) => {
   try {
@@ -103,16 +167,12 @@ export const solveQuestionsFromText = async (text: string) => {
     }
 };
 
-
 export const fillLessonPlanFromText = async (pastedText: string) => {
-    // This function analyzes an existing lesson plan text and extracts data into the JSON schema
     const prompt = `
         You are an expert educational assistant. Analyze the following lesson plan text and extract the information to fill a structured JSON object.
-        
         Strict constraints for output:
         1. 'intro.text': Must be summarized to maximum 2 lines.
         2. 'content': Must be summarized into exactly 5-6 bullet points max.
-        
         Output JSON keys: 
         'lessonTitle', 'subject', 'classLevel', 'methods' (array), 'aids' (array), 
         'intro': { "text": "...", "type": "..." }, 
@@ -123,7 +183,6 @@ export const fillLessonPlanFromText = async (pastedText: string) => {
         'closure': { "text": "...", "type": "..." }, 
         'homework': { "text": "...", "type": "..." },
         'reflection'.
-
         Text to analyze:
         ---
         ${pastedText}
@@ -138,7 +197,8 @@ export const fillLessonPlanFromText = async (pastedText: string) => {
                 responseMimeType: 'application/json'
             }
         });
-        return JSON.parse(response.text);
+        const cleanedText = cleanJsonString(response.text || '');
+        return JSON.parse(cleanedText);
     } catch (error) {
         console.error("Error processing lesson plan text:", error);
         throw error;
@@ -149,14 +209,11 @@ export const generateExam = async (topic: string, numQuestions: number, question
     const questionTypesString = questionTypes.join(', ');
     const prompt = `
         You are an expert in creating educational assessments. Your task is to generate an exam based on the following topic.
-
         **Topic:**
         ${topic}
-
         **Exam Requirements:**
         - Number of questions: ${numQuestions}
         - Question types: ${questionTypesString}
-
         **Instructions:**
         1. Generate exactly ${numQuestions} questions.
         2. Distribute the questions among the requested types (${questionTypesString}).
@@ -200,7 +257,6 @@ export const generateSemesterPlan = async (subject: string, grade: string, semes
         const prompt = `
         بصفتك خبيرًا تربويًا ومطور مناهج، قم بإعداد خطة فصلية دراسية شاملة لمادة ${subject} للصف ${grade} للفصل الدراسي ${semester}.
         عدد الأسابيع الدراسية المتاحة: ${weeks}.
-        
         المخرجات المطلوبة: جدول منظم يوضح توزيع المنهج على الأسابيع، متضمنًا الأعمدة التالية:
         - الأسبوع
         - الوحدة / المحور
@@ -208,7 +264,6 @@ export const generateSemesterPlan = async (subject: string, grade: string, semes
         - الأهداف العامة
         - عدد الحصص المقترح
         - ملاحظات / أنشطة مقترحة
-        
         يرجى تنسيق الإجابة باستخدام Markdown (جدول) ليكون جاهزًا للنسخ والطباعة.
         `;
         const response = await client.models.generateContent({
@@ -221,6 +276,50 @@ export const generateSemesterPlan = async (subject: string, grade: string, semes
         return response;
     } catch (error) {
         console.error("Error creating semester plan:", error);
+        throw error;
+    }
+};
+
+export const generateSemesterRowContent = async (lessonTitle: string, subject: string) => {
+    try {
+        const client = getAiClient();
+        const prompt = `
+        بصفتك خبيراً تربوياً، قم بتوليد محتوى تعليمي موجز ومناسب لصف واحد في خطة دراسية.
+        المادة: ${subject}
+        عنوان الدرس: ${lessonTitle}
+        
+        المطلوب هو تعبئة الحقول التالية بدقة واختصار شديد (كل حقل في سطر واحد أو نقطتين فقط):
+        1. الأهداف التعليمية.
+        2. طرائق التدريس.
+        3. الوسائل التعليمية.
+        4. الأنشطة الصفية واللاصفية.
+        5. القيم التربوية المرتبطة.
+        6. أساليب التقويم.
+        
+        أرجع النتيجة بتنسيق JSON حصراً:
+        {
+            "objectives": "...",
+            "methods": "...",
+            "aids": "...",
+            "activitiesIn": "...",
+            "activitiesOut": "...",
+            "values": "...",
+            "evaluation": "..."
+        }
+        `;
+
+        const response = await client.models.generateContent({
+            model: "gemini-2.5-flash",
+            contents: prompt,
+            config: {
+                responseMimeType: 'application/json'
+            }
+        });
+        
+        const cleanedText = cleanJsonString(response.text || '');
+        return JSON.parse(cleanedText);
+    } catch (error) {
+        console.error("Error generating row content:", error);
         throw error;
     }
 };
@@ -264,7 +363,7 @@ export const generateSpeech = async (text: string) => {
                 responseModalities: [Modality.AUDIO],
                 speechConfig: {
                     voiceConfig: {
-                        prebuiltVoiceConfig: { voiceName: 'Kore' }, // A pleasant default voice
+                        prebuiltVoiceConfig: { voiceName: 'Kore' }, 
                     },
                 },
             },
@@ -283,41 +382,31 @@ export const generateSpeech = async (text: string) => {
 export const generateSmartLessonPlan = async (inputText: string, context: any) => {
     try {
         const client = getAiClient();
-        // Enforce limits in prompt: 2 lines intro, 5-6 points content
         const prompt = `
         بصفتك خبيراً تربوياً، قم بإعداد تحضير درس نموذجي ومختصر جداً ليتناسب مع صفحة A4 واحدة.
-        
         المعلومات الأساسية:
         النص/الموضوع: ${inputText}
         المادة: ${context.subject || 'عام'}
         الصف: ${context.grade || 'عام'}
-        
         المخرجات بتنسيق JSON حصراً:
         {
             "lessonTitle": "عنوان الدرس (إن لم يحدد)",
-            "intro": { "text": "اكتب تمهيداً مختصراً جداً (سطرين كحد أقصى)", "type": "نوع التمهيد" },
-            "methods": ["طريقة 1", "طريقة 2", "طريقة 3", "طريقة 4", "طريقة 5"],
-            "aids": ["وسيلة 1", "وسيلة 2", "وسيلة 3", "وسيلة 4", "وسيلة 5"],
-            "activities": "اذكر نشاطاً واحداً أو اثنين باختصار شديد",
+            "intro": { "text": "...", "type": "..." },
+            "methods": ["...", "..."],
+            "aids": ["...", "..."],
+            "activities": "...",
             "objectives": [
                 { "domain": "معرفي", "level": "...", "text": "...", "evaluation": "..." },
-                { "domain": "معرفي", "level": "...", "text": "...", "evaluation": "..." },
-                { "domain": "معرفي", "level": "...", "text": "...", "evaluation": "..." },
-                { "domain": "مهاري", "level": "...", "text": "...", "evaluation": "..." },
-                { "domain": "مهاري", "level": "...", "text": "...", "evaluation": "..." },
-                { "domain": "وجداني", "level": "...", "text": "...", "evaluation": "..." }
+                ...
             ],
-            "teacherRole": "دور المعلم (جملة واحدة)",
-            "learnerRole": "دور الطالب (جملة واحدة)",
-            "content": "محتوى الدرس في شكل نقاط مركزة (5 إلى 6 نقاط فقط).",
-            "closure": { "text": "خاتمة (سطر واحد)", "type": "نوع الغلق" },
-            "homework": { "text": "الواجب", "type": "نوعه" },
-            "reflection": "خاطرة قصيرة"
+            "teacherRole": "...",
+            "learnerRole": "...",
+            "content": "...",
+            "closure": { "text": "...", "type": "..." },
+            "homework": { "text": "...", "type": "..." },
+            "reflection": "..."
         }
-        
-        تنبيه هام: التزم بالاختصار الشديد في "التمهيد" و"المحتوى" لضمان عدم تجاوز الصفحة الواحدة عند الطباعة.
         `;
-
         const response = await client.models.generateContent({
             model: "gemini-2.5-flash",
             contents: prompt,
@@ -325,17 +414,14 @@ export const generateSmartLessonPlan = async (inputText: string, context: any) =
                 responseMimeType: 'application/json'
             }
         });
-        
-        return JSON.parse(response.text);
+        const cleanedText = cleanJsonString(response.text || '');
+        return JSON.parse(cleanedText);
     } catch (error) {
         console.error("Error generating lesson plan:", error);
         throw error;
     }
 };
 
-// --- NEW SERVICES ---
-
-// Audio Transcription using gemini-2.5-flash
 export const transcribeAudioFile = async (base64Audio: string, mimeType: string) => {
     try {
         const client = getAiClient();
@@ -395,20 +481,15 @@ export const generateProImage = async (prompt: string, size: string) => {
 export const generateStructuredExam = async (content: string, config: any) => {
     try {
         const client = getAiClient();
-        
-        // Generate a detailed description string based on user Mapping (Type -> Count + Position)
         let distributionInstructions = "";
-        
         if (config.detailedTypes && typeof config.detailedTypes === 'object') {
              const posMap: Record<string, string[]> = {};
-             
              Object.entries(config.detailedTypes).forEach(([type, details]: [string, any]) => {
                  const pos = details.position || 'q1';
                  const count = details.count;
                  if(!posMap[pos]) posMap[pos] = [];
                  posMap[pos].push(`${count} أسئلة من نوع: ${type}`);
              });
-
              distributionInstructions = Object.entries(posMap).map(([posKey, typesArr]) => {
                  const posName = posKey === 'q1' ? 'السؤال الأول' : 
                                  posKey === 'q2' ? 'السؤال الثاني' :
@@ -419,63 +500,22 @@ export const generateStructuredExam = async (content: string, config: any) => {
         } else {
             distributionInstructions = "قم بتوزيع الأسئلة بالتساوي على الأقسام الخمسة.";
         }
-
         const prompt = `
         بصفتك خبيراً تربوياً، قم بإنشاء اختبار مدرسي رسمي بناءً على المحتوى التالي والبيانات المحددة.
-        
-        المحتوى/الدرس:
-        ${content}
-        
+        المحتوى/الدرس: ${content}
         بيانات الاختبار:
         المادة: ${config.subject}
         الصف: ${config.grade}
-        توزيع الأسئلة المطلوب بدقة: 
-        ${distributionInstructions}
-        
-        شروط خاصة إضافية من المستخدم (يجب الالتزام بها بصرامة):
-        ${config.customInstructions || "لا يوجد شروط إضافية."}
-        
+        توزيع الأسئلة المطلوب بدقة: ${distributionInstructions}
+        شروط خاصة: ${config.customInstructions || "لا يوجد"}
         الدرجة الكلية: ${config.totalMarks}
-        
-        المطلوب: قم بإنشاء الأسئلة وتوزيعها في هيكل JSON الدقيق التالي ليتم تعبئته في القالب الرسمي.
-        
-        تعليمات تنسيق الأسئلة (مهم جداً جداً):
-        1. **حجم الاختبار:** يجب أن تكون الأسئلة مختصرة ومركزة بحيث تتناسب تماماً مع صفحتين A4 فقط. تجنب الإطالة التي تسبب خروج النص عن الصفحة.
-        
-        2. **أسئلة الصواب والخطأ:** 
-           - يجب ترقيم الفقرات (1. ، 2. ...).
-           - القوسين يجب أن يكونا واسعين جداً للإجابة: (      ). 
-           - مثال: 1. (      ) تقع اليمن في قارة آسيا.
-        
-        3. **أسئلة الاختيار من متعدد:** 
-           - استخدم صياغة مباشرة في "الجذع" (Stem).
-           - **هام:** ضع الخيارات جميعها في سطر واحد مفصولة بمسافات واضحة إذا كانت قصيرة (أ. خيار1   ب. خيار2   ج. خيار3   د. خيار4).
-           - إذا كانت طويلة، ضعها في سطرين فقط: (أ، ب في السطر الأول) و (ج، د في السطر الثاني).
-        
-        4. **الأسئلة المقالية/التكميل/المباشرة (أجب عن...):** 
-           - **هام:** ضع فراغات الإجابة (نقط ...............) **مباشرة بعد نص السؤال في نفس السطر** (وليس تحته في حقل مستقل) لتوفير المساحة.
-           - مثال: "س1: عرف الخلية: ........................................................................"
-        
-        5. **أسئلة المقابلة (المزاوجة/التوصيل):** 
-           - **هام جداً:** إذا كان السؤال من نوع "المقابلة" أو "المزاوجة" أو "التوصيل" (Matching)، يجب عليك **حصراً** وضع محتوى السؤال داخل جدول HTML في حقل \`content\` وعدم استخدام المصفوفة \`subQuestions\`.
-           - استخدم كود HTML التالي للجدول (مع تعبئة البيانات):
-             \`<table style="width:100%; border-collapse: collapse; border: 1px solid black; text-align: center; font-size: small; table-layout: fixed;"><thead><tr style="background-color: #f3f4f6;"><th style="border: 1px solid black; padding: 4px; width: 10%;">م</th><th style="border: 1px solid black; padding: 4px; width: 45%;">العمود (أ)</th><th style="border: 1px solid black; padding: 4px; width: 45%;">العمود (ب)</th></tr></thead><tbody><tr><td style="border: 1px solid black; padding: 4px;">1</td><td style="border: 1px solid black; padding: 4px;">...</td><td style="border: 1px solid black; padding: 4px;">...</td></tr></tbody></table>\`
-        
-        6. **عناوين الأسئلة:** استخدم صيغ رسمية مثل "السؤال الأول:"، "السؤال الثاني:".
-        
-        هيكل JSON المطلوب (5 أقسام رئيسية):
+        هيكل JSON المطلوب:
         {
-            "q1": { "title": "السؤال الأول: ...", "content": "...", "subQuestions": ["1. (      ) فقرة 1", "2. (      ) فقرة 2"] },
-            "q2": { "title": "السؤال الثاني: ...", "content": "...", "subQuestions": ["1. سؤال...   أ. خيار 1   ب. خيار 2   ج. خيار 3   د. خيار 4"] },
-            "q3": { "title": "السؤال الثالث: ...", "content": "...", "subQuestions": ["1. سؤال......................................................."] },
-            "q4": { "title": "السؤال الرابع: ...", "content": "...", "subQuestions": ["..."] },
-            "q5": { "title": "السؤال الخامس: ...", "content": "...", "subQuestions": ["..."] },
-            "gradingTable": { "q1": 10, "q2": 10, "q3": 10, "q4": 10, "q5": 10, "total": 50 }
+            "q1": { "title": "...", "content": "...", "subQuestions": ["..."] },
+            ...
+            "gradingTable": { "q1": 10, ... "total": 50 }
         }
-        
-        تنبيه: تأكد من أن النصوص في subQuestions لا تبدأ بأسطر فارغة (newlines).
         `;
-
         const response = await client.models.generateContent({
             model: "gemini-2.5-flash",
             contents: prompt,
@@ -483,8 +523,8 @@ export const generateStructuredExam = async (content: string, config: any) => {
                 responseMimeType: 'application/json'
             }
         });
-        
-        return JSON.parse(response.text);
+        const cleanedText = cleanJsonString(response.text || '');
+        return JSON.parse(cleanedText);
     } catch (error) {
         console.error("Error generating structured exam:", error);
         throw error;

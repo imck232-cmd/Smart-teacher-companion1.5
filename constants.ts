@@ -121,7 +121,8 @@ export const externalLinkTools: Record<ToolKey, { title: string; links: External
         links: [
             { name: 'لعبة الأسئلة (كمبيوتر) - Kahoot', url: 'https://create.kahoot.it/discover' },
             { name: 'لعبة الأسئلة (هاتف) - Kahoot', url: 'https://play.google.com/store/apps/details?id=no.mobitroll.kahoot.android' },
-            { name: 'لعبة الروليت (عجلة الحظ)', url: 'https://play.google.com/store/apps/details?id=com.appsnblue.roulette&hl=ar' }
+            { name: 'لعبة الروليت (عجلة الحظ)', url: 'https://play.google.com/store/apps/details?id=com.appsnblue.roulette&hl=ar' },
+            { name: 'لعبة الذاكرة (PowerPoint)', url: 'https://ingez-ppt.com/2022/08/memory-game-powerpoint.html' }
         ]
     },
     curriculumExamples: {

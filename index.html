@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
@@ -6,62 +5,42 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>رفيق المعلم الذكي</title>
     
-    <!-- Google Fonts - Optimized & Split Imports -->
+    <!-- Optimized Google Fonts - Merged for faster loading -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    
-    <!-- Group 1: Essentials & Standard Text Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@200..1000&family=Tajawal:wght@200;300;400;500;700;800;900&family=Almarai:wght@300;400;700;800&family=IBM+Plex+Sans+Arabic:wght@100..700&family=Readex+Pro:wght@200..700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@200..1000&family=Tajawal:wght@200..900&family=Almarai:wght@300..800&family=Amiri:ital,wght@0,400;0,700;1,400;1,700&family=Aref+Ruqaa:wght@400;700&family=Noto+Kufi+Arabic:wght@100..900&family=Noto+Naskh+Arabic:wght@400..700&family=Reem+Kufi:wght@400..700&family=Lalezar&family=Changa:wght@200..800&family=El+Messiri:wght@400..700&family=Readex+Pro:wght@200..700&display=swap" rel="stylesheet">
 
-    <!-- Group 2: Classic Calligraphy (Naskh, Kufi, Thuluth) -->
-    <link href="https://fonts.googleapis.com/css2?family=Amiri:ital,wght@0,400;0,700;1,400;1,700&family=Aref+Ruqaa:wght@400;700&family=Noto+Kufi+Arabic:wght@100..900&family=Noto+Naskh+Arabic:wght@400..700&family=Scheherazade+New:wght@400;700&family=Lateef:wght@200..800&display=swap" rel="stylesheet">
-
-    <!-- Group 3: Decorative & Display 1 -->
-    <link href="https://fonts.googleapis.com/css2?family=Reem+Kufi:wght@400..700&family=Lalezar&family=Changa:wght@200..800&family=El+Messiri:wght@400..700&family=Lemonada:wght@300..700&family=Marhey:wght@300..700&family=Rakkas&display=swap" rel="stylesheet">
-
-    <!-- Group 4: Decorative & Display 2 -->
-    <link href="https://fonts.googleapis.com/css2?family=Alexandria:wght@100..900&family=Baloo+Bhaijaan+2:wght@400..800&family=Blaka&family=Gulzar&family=Harmattan:wght@400;700&family=Katibeh&family=Kufam:ital,wght@0,400..900;1,400..900&family=Mada:wght@200..900&family=Mirza:wght@400;500;600;700&family=Qahiri&family=Vazirmatn:wght@100..900&display=swap" rel="stylesheet">
-
-    <!-- Latin & Icons -->
-    <link href="https://fonts.googleapis.com/css2?family=Comic+Neue:wght@300;400;700&family=Lobster&family=Oswald:wght@200..700&family=Playfair+Display:wght@400..900&family=Rubik:wght@300..900&display=swap" rel="stylesheet">
-    
     <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" integrity="sha512-SnH5WK+bZxgPHs44uWIX+LLJAJ9/2PkPKZ5QiAj6Ta86w+fsb2TkcmfRyVX3pBnMFcV7oQPJkl9QevSCWr3W6A==" crossorigin="anonymous" referrerpolicy="no-referrer" />
 
-    <!-- File processing & export libraries -->
+    <!-- Core Libraries -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.4.18/mammoth.browser.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
     <script>
-      // Set worker source for pdf.js
       if (window.pdfjsLib) {
         window.pdfjsLib.GlobalWorkerOptions.workerSrc = "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.worker.min.js";
       }
     </script>
     
-    <!-- Tailwind CSS (for utility classes used in components) -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
       tailwind.config = {
-        darkMode: 'class', // Enable dark mode via class
+        darkMode: 'class', 
         theme: {
           extend: {
             fontFamily: {
-              // Font control is now via CSS variables
               sans: ['var(--font-body)', 'sans-serif'],
               heading: ['var(--font-heading)', 'serif'],
             },
             colors: {
-              // Theming is now fully controlled by CSS variables
               primary: 'rgb(var(--color-primary) / <alpha-value>)',
               secondary: 'rgb(var(--color-secondary) / <alpha-value>)',
               icon: 'rgb(var(--color-icon) / <alpha-value>)',
               'base-text': 'rgb(var(--color-base-text) / <alpha-value>)',
               'heading-text': 'rgb(var(--color-heading-text) / <alpha-value>)',
               'component-bg': 'rgb(var(--color-component-bg) / <alpha-value>)',
-              'shadow-light': 'rgb(var(--color-shadow-light) / <alpha-value>)',
-              'shadow-dark': 'rgb(var(--color-shadow-dark) / <alpha-value>)',
             }
           }
         }
@@ -76,233 +55,46 @@
 
         body {
             font-family: var(--font-body);
-            font-weight: var(--font-weight-base, 400); /* Controlled via Appearance Settings */
             background-color: rgb(var(--color-base-bg));
-            background-image: url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxMDAiIGhlaWdodD0iMTAwIj48ZyBmaWxsPSJub25lIiBzdHJva2U9IiNhYWEiIHN0cm9rZS1vcGFjaXR5PSIwLjMiIHN0cm9rZS13aWR0aD0iMSI+PHBhdGggZD0iTS01MCA1MGgxMDBDNSAwIDAgMCA1MCA1MFoiLz48cGF0aCBkPSJNNTAgMHYxMDBjNTAgMCA1MC01MCA1MC01MFoiLz48cGF0aCBkPSJNNTAgMGgtMTAwQzAgNTAgMCA1MCA1MCA1MFoiLz48cGF0aCBkPSJNMTAwIDUwVjBjLTUwIDAtNTAgNTAtNTAgNTBaIi8+PC9nPjwvc3ZnPg==');
-            background-repeat: repeat;
             color: rgb(var(--color-base-text));
             -webkit-font-smoothing: antialiased;
-            -moz-osx-font-smoothing: grayscale;
-            transition: background 0.5s ease;
+            overflow-x: hidden;
+            transition: background 0.2s ease-out;
         }
         
-        h1, h2, h3, h4, h5, h6 {
-            font-family: var(--font-heading);
-            color: rgb(var(--color-heading-text));
-        }
-        
-        /* 
-           STRICT VISIBILITY RULES
-           Force Black Text on White Inputs/Backgrounds 
-        */
-        input,
-        textarea,
-        select,
-        input[type="text"],
-        input[type="number"],
-        input[type="date"],
-        input[type="email"],
-        input[type="password"],
-        .bg-white,
-        [contenteditable] {
-            background-color: #ffffff !important;
-            color: #000000 !important;
-            border: 1px solid rgba(0,0,0,0.3);
-            box-shadow: inset 1px 1px 3px rgba(0,0,0,0.05);
-        }
-        
-        /* Force black text on any element explicitly styled with white background via tailwind */
-        .bg-white {
-            color: #000000 !important;
-        }
-        
-        /* Specific class to enforce this on table inputs or dynamic components */
-        .force-light-input {
-            background-color: #ffffff !important;
-            color: #000000 !important;
-            border: 1px solid #cccccc !important;
-        }
-        
-        /* Ensure placeholders are visible but distinct */
-        input::placeholder,
-        textarea::placeholder {
-            color: #666666 !important;
-            opacity: 0.7 !important;
-        }
-
-        /* Dark mode overrides - ensure inputs remain readable (white bg) */
-        html.dark input:not([type="color"]):not([type="range"]):not([type="checkbox"]):not([type="radio"]),
-        html.dark textarea,
-        html.dark select {
-            background-color: #ffffff !important;
-            color: #000000 !important;
-            border-color: #ccc;
-        }
-        
-        /* Updated Inset Style for Fields */
         .neumorphic-inset {
-            background-color: #ffffff !important; /* Always white for inputs */
+            background-color: #ffffff !important; 
             border-radius: 0.75rem;
-            border: 2px solid rgba(var(--color-primary), 0.2);
-            box-shadow: inset 1px 1px 3px rgba(var(--color-shadow-dark), 0.1);
-            transition: all 0.3s ease;
-            color: #000000 !important; /* Force black text inside inset containers */
-        }
-        
-        /* Interaction states for fields */
-        .neumorphic-inset:hover,
-        .neumorphic-inset:focus-within {
-            border-color: rgb(var(--color-primary));
-            background-color: #ffffff !important;
-            box-shadow: inset 2px 2px 5px rgba(var(--color-shadow-dark), 0.15);
+            border: 1px solid rgba(var(--color-primary), 0.1);
+            box-shadow: inset 1px 1px 3px rgba(0, 0, 0, 0.05);
+            color: #000 !important;
         }
 
         .neumorphic-outset {
-            background-color: rgba(255, 255, 255, 0.85); /* Lighter background for cards */
-            backdrop-filter: blur(4px);
+            background-color: rgba(255, 255, 255, 0.96);
+            backdrop-filter: blur(8px);
             border-radius: 1rem;
-            border: 1px solid rgba(var(--color-primary), 0.1);
-            box-shadow: 2px 2px 8px rgba(var(--color-shadow-dark), 0.1);
-            transition: all 0.2s ease-in-out;
-        }
-        
-        .neumorphic-button {
-            background-color: rgb(var(--color-primary));
-            color: rgb(var(--color-icon));
-            border-radius: 9999px;
-            border: 1px solid rgb(var(--color-border));
-            box-shadow: 1px 1px 3px rgba(var(--color-shadow-dark), 0.3);
-            transition: all 0.15s ease-in-out;
-        }
-
-        .neumorphic-button:hover {
-             transform: translateY(-1px);
-             box-shadow: 2px 2px 6px rgba(var(--color-shadow-dark), 0.4);
-        }
-        
-        .neumorphic-button:active, .neumorphic-button.active {
-             transform: translateY(1px);
-             box-shadow: inset 1px 1px 4px rgba(var(--color-shadow-dark), 0.5);
-             font-size: 1em;
-        }
-
-        .scroll-to-top {
-            position: fixed;
-            bottom: 20px;
-            left: 20px;
-            z-index: 30;
-            transition: opacity 0.3s ease-in-out, transform 0.3s ease-in-out;
-            opacity: 0;
-            transform: translateY(20px);
-        }
-        .scroll-to-top.visible {
-            opacity: 1;
-            transform: translateY(0);
-        }
-        
-        .sidebar {
-            transition: transform 0.3s ease-in-out;
-            transform: translateX(100%);
-        }
-        .sidebar.open {
-            transform: translateX(0);
-        }
-        
-        /* Tooltip styles */
-        [data-tooltip] {
-            position: relative;
-            cursor: pointer;
-        }
-
-        [data-tooltip]::after {
-            content: attr(data-tooltip);
-            position: absolute;
-            bottom: 105%;
-            left: 50%;
-            transform: translateX(-50%);
-            background-color: rgb(var(--color-shadow-dark));
-            color: white;
-            padding: 6px 10px;
-            border-radius: 6px;
-            font-size: 0.85rem;
-            font-family: 'Tajawal', sans-serif;
-            white-space: nowrap;
-            opacity: 0;
-            visibility: hidden;
-            transition: opacity 0.2s, visibility 0.2s;
-            pointer-events: none;
-            z-index: 10;
-        }
-
-        html.dark [data-tooltip]::after {
-            background-color: rgb(var(--color-shadow-light));
-            color: rgb(var(--color-heading-text));
-        }
-
-        [data-tooltip]:hover::after {
-            opacity: 1;
-            visibility: visible;
-        }
-
-        /* Custom Checkbox */
-        input[type="checkbox"] {
-            -webkit-appearance: none;
-            appearance: none;
-            background-color: #ffffff !important; /* White checkbox background */
-            margin: 0;
-            font: inherit;
-            color: currentColor;
-            width: 1.5em;
-            height: 1.5em;
-            border: 0.15em solid rgb(var(--color-primary)) !important;
-            border-radius: 0.25em;
-            transform: translateY(-0.075em);
-            display: grid;
-            place-content: center;
-            cursor: pointer;
-        }
-
-        input[type="checkbox"]::before {
-            content: "";
-            width: 0.8em;
-            height: 0.8em;
-            transform: scale(0);
-            transition: 120ms transform ease-in-out;
-            box-shadow: inset 1em 1em rgb(var(--color-primary));
-            transform-origin: bottom left;
-            clip-path: polygon(14% 44%, 0 65%, 50% 100%, 100% 16%, 80% 0%, 43% 62%);
-        }
-
-        input[type="checkbox"]:checked::before {
-            transform: scale(1);
-        }
-        
-        /* A4 Export Specifics - Forces clean layout */
-        .export-container {
-            min-width: 794px; /* A4 Width in px at 96DPI */
-            background-color: white !important;
-            color: black !important;
-            padding: 20px;
-            margin: 0 auto;
-        }
-
-        @media print {
-            @page { size: A4; margin: 0; }
-            body { background: white !important; color: black !important; }
-            .no-print { display: none !important; }
-            .export-container { width: 100% !important; min-width: 0 !important; padding: 0 !important; box-shadow: none !important; }
-        }
-
-        /* Ticker Animation for PauseWithUs Tool */
-        @keyframes scroll-left-to-right {
-            0% { transform: translateX(-100%); }
-            100% { transform: translateX(100%); }
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
         }
         
         .animate-ticker {
-            /* Default LTR animation (moves right to left visually if content is LTR, but we want visual L->R) */
-             /* Actually, if we want text to move FROM Left TO Right: */
-             animation: scroll-left-to-right 20s linear infinite;
+             display: inline-block;
+             animation: ticker-swipe 25s linear infinite;
+             will-change: transform;
+             transform: translate3d(0, 0, 0);
+        }
+
+        @keyframes ticker-swipe {
+            0% { transform: translate3d(100%, 0, 0); }
+            100% { transform: translate3d(-100%, 0, 0); }
+        }
+
+        .animate-fadeIn { animation: fadeIn 0.25s ease-out forwards; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+        @media print {
+            .no-print { display: none !important; }
+            * { transition: none !important; animation: none !important; box-shadow: none !important; }
         }
     </style>
 <script type="importmap">
@@ -320,7 +112,6 @@
 </script>
 </head>
 <body>
-    <noscript>You need to enable JavaScript to run this app.</noscript>
     <div id="root"></div>
     <script type="module" src="/index.tsx"></script>
 </body>

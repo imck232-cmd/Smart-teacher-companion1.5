@@ -215,9 +215,11 @@ const SmartLessonPlanner: React.FC<{ onBack: () => void }> = ({ onBack }) => {
     };
 
     const handleObjectiveChange = (index: number, field: keyof Objective, value: string) => {
-        const newObjs = [...plan.objectives];
-        newObjs[index] = { ...newObjs[index], [field]: value };
-        setPlan(prev => ({ ...prev, objectives: newObjs }));
+        setPlan(prev => {
+            const newObjs = [...prev.objectives];
+            newObjs[index] = { ...newObjs[index], [field]: value };
+            return { ...prev, objectives: newObjs };
+        });
     };
 
     const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>, setter: React.Dispatch<React.SetStateAction<string>>) => {
@@ -571,9 +573,9 @@ const SmartLessonPlanner: React.FC<{ onBack: () => void }> = ({ onBack }) => {
                                 {plan.objectives.map((obj, i) => (
                                     <tr key={i}>
                                         <td className="border border-black p-1 font-bold text-center bg-gray-50 text-black">{obj.domain}</td>
-                                        <td className="border border-black p-0 align-middle"><div contentEditable onBlur={(e) => handleObjectiveChange(i, 'level', e.currentTarget.innerText)} className="w-full h-full min-h-[20px] text-center bg-transparent focus:outline-none font-medium flex items-center justify-center whitespace-pre-wrap text-black" dangerouslySetInnerHTML={{__html: obj.level}}></div></td>
-                                        <td className="border border-black p-0 align-middle"><div contentEditable onBlur={(e) => handleObjectiveChange(i, 'text', e.currentTarget.innerText)} className="w-full h-full min-h-[20px] px-1 bg-transparent focus:outline-none font-medium text-right flex items-center whitespace-pre-wrap text-black" dangerouslySetInnerHTML={{__html: obj.text}}></div></td>
-                                        <td className="border border-black p-0 align-middle"><div contentEditable onBlur={(e) => handleObjectiveChange(i, 'evaluation', e.currentTarget.innerText)} className="w-full h-full min-h-[20px] px-1 bg-transparent focus:outline-none text-center font-medium flex items-center justify-center whitespace-pre-wrap text-black" dangerouslySetInnerHTML={{__html: obj.evaluation}}></div></td>
+                                        <td className="border border-black p-0 align-middle"><div contentEditable onBlur={(e) => { const v = e.currentTarget.innerText; handleObjectiveChange(i, 'level', v); }} className="w-full h-full min-h-[20px] text-center bg-transparent focus:outline-none font-medium flex items-center justify-center whitespace-pre-wrap text-black" dangerouslySetInnerHTML={{__html: obj.level}}></div></td>
+                                        <td className="border border-black p-0 align-middle"><div contentEditable onBlur={(e) => { const v = e.currentTarget.innerText; handleObjectiveChange(i, 'text', v); }} className="w-full h-full min-h-[20px] px-1 bg-transparent focus:outline-none font-medium text-right flex items-center whitespace-pre-wrap text-black" dangerouslySetInnerHTML={{__html: obj.text}}></div></td>
+                                        <td className="border border-black p-0 align-middle"><div contentEditable onBlur={(e) => { const v = e.currentTarget.innerText; handleObjectiveChange(i, 'evaluation', v); }} className="w-full h-full min-h-[20px] px-1 bg-transparent focus:outline-none text-center font-medium flex items-center justify-center whitespace-pre-wrap text-black" dangerouslySetInnerHTML={{__html: obj.evaluation}}></div></td>
                                     </tr>
                                 ))}
                             </tbody>

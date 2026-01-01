@@ -63,10 +63,13 @@ const ParticipationLog: React.FC<{ onBack: () => void }> = ({ onBack }) => {
     // Customizable Headers State
     const [headers, setHeaders] = useState<string[]>(['المشاركة', 'دفتر الحصة', 'دفتر الواجب', 'السلوك']);
 
-    // Helper to prevent Objects from crashing React
+    // Helper to prevent Objects from crashing React (Error #31)
     const safeString = (val: any): string => {
-        if (typeof val === 'string' || typeof val === 'number') return String(val);
-        return '';
+        if (val === null || val === undefined) return '';
+        if (typeof val === 'string') return val;
+        if (typeof val === 'number') return String(val);
+        if (React.isValidElement(val)) return ''; 
+        return String(val);
     };
 
     // --- Effects ---
@@ -156,16 +159,11 @@ const ParticipationLog: React.FC<{ onBack: () => void }> = ({ onBack }) => {
         let initialStudents: StudentParticipation[] = [];
         
         if (shouldCopy) {
-            // SMART COPY LOGIC:
-            // 1. Look for a session with EXACT matching Subject and Class
             const matchingSession = sessions.find(s => 
                 s.subject === newSessionData.subject && 
                 s.className === newSessionData.className
             );
-
-            // 2. If not found, fall back to the most recent session
             const sourceSession = matchingSession || (sessions.length > 0 ? sessions[0] : null);
-
             if (sourceSession) {
                 initialStudents = sourceSession.students.map(s => ({
                     id: Date.now().toString() + Math.random().toString().substr(2, 5),
@@ -187,12 +185,9 @@ const ParticipationLog: React.FC<{ onBack: () => void }> = ({ onBack }) => {
             isExpanded: true
         };
 
-        // Add new session to the top, collapse others
         setSessions(prev => [newSession, ...prev.map(s => ({ ...s, isExpanded: false }))]);
         setIsAddingSession(false);
     };
-
-    // --- Student Management ---
 
     const handleAddStudentToSession = (sessionId: string) => {
         if (!newStudentName.trim()) return;
@@ -276,7 +271,6 @@ const ParticipationLog: React.FC<{ onBack: () => void }> = ({ onBack }) => {
         }
     };
 
-    // --- Analytics Logic ---
     const getAnalyticsData = () => {
         const studentMap: Record<string, AnalyticsData> = {};
         const filteredSessions = sessions.filter(s => {
@@ -315,7 +309,6 @@ const ParticipationLog: React.FC<{ onBack: () => void }> = ({ onBack }) => {
 
     const renderScoreBtn = (sessionId: string, studentId: string, score: number, field: keyof StudentParticipation) => {
         let colorClass = 'bg-white text-black border border-black';
-        // Only colorize on screen, keep simple for print
         if (score >= 1) colorClass = 'bg-yellow-50 text-black border border-black';
         if (score >= 3) colorClass = 'bg-green-50 text-black border border-black';
         if (score >= 5) colorClass = 'bg-blue-50 text-black border border-black font-bold';
@@ -335,7 +328,6 @@ const ParticipationLog: React.FC<{ onBack: () => void }> = ({ onBack }) => {
         <div>
             <ToolHeader title="سجل المشاركات" onBack={onBack} />
 
-            {/* Controls - Hidden in Print */}
             <div className="neumorphic-outset p-4 mb-6 flex flex-col md:flex-row justify-between items-center gap-4 no-print">
                 <div className="flex gap-3 w-full md:w-auto">
                     <button onClick={() => setIsAddingSession(!isAddingSession)} className="neumorphic-button bg-green-600 text-white px-4 py-2 font-bold flex-grow md:flex-grow-0">
@@ -365,7 +357,6 @@ const ParticipationLog: React.FC<{ onBack: () => void }> = ({ onBack }) => {
                 </div>
             </div>
 
-            {/* Add Session Form */}
             {isAddingSession && (
                 <div className="neumorphic-outset p-6 mb-8 bg-green-50/50 border border-green-200 animate-fadeIn no-print">
                     <h3 className="font-bold text-lg text-green-800 mb-4">بيانات السجل الجديد</h3>
@@ -383,7 +374,6 @@ const ParticipationLog: React.FC<{ onBack: () => void }> = ({ onBack }) => {
                 </div>
             )}
 
-            {/* Analytics Panel (Hidden in Print) */}
             {showAnalytics && (
                 <div className="neumorphic-outset p-6 mb-8 bg-indigo-50/50 border border-indigo-200 animate-fadeIn no-print">
                     <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
@@ -411,11 +401,9 @@ const ParticipationLog: React.FC<{ onBack: () => void }> = ({ onBack }) => {
                 </div>
             )}
 
-            {/* SESSIONS LIST */}
             <div className="space-y-6">
                 {sessions.map(session => (
                     <div key={session.id} className="neumorphic-outset overflow-hidden transition-all duration-300 bg-white border border-gray-200">
-                        {/* Session Header / Toggle - OUTSIDE EXPORT AREA */}
                         <div 
                             onClick={() => toggleSession(session.id)}
                             className="bg-gray-50 p-4 cursor-pointer hover:bg-gray-100 flex justify-between items-center border-b border-gray-300 no-print"
@@ -430,25 +418,17 @@ const ParticipationLog: React.FC<{ onBack: () => void }> = ({ onBack }) => {
                             <button onClick={(e) => { e.stopPropagation(); handleDeleteSession(session.id); }} className="text-red-500 hover:bg-red-100 p-2 rounded-full"><i className="fas fa-trash"></i></button>
                         </div>
 
-                        {/* CONTENT */}
                         {session.isExpanded && (
                             <div className="p-2 md:p-4">
-                                {/* EXPORTABLE CONTAINER - VISIBLE IN PDF */}
-                                {/* Added overflow-x-auto for mobile visibility */}
                                 <div className="overflow-x-auto w-full shadow-sm rounded">
                                     <div className="export-container" id={`participation-export-${session.id}`}>
-                                        
-                                        {/* A4 HEADER LAYOUT */}
                                         <div className="mb-4 border-b-2 border-black pb-2">
                                             <div className="grid grid-cols-3 items-center text-black">
-                                                {/* Right: Ministry/School */}
                                                 <div className="text-right space-y-1 font-bold text-xs md:text-sm">
                                                     <p>وزارة التربية والتعليم</p>
                                                     <p>المدرسة: {safeString(schoolName) || '..................'}</p>
                                                     <p>المادة: {safeString(session.subject)}</p>
                                                 </div>
-                                                
-                                                {/* Center: Title (Editable) */}
                                                 <div className="text-center">
                                                     <input 
                                                         type="text" 
@@ -458,8 +438,6 @@ const ParticipationLog: React.FC<{ onBack: () => void }> = ({ onBack }) => {
                                                         style={{ outline: 'none' }}
                                                     />
                                                 </div>
-                                                
-                                                {/* Left: Class/Date */}
                                                 <div className="text-left space-y-1 font-bold text-xs md:text-sm" dir="ltr">
                                                     <p>Class: {safeString(session.className)}</p>
                                                     <p>Date: {safeString(session.date)}</p>
@@ -468,13 +446,11 @@ const ParticipationLog: React.FC<{ onBack: () => void }> = ({ onBack }) => {
                                             </div>
                                         </div>
 
-                                        {/* TABLE */}
                                         <div className="overflow-x-auto">
                                             <table className="w-full table-fixed border-collapse text-center text-black border-2 border-black text-[9px] sm:text-xs">
                                                 <thead>
                                                     <tr className="bg-gray-100">
                                                         <th className="border border-black p-0 w-6">م</th>
-                                                        {/* REDUCED WIDTH FOR MOBILE DENSITY */}
                                                         <th className="border border-black p-1 text-right w-16 truncate">اسم الطالب</th>
                                                         {headers.map((h, i) => (
                                                             <th 
@@ -505,7 +481,6 @@ const ParticipationLog: React.FC<{ onBack: () => void }> = ({ onBack }) => {
                                                                     safeString(student.name)
                                                                 )}
                                                             </td>
-                                                            {/* Centered buttons with zero padding on cell for maximum density */}
                                                             <td className="border border-black p-0 h-full"><div className="flex justify-center items-center h-full py-1">{renderScoreBtn(session.id, student.id, student.score1, 'score1')}</div></td>
                                                             <td className="border border-black p-0 h-full"><div className="flex justify-center items-center h-full py-1">{renderScoreBtn(session.id, student.id, student.score2, 'score2')}</div></td>
                                                             <td className="border border-black p-0 h-full"><div className="flex justify-center items-center h-full py-1">{renderScoreBtn(session.id, student.id, student.score3, 'score3')}</div></td>
@@ -524,7 +499,6 @@ const ParticipationLog: React.FC<{ onBack: () => void }> = ({ onBack }) => {
                                             </table>
                                         </div>
 
-                                        {/* Footer */}
                                         <div className="mt-6 pt-2 border-t-2 border-black grid grid-cols-3 text-center text-black text-xs">
                                             <div>
                                                 <p className="font-bold">معلم المادة</p>
@@ -539,12 +513,10 @@ const ParticipationLog: React.FC<{ onBack: () => void }> = ({ onBack }) => {
                                                 <p className="mt-4">....................</p>
                                             </div>
                                         </div>
-                                    </div> {/* End Export Container */}
+                                    </div>
                                 </div>
 
-                                {/* Controls OUTSIDE Export Container */}
                                 <div className="mt-6 no-print border-t pt-4">
-                                    {/* Add Student */}
                                     <div className="flex gap-2 mb-4">
                                         <input 
                                             type="text" 
@@ -556,8 +528,6 @@ const ParticipationLog: React.FC<{ onBack: () => void }> = ({ onBack }) => {
                                         />
                                         <button onClick={() => handleAddStudentToSession(session.id)} className="bg-blue-600 text-white px-4 rounded font-bold"><i className="fas fa-plus"></i></button>
                                     </div>
-
-                                    {/* Export Buttons */}
                                     <ActionButtons textToCopy="" elementIdToPrint={`participation-export-${session.id}`} />
                                 </div>
                             </div>

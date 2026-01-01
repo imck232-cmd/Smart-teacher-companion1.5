@@ -50,10 +50,13 @@ const GradeSheet: React.FC<{ onBack: () => void }> = ({ onBack }) => {
     const [analyticsStartDate, setAnalyticsStartDate] = useState('');
     const [analyticsEndDate, setAnalyticsEndDate] = useState('');
 
-    // Helper to prevent Objects from crashing React
+    // Helper to prevent Objects from crashing React (Error #31)
     const safeString = (val: any): string => {
-        if (typeof val === 'string' || typeof val === 'number') return String(val);
-        return '';
+        if (val === null || val === undefined) return '';
+        if (typeof val === 'string') return val;
+        if (typeof val === 'number') return String(val);
+        if (React.isValidElement(val)) return ''; 
+        return String(val);
     };
 
     useEffect(() => {
@@ -247,7 +250,6 @@ const GradeSheet: React.FC<{ onBack: () => void }> = ({ onBack }) => {
         <div>
             <ToolHeader title="كشف الدرجات" onBack={onBack} />
 
-            {/* Controls (Hidden on Print) */}
             <div className="neumorphic-outset p-4 mb-6 flex flex-wrap justify-between items-center gap-4 no-print">
                 <select 
                     value={currentSheetId || ''}
@@ -272,7 +274,6 @@ const GradeSheet: React.FC<{ onBack: () => void }> = ({ onBack }) => {
                 </div>
             </div>
 
-            {/* New Sheet Modal */}
             {isCreatingNewSheet && (
                 <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4 no-print" onClick={() => setIsCreatingNewSheet(false)}>
                     <div className="bg-white rounded-xl p-6 w-full max-w-lg shadow-2xl" onClick={e => e.stopPropagation()}>
@@ -293,22 +294,16 @@ const GradeSheet: React.FC<{ onBack: () => void }> = ({ onBack }) => {
                 </div>
             )}
 
-            {/* Main Content - A4 Container for Print */}
             {activeSheet ? (
-                // Added overflow-x-auto for mobile visibility
                 <div className="overflow-x-auto w-full shadow-sm rounded mb-4">
                     <div className="export-container" id="grades-export">
-                        {/* Report Header - 3 Columns */}
                         <div className="mb-6 border-b-2 border-black pb-4">
                             <div className="grid grid-cols-3 items-center">
-                                {/* Right */}
                                 <div className="text-right space-y-1 font-bold text-sm">
                                     <p>وزارة التربية والتعليم</p>
                                     <p>المدرسة: <input value={safeString(activeInfo.school)} onChange={e => updateInfoField('school', e.target.value)} className="border-b border-gray-400 focus:outline-none w-40 text-black bg-transparent font-bold" /></p>
                                     <p>المادة: <input value={safeString(activeInfo.subject)} onChange={e => updateInfoField('subject', e.target.value)} className="border-b border-gray-400 focus:outline-none w-40 text-black bg-transparent font-bold" /></p>
                                 </div>
-                                
-                                {/* Center */}
                                 <div className="text-center">
                                     <h2 className="text-xl font-black underline mb-2">كشف رصد الدرجات</h2>
                                     <input 
@@ -318,8 +313,6 @@ const GradeSheet: React.FC<{ onBack: () => void }> = ({ onBack }) => {
                                         className="text-center font-bold text-lg border-b-2 border-black focus:outline-none w-full bg-transparent text-black" 
                                     />
                                 </div>
-                                
-                                {/* Left */}
                                 <div className="text-left space-y-1 font-bold text-sm" dir="ltr">
                                     <p>Class: <input value={safeString(activeInfo.class)} onChange={e => updateInfoField('class', e.target.value)} className="border-b border-gray-400 focus:outline-none w-20 text-center text-black bg-transparent font-bold" /> / <input value={safeString(activeInfo.division)} onChange={e => updateInfoField('division', e.target.value)} className="border-b border-gray-400 focus:outline-none w-12 text-center text-black bg-transparent font-bold" /></p>
                                     <p>Date: <input type="date" value={safeString(activeInfo.date)} onChange={e => updateInfoField('date', e.target.value)} className="border-b border-gray-400 focus:outline-none text-black bg-transparent font-bold" /></p>
@@ -327,13 +320,11 @@ const GradeSheet: React.FC<{ onBack: () => void }> = ({ onBack }) => {
                             </div>
                         </div>
 
-                        {/* Table */}
                         <div className="overflow-x-auto">
                             <table className="w-full table-fixed text-center border-collapse text-black text-[9px] sm:text-xs border-2 border-black">
                                 <thead>
                                     <tr className="bg-gray-100">
                                         <th className="border border-black p-0 w-6">م</th>
-                                        {/* REDUCED WIDTH FOR MOBILE DENSITY */}
                                         <th className="border border-black p-1 text-right w-16 truncate">اسم الطالب</th>
                                         <th className="border border-black p-1 w-8">مواظبة</th>
                                         <th className="border border-black p-1 w-8">شفوي</th>
@@ -373,7 +364,6 @@ const GradeSheet: React.FC<{ onBack: () => void }> = ({ onBack }) => {
                                         </tr>
                                     ))}
                                     
-                                    {/* Add Student Row (No Print) */}
                                     <tr className="no-print bg-blue-50">
                                         <td className="border border-blue-200 p-0">+</td>
                                         <td className="border border-blue-200 p-1" colSpan={7}>
@@ -404,7 +394,6 @@ const GradeSheet: React.FC<{ onBack: () => void }> = ({ onBack }) => {
                             </table>
                         </div>
 
-                        {/* Footer */}
                         <div className="mt-8 flex justify-between items-end text-black pt-4 border-t-2 border-black text-center text-xs">
                             <div>
                                 <p className="mb-4 font-bold">معلم المادة</p>
@@ -425,14 +414,12 @@ const GradeSheet: React.FC<{ onBack: () => void }> = ({ onBack }) => {
                 <div className="text-center py-10"><p>ابدأ بإنشاء كشف جديد</p></div>
             )}
 
-            {/* Bottom Controls (No Print) */}
             <div className="mt-6 flex gap-2 flex-wrap items-center no-print">
                 <button onClick={() => setShowIndicators(!showIndicators)} className="bg-indigo-500 text-white px-4 py-2 rounded font-bold">المؤشرات</button>
                 <div className="flex-grow"></div>
                 {activeSheet && <ActionButtons textToCopy="" elementIdToPrint="grades-export" />}
             </div>
 
-            {/* Analytics Component (Hidden on Print) */}
             {showIndicators && (
                 <div className="mt-6 p-4 bg-white border rounded shadow animate-fadeIn no-print">
                     <h3 className="font-bold text-lg mb-3 text-indigo-800">تحليل النتائج ({analytics.count} كشوفات)</h3>
