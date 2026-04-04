@@ -66,6 +66,19 @@ const ActionButtons: React.FC<ActionButtonsProps> = ({ textToCopy, elementIdToPr
             backgroundColor: '#ffffff', // Force white background for visibility
             logging: false,
             ignoreElements: (node: any) => node.classList?.contains('export-ignore'),
+            onclone: (clonedDoc: Document) => {
+                const el = clonedDoc.getElementById(elementIdToPrint);
+                if (el) {
+                    const scrollables = el.querySelectorAll('.overflow-x-auto, .overflow-y-auto, .overflow-hidden, .overflow-auto');
+                    scrollables.forEach((scrollable: any) => {
+                        scrollable.style.overflow = 'visible';
+                        scrollable.style.maxWidth = 'none';
+                        scrollable.style.maxHeight = 'none';
+                    });
+                    el.style.width = 'max-content';
+                    el.style.height = 'max-content';
+                }
+            }
         });
         
         // Use Blob and JPEG for mobile stability (avoiding large base64 strings)
@@ -110,27 +123,53 @@ const ActionButtons: React.FC<ActionButtonsProps> = ({ textToCopy, elementIdToPr
         const scale = isMobile ? 1.0 : 2.0;
 
         const canvas = await html2canvas(input, {
-            scale: scale,
+            scale: scale * 1.5, // Increase scale for better text clarity
             useCORS: true,
             allowTaint: true,
             backgroundColor: '#ffffff', // Force white background
             logging: false,
+            onclone: (clonedDoc: Document) => {
+                const el = clonedDoc.getElementById(elementIdToPrint);
+                if (el) {
+                    // Remove overflow to ensure full capture
+                    const scrollables = el.querySelectorAll('.overflow-x-auto, .overflow-y-auto, .overflow-hidden, .overflow-auto');
+                    scrollables.forEach((scrollable: any) => {
+                        scrollable.style.overflow = 'visible';
+                        scrollable.style.maxWidth = 'none';
+                        scrollable.style.maxHeight = 'none';
+                    });
+                    el.style.width = 'max-content';
+                    el.style.height = 'max-content';
+                }
+            }
         });
 
-        // Use JPEG compression for PDF image data to significantly reduce size
-        const imgData = canvas.toDataURL('image/jpeg', 0.75);
+        // Use PNG for better text clarity instead of JPEG
+        const imgData = canvas.toDataURL('image/png');
         const pdf = new jspdf.jsPDF({
-          orientation: 'portrait',
+          orientation: 'landscape', // Landscape is better for wide tables
           unit: 'pt',
           format: 'a4'
         });
         
         const imgProps = pdf.getImageProperties(imgData);
         const pdfWidth = pdf.internal.pageSize.getWidth();
-        const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
+        const pdfHeight = pdf.internal.pageSize.getHeight();
         
-        // Add image with compression alias 'FAST' for better performance
-        pdf.addImage(imgData, 'JPEG', 0, 0, pdfWidth, pdfHeight, undefined, 'FAST');
+        const ratio = imgProps.width / imgProps.height;
+        let finalWidth = pdfWidth;
+        let finalHeight = pdfWidth / ratio;
+        
+        // If it's taller than the page, scale it down to fit
+        if (finalHeight > pdfHeight) {
+            finalHeight = pdfHeight;
+            finalWidth = finalHeight * ratio;
+        }
+        
+        const xOffset = (pdfWidth - finalWidth) / 2;
+        
+        // Add image
+        pdf.addImage(imgData, 'PNG', xOffset, 0, finalWidth, finalHeight);
         pdf.save('document.pdf');
     } catch (error) {
         console.error("PDF generation failed", error);

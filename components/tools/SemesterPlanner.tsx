@@ -171,14 +171,13 @@ const SemesterPlanner: React.FC<{ onBack: () => void }> = ({ onBack }) => {
                     scale: 3, 
                     useCORS: true,
                     backgroundColor: '#ffffff',
-                    width: 1123, // 297mm at 96dpi
-                    height: 794, // 210mm at 96dpi
                     logging: false,
-                    onclone: (clonedDoc) => {
+                    onclone: (clonedDoc: Document) => {
                         const el = clonedDoc.querySelector('.semester-plan-page') as HTMLElement;
                         if (el) {
                             el.style.width = '297mm';
-                            el.style.height = '210mm';
+                            el.style.height = 'auto';
+                            el.style.minHeight = '210mm';
                             el.style.fontSize = '13pt';
                             el.style.color = '#000000';
                         }
@@ -189,8 +188,22 @@ const SemesterPlanner: React.FC<{ onBack: () => void }> = ({ onBack }) => {
                 const pdfWidth = pdf.internal.pageSize.getWidth();
                 const pdfHeight = pdf.internal.pageSize.getHeight();
                 
+                const imgProps = pdf.getImageProperties(imgData);
+                const ratio = imgProps.width / imgProps.height;
+                
+                let finalWidth = pdfWidth;
+                let finalHeight = pdfWidth / ratio;
+                
+                // If the content is taller than A4, scale it down to fit
+                if (finalHeight > pdfHeight) {
+                    finalHeight = pdfHeight;
+                    finalWidth = finalHeight * ratio;
+                }
+                
+                const xOffset = (pdfWidth - finalWidth) / 2;
+                
                 if (i > 0) pdf.addPage();
-                pdf.addImage(imgData, 'JPEG', 0, 0, pdfWidth, pdfHeight, undefined, 'FAST');
+                pdf.addImage(imgData, 'JPEG', xOffset, 0, finalWidth, finalHeight, undefined, 'FAST');
             }
             pdf.save(`خطة_توزيع_مقرر_${meta.subject}.pdf`);
         } catch (e) {
@@ -202,9 +215,28 @@ const SemesterPlanner: React.FC<{ onBack: () => void }> = ({ onBack }) => {
     };
 
     // --- Pagination Calculation ---
-    const paginatedRows = [];
-    for (let i = 0; i < rows.length; i += ROWS_PER_PAGE) {
-        paginatedRows.push(rows.slice(i, i + ROWS_PER_PAGE));
+    const paginatedRows: SemesterRow[][] = [];
+    let currentPage: SemesterRow[] = [];
+    let currentPageCharCount = 0;
+    const MAX_CHARS_PER_PAGE = 800; // Conservative limit for 13pt font on A4 landscape
+
+    for (let i = 0; i < rows.length; i++) {
+        const row = rows[i];
+        // Calculate approximate text length of the row
+        const rowCharCount = (row.lessonTitle + row.objectives + row.teachingMethods + row.educationalAids + row.activitiesIn + row.activitiesOut + row.values + row.evaluation + row.notes).length;
+        
+        // If adding this row exceeds the limit AND the page is not empty, OR if the page already has 4 rows
+        if (currentPage.length > 0 && (currentPageCharCount + rowCharCount > MAX_CHARS_PER_PAGE || currentPage.length >= 4)) {
+            paginatedRows.push(currentPage);
+            currentPage = [];
+            currentPageCharCount = 0;
+        }
+        
+        currentPage.push(row);
+        currentPageCharCount += rowCharCount;
+    }
+    if (currentPage.length > 0) {
+        paginatedRows.push(currentPage);
     }
     if (paginatedRows.length === 0) paginatedRows.push([]);
 
@@ -299,15 +331,14 @@ const SemesterPlanner: React.FC<{ onBack: () => void }> = ({ onBack }) => {
                     {paginatedRows.map((pageRows, pageIdx) => (
                         <div 
                             key={pageIdx}
-                            className="semester-plan-page bg-white text-black shadow-2xl p-[12mm] h-[210mm] w-[297mm] border-[2px] border-black relative flex flex-col shrink-0"
+                            className="semester-plan-page bg-white text-black shadow-2xl p-[12mm] min-h-[210mm] w-[297mm] border-[2px] border-black relative flex flex-col shrink-0"
                             style={{ 
                                 direction: 'rtl', 
                                 textAlign: 'right', 
                                 fontFamily: "'Times New Roman', serif",
                                 fontSize: '13pt', 
                                 color: '#000000',
-                                boxSizing: 'border-box',
-                                overflow: 'hidden' 
+                                boxSizing: 'border-box'
                             }}
                         >
                             {/* Page Header Section */}
