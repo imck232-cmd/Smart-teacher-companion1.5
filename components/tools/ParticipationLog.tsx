@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import ToolHeader from '../ToolHeader';
 import ActionButtons from '../ActionButtons';
@@ -7,10 +6,7 @@ import ActionButtons from '../ActionButtons';
 interface StudentParticipation {
     id: string;
     name: string;
-    score1: number;
-    score2: number;
-    score3: number;
-    score4: number;
+    scores: number[];
     total: number;
 }
 
@@ -18,17 +14,17 @@ interface SessionLog {
     id: string;
     date: string;
     subject: string;
-    className: string; // e.g. 1st Secondary
-    schoolYear: string; // e.g. 1445
-    recordTitle: string; // New: Specific title for the log
+    className: string;
+    schoolYear: string;
+    recordTitle: string;
     students: StudentParticipation[];
-    isExpanded?: boolean; // UI state
+    isExpanded?: boolean;
 }
 
 interface AnalyticsData {
     name: string;
     totalScore: number;
-    count: number; // Number of sessions present
+    count: number;
     average: number;
 }
 
@@ -39,6 +35,7 @@ const ParticipationLog: React.FC<{ onBack: () => void }> = ({ onBack }) => {
     // Editing State
     const [editingStudentId, setEditingStudentId] = useState<string | null>(null);
     const [tempStudentName, setTempStudentName] = useState('');
+    const [tempScores, setTempScores] = useState<number[]>([]);
     const [teacherName, setTeacherName] = useState('');
     const [schoolName, setSchoolName] = useState('');
 
@@ -55,13 +52,19 @@ const ParticipationLog: React.FC<{ onBack: () => void }> = ({ onBack }) => {
 
     // Analytics State
     const [showAnalytics, setShowAnalytics] = useState(false);
+    const [showAnalysis, setShowAnalysis] = useState(false);
     const [analyticsStartDate, setAnalyticsStartDate] = useState('');
     const [analyticsEndDate, setAnalyticsEndDate] = useState('');
-    const [analyticsCriterion, setAnalyticsCriterion] = useState<number | 'total'>('total'); // 0-3 for specific columns, 'total' for sum
+    const [analyticsCriterion, setAnalyticsCriterion] = useState<number | 'total'>('total');
     const [analyticsSort, setAnalyticsSort] = useState<'desc' | 'asc'>('desc');
 
     // Customizable Headers State
     const [headers, setHeaders] = useState<string[]>(['المشاركة', 'دفتر الحصة', 'دفتر الواجب', 'السلوك']);
+    
+    // Import State
+    const [showImportModal, setShowImportModal] = useState(false);
+    const [importText, setImportText] = useState('');
+    const [importSessionId, setImportSessionId] = useState<string | null>(null);
 
     // Helper to prevent Objects from crashing React (Error #31)
     const safeString = (val: any): string => {
@@ -107,15 +110,20 @@ const ParticipationLog: React.FC<{ onBack: () => void }> = ({ onBack }) => {
                         schoolYear: safeString(s.schoolYear),
                         recordTitle: safeString(s.recordTitle || 'سجل المشاركة اليومي'),
                         isExpanded: Boolean(s.isExpanded),
-                        students: Array.isArray(s.students) ? s.students.map((st: any) => ({
-                            id: safeString(st.id || Math.random()),
-                            name: safeString(st.name || 'طالب'),
-                            score1: Number(st.score1) || 0,
-                            score2: Number(st.score2) || 0,
-                            score3: Number(st.score3) || 0,
-                            score4: Number(st.score4) || 0,
-                            total: Number(st.total) || 0
-                        })) : []
+                        students: Array.isArray(s.students) ? s.students.map((st: any) => {
+                            const scores = st.scores || [
+                                Number(st.score1) || 0,
+                                Number(st.score2) || 0,
+                                Number(st.score3) || 0,
+                                Number(st.score4) || 0
+                            ];
+                            return {
+                                id: safeString(st.id || Math.random()),
+                                name: safeString(st.name || 'طالب'),
+                                scores: scores,
+                                total: Number(st.total) || scores.reduce((a: number, b: number) => a + b, 0)
+                            };
+                        }) : []
                     }));
                     setSessions(cleanSessions);
                 }
@@ -168,7 +176,7 @@ const ParticipationLog: React.FC<{ onBack: () => void }> = ({ onBack }) => {
                 initialStudents = sourceSession.students.map(s => ({
                     id: Date.now().toString() + Math.random().toString().substr(2, 5),
                     name: s.name,
-                    score1: 0, score2: 0, score3: 0, score4: 0,
+                    scores: new Array(headers.length).fill(0),
                     total: 0
                 }));
             }
@@ -194,7 +202,7 @@ const ParticipationLog: React.FC<{ onBack: () => void }> = ({ onBack }) => {
         const newStudent: StudentParticipation = {
             id: Date.now().toString(),
             name: newStudentName,
-            score1: 0, score2: 0, score3: 0, score4: 0,
+            scores: new Array(headers.length).fill(0),
             total: 0
         };
 
@@ -207,9 +215,32 @@ const ParticipationLog: React.FC<{ onBack: () => void }> = ({ onBack }) => {
         setNewStudentName('');
     };
 
+    const handleBulkImport = () => {
+        if (!importText.trim() || !importSessionId) return;
+        const names = importText.split('\n').map(n => n.trim()).filter(n => n);
+        const newStudents: StudentParticipation[] = names.map((name, idx) => ({
+            id: Date.now().toString() + idx,
+            name,
+            scores: new Array(headers.length).fill(0),
+            total: 0
+        }));
+
+        setSessions(prev => prev.map(session => {
+            if (session.id === importSessionId) {
+                return { ...session, students: [...session.students, ...newStudents] };
+            }
+            return session;
+        }));
+        
+        setImportText('');
+        setShowImportModal(false);
+        setImportSessionId(null);
+    };
+
     const handleStartEditStudent = (student: StudentParticipation) => {
         setEditingStudentId(student.id);
         setTempStudentName(student.name);
+        setTempScores([...student.scores]);
     };
 
     const handleSaveStudentName = (sessionId: string) => {
@@ -218,7 +249,13 @@ const ParticipationLog: React.FC<{ onBack: () => void }> = ({ onBack }) => {
                 if (session.id === sessionId) {
                     return {
                         ...session,
-                        students: session.students.map(s => s.id === editingStudentId ? { ...s, name: tempStudentName } : s)
+                        students: session.students.map(s => {
+                            if (s.id === editingStudentId) {
+                                const total = tempScores.reduce((a, b) => a + (Number(b) || 0), 0);
+                                return { ...s, name: tempStudentName, scores: tempScores, total };
+                            }
+                            return s;
+                        })
                     };
                 }
                 return session;
@@ -226,6 +263,7 @@ const ParticipationLog: React.FC<{ onBack: () => void }> = ({ onBack }) => {
         }
         setEditingStudentId(null);
         setTempStudentName('');
+        setTempScores([]);
     };
 
     const handleDeleteStudent = (sessionId: string, studentId: string) => {
@@ -242,17 +280,17 @@ const ParticipationLog: React.FC<{ onBack: () => void }> = ({ onBack }) => {
         }
     };
 
-    const updateScore = (sessionId: string, studentId: string, field: keyof StudentParticipation, increment: boolean) => {
+    const updateScore = (sessionId: string, studentId: string, index: number, increment: boolean) => {
         setSessions(prev => prev.map(session => {
             if (session.id === sessionId) {
                 const updatedStudents = session.students.map(student => {
                     if (student.id === studentId) {
-                        const currentVal = student[field] as number;
+                        const currentVal = student.scores[index] || 0;
                         const newVal = increment ? currentVal + 1 : Math.max(0, currentVal - 1);
-                        
-                        const updatedStudent = { ...student, [field]: newVal };
-                        updatedStudent.total = updatedStudent.score1 + updatedStudent.score2 + updatedStudent.score3 + updatedStudent.score4;
-                        return updatedStudent;
+                        const newScores = [...student.scores];
+                        newScores[index] = newVal;
+                        const total = newScores.reduce((a, b) => a + b, 0);
+                        return { ...student, scores: newScores, total };
                     }
                     return student;
                 });
@@ -260,6 +298,35 @@ const ParticipationLog: React.FC<{ onBack: () => void }> = ({ onBack }) => {
             }
             return session;
         }));
+    };
+
+    const handleAddColumn = () => {
+        const newHeader = prompt('أدخل اسم العمود الجديد:');
+        if (newHeader && newHeader.trim()) {
+            setHeaders([...headers, newHeader.trim()]);
+            setSessions(prev => prev.map(session => ({
+                ...session,
+                students: session.students.map(s => ({
+                    ...s,
+                    scores: [...s.scores, 0]
+                }))
+            })));
+        }
+    };
+
+    const handleRemoveColumn = () => {
+        if (headers.length === 0) return;
+        if (window.confirm('هل أنت متأكد من حذف العمود الأخير؟')) {
+            setHeaders(headers.slice(0, -1));
+            setSessions(prev => prev.map(session => ({
+                ...session,
+                students: session.students.map(s => {
+                    const newScores = s.scores.slice(0, -1);
+                    const total = newScores.reduce((a, b) => a + b, 0);
+                    return { ...s, scores: newScores, total };
+                })
+            })));
+        }
     };
 
     const handleRenameHeader = (index: number) => {
@@ -288,8 +355,7 @@ const ParticipationLog: React.FC<{ onBack: () => void }> = ({ onBack }) => {
                 if (analyticsCriterion === 'total') {
                     scoreToAdd = student.total;
                 } else {
-                    const keys: (keyof StudentParticipation)[] = ['score1', 'score2', 'score3', 'score4'];
-                    scoreToAdd = student[keys[analyticsCriterion]] as number;
+                    scoreToAdd = student.scores[analyticsCriterion as number] || 0;
                 }
                 studentMap[student.name].totalScore += scoreToAdd;
                 studentMap[student.name].count += 1;
@@ -305,9 +371,112 @@ const ParticipationLog: React.FC<{ onBack: () => void }> = ({ onBack }) => {
         return result;
     };
 
-    const analyticsData = getAnalyticsData();
+    const getComprehensiveAnalysis = () => {
+        const filteredSessions = sessions.filter(s => {
+            if (analyticsStartDate && s.date < analyticsStartDate) return false;
+            if (analyticsEndDate && s.date > analyticsEndDate) return false;
+            return true;
+        });
 
-    const renderScoreBtn = (sessionId: string, studentId: string, score: number, field: keyof StudentParticipation) => {
+        if (filteredSessions.length === 0) return null;
+
+        let totalStudents = 0;
+        let totalScoreSum = 0;
+        let passedStudents = 0;
+        let maxScore = -Infinity;
+        let minScore = Infinity;
+        
+        const studentCategories = {
+            excellent: 0,
+            veryGood: 0,
+            good: 0,
+            acceptable: 0,
+            weak: 0
+        };
+
+        let absoluteMaxScore = 0;
+        filteredSessions.forEach(session => {
+            session.students.forEach(student => {
+                if (student.total > absoluteMaxScore) absoluteMaxScore = student.total;
+            });
+        });
+        if (absoluteMaxScore === 0) absoluteMaxScore = 1;
+
+        filteredSessions.forEach(session => {
+            session.students.forEach(student => {
+                totalStudents++;
+                totalScoreSum += student.total;
+                
+                if (student.total > maxScore) maxScore = student.total;
+                if (student.total < minScore) minScore = student.total;
+
+                const percentage = (student.total / absoluteMaxScore) * 100;
+                if (percentage >= 90) studentCategories.excellent++;
+                else if (percentage >= 80) studentCategories.veryGood++;
+                else if (percentage >= 70) studentCategories.good++;
+                else if (percentage >= 60) studentCategories.acceptable++;
+                else studentCategories.weak++;
+
+                if (percentage >= 60) passedStudents++;
+            });
+        });
+
+        if (minScore === Infinity) minScore = 0;
+        if (maxScore === -Infinity) maxScore = 0;
+
+        const average = totalStudents > 0 ? (totalScoreSum / totalStudents).toFixed(2) : 0;
+        const passRate = totalStudents > 0 ? ((passedStudents / totalStudents) * 100).toFixed(1) : 0;
+        const failRate = totalStudents > 0 ? (100 - Number(passRate)).toFixed(1) : 0;
+        const range = maxScore - minScore;
+
+        const columnStats = headers.map((header, colIndex) => {
+            let colTotal = 0;
+            let colMax = 0;
+            let colCount = 0;
+            let zeroCount = 0;
+
+            filteredSessions.forEach(session => {
+                session.students.forEach(student => {
+                    const score = student.scores[colIndex] || 0;
+                    colTotal += score;
+                    if (score > colMax) colMax = score;
+                    if (score === 0) zeroCount++;
+                    colCount++;
+                });
+            });
+
+            const colAvg = colCount > 0 ? (colTotal / colCount) : 0;
+            const difficulty = colMax > 0 ? (colAvg / colMax) * 100 : 0;
+            
+            let difficultyLabel = 'متوسط';
+            if (difficulty > 80) difficultyLabel = 'سهل جداً';
+            else if (difficulty < 30) difficultyLabel = 'صعب جداً';
+
+            return {
+                name: header,
+                average: colAvg.toFixed(2),
+                difficultyLabel,
+                zeroCount
+            };
+        });
+
+        return {
+            average,
+            passRate,
+            failRate,
+            range,
+            maxScore,
+            minScore,
+            studentCategories,
+            columnStats,
+            totalStudents
+        };
+    };
+
+    const analyticsData = getAnalyticsData();
+    const compAnalysis = getComprehensiveAnalysis();
+
+    const renderScoreBtn = (sessionId: string, studentId: string, score: number, index: number) => {
         let colorClass = 'bg-white text-black border border-black';
         if (score >= 1) colorClass = 'bg-yellow-50 text-black border border-black';
         if (score >= 3) colorClass = 'bg-green-50 text-black border border-black';
@@ -315,8 +484,8 @@ const ParticipationLog: React.FC<{ onBack: () => void }> = ({ onBack }) => {
         
         return (
             <button 
-                onClick={() => updateScore(sessionId, studentId, field, true)}
-                onContextMenu={(e) => { e.preventDefault(); updateScore(sessionId, studentId, field, false); }}
+                onClick={() => updateScore(sessionId, studentId, index, true)}
+                onContextMenu={(e) => { e.preventDefault(); updateScore(sessionId, studentId, index, false); }}
                 className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold transition-all duration-100 active:scale-90 select-none ${colorClass}`}
             >
                 {String(score)}
@@ -335,6 +504,9 @@ const ParticipationLog: React.FC<{ onBack: () => void }> = ({ onBack }) => {
                     </button>
                     <button onClick={() => setShowAnalytics(!showAnalytics)} className="neumorphic-button bg-indigo-600 text-white px-4 py-2 font-bold flex-grow md:flex-grow-0">
                         <i className="fas fa-chart-pie ml-2"></i> المؤشرات
+                    </button>
+                    <button onClick={() => setShowAnalysis(!showAnalysis)} className="neumorphic-button bg-purple-600 text-white px-4 py-2 font-bold flex-grow md:flex-grow-0">
+                        تحليل النتائج
                     </button>
                 </div>
                 <div className="flex items-center gap-2 bg-white p-2 rounded-lg border border-gray-200 w-full md:w-auto">
@@ -374,8 +546,37 @@ const ParticipationLog: React.FC<{ onBack: () => void }> = ({ onBack }) => {
                 </div>
             )}
 
+            {showImportModal && (
+                <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4 no-print" onClick={() => setShowImportModal(false)}>
+                    <div className="bg-white rounded-xl p-6 w-full max-w-lg shadow-2xl" onClick={e => e.stopPropagation()}>
+                        <h3 className="text-xl font-bold text-blue-800 mb-4 border-b pb-2">استيراد أسماء الطلاب</h3>
+                        <p className="text-sm text-gray-600 mb-2">قم بلصق أسماء الطلاب هنا، كل اسم في سطر جديد:</p>
+                        <textarea 
+                            value={importText}
+                            onChange={(e) => setImportText(e.target.value)}
+                            className="w-full h-48 p-2 border rounded text-black bg-white mb-4"
+                            placeholder="أحمد محمد&#10;خالد عبدالله&#10;سعيد علي..."
+                        />
+                        <div className="flex justify-end gap-2">
+                            <button onClick={() => setShowImportModal(false)} className="px-4 py-2 rounded bg-gray-500 text-white font-bold">إلغاء</button>
+                            <button onClick={handleBulkImport} className="px-4 py-2 rounded bg-blue-600 text-white font-bold">استيراد</button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
             {showAnalytics && (
                 <div className="neumorphic-outset p-6 mb-8 bg-indigo-50/50 border border-indigo-200 animate-fadeIn no-print">
+                    <h3 className="font-bold text-lg mb-3 text-indigo-800">لوحة المؤشرات (Analytics Panel)</h3>
+                    
+                    {compAnalysis && (
+                        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm mb-6">
+                            <div className="p-2 bg-green-50 border-green-200 border rounded"><h4 className="font-bold text-green-800">الأوائل</h4><ul>{analyticsData.slice(0, 5).map(s => <li key={s.name}>{safeString(s.name)} ({String(s.totalScore)})</li>)}</ul></div>
+                            <div className="p-2 bg-red-50 border-red-200 border rounded"><h4 className="font-bold text-red-800">بحاجة لدعم</h4><ul>{[...analyticsData].reverse().slice(0, 5).map(s => <li key={s.name}>{safeString(s.name)} ({String(s.totalScore)})</li>)}</ul></div>
+                            <div className="p-2 bg-blue-50 border-blue-200 border rounded flex items-center justify-center text-center"><div><h4 className="font-bold text-blue-800">المتوسط العام</h4><p className="text-2xl font-black">{compAnalysis.average}</p></div></div>
+                        </div>
+                    )}
+
                     <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
                         <input type="date" value={analyticsStartDate} onChange={e => setAnalyticsStartDate(e.target.value)} className="bg-white text-black p-2 rounded border" />
                         <input type="date" value={analyticsEndDate} onChange={e => setAnalyticsEndDate(e.target.value)} className="bg-white text-black p-2 rounded border" />
@@ -388,7 +589,7 @@ const ParticipationLog: React.FC<{ onBack: () => void }> = ({ onBack }) => {
                             <button onClick={() => setAnalyticsSort('asc')} className={`flex-1 rounded font-bold ${analyticsSort === 'asc' ? 'bg-indigo-500 text-white' : 'bg-white'}`}>الأدنى</button>
                         </div>
                     </div>
-                    <div className="overflow-x-auto bg-white rounded-xl shadow-sm">
+                    <div className="overflow-x-auto bg-white rounded-xl shadow-sm mb-6">
                         <table className="w-full text-center">
                             <thead className="bg-indigo-100 text-indigo-900"><tr><th className="p-3">#</th><th className="p-3 text-right">الطالب</th><th className="p-3">النقاط</th></tr></thead>
                             <tbody>
@@ -398,6 +599,108 @@ const ParticipationLog: React.FC<{ onBack: () => void }> = ({ onBack }) => {
                             </tbody>
                         </table>
                     </div>
+                </div>
+            )}
+
+            {showAnalysis && (
+                <div className="mt-6 p-6 bg-white border rounded shadow animate-fadeIn no-print mb-8">
+                    <h3 className="font-bold text-xl mb-4 text-purple-800 border-b pb-2">تحليل النتائج الشامل</h3>
+                    
+                    <div className="flex gap-4 mb-6">
+                        <div className="flex flex-col">
+                            <label className="text-xs font-bold text-gray-600 mb-1">تاريخ البداية</label>
+                            <input type="date" value={analyticsStartDate} onChange={e => setAnalyticsStartDate(e.target.value)} className="p-2 border rounded text-black bg-white" />
+                        </div>
+                        <div className="flex flex-col">
+                            <label className="text-xs font-bold text-gray-600 mb-1">تاريخ النهاية</label>
+                            <input type="date" value={analyticsEndDate} onChange={e => setAnalyticsEndDate(e.target.value)} className="p-2 border rounded text-black bg-white" />
+                        </div>
+                    </div>
+
+                    {compAnalysis ? (
+                        <div className="text-black text-sm leading-relaxed space-y-6">
+                            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                                <div className="bg-purple-50 p-4 rounded-lg border border-purple-200 text-center">
+                                    <h4 className="font-bold text-purple-800 mb-2">المتوسط الحسابي</h4>
+                                    <p className="text-2xl font-black text-purple-600">{compAnalysis.average}</p>
+                                </div>
+                                <div className="bg-green-50 p-4 rounded-lg border border-green-200 text-center">
+                                    <h4 className="font-bold text-green-800 mb-2">نسبة النجاح</h4>
+                                    <p className="text-2xl font-black text-green-600">{compAnalysis.passRate}%</p>
+                                </div>
+                                <div className="bg-red-50 p-4 rounded-lg border border-red-200 text-center">
+                                    <h4 className="font-bold text-red-800 mb-2">نسبة الرسوب</h4>
+                                    <p className="text-2xl font-black text-red-600">{compAnalysis.failRate}%</p>
+                                </div>
+                                <div className="bg-blue-50 p-4 rounded-lg border border-blue-200 text-center">
+                                    <h4 className="font-bold text-blue-800 mb-2">مدى التشتت</h4>
+                                    <p className="text-2xl font-black text-blue-600">{compAnalysis.range}</p>
+                                    <p className="text-xs text-gray-500 mt-1">أعلى: {compAnalysis.maxScore} | أقل: {compAnalysis.minScore}</p>
+                                </div>
+                            </div>
+
+                            <div>
+                                <h4 className="font-bold text-lg text-purple-700 border-b pb-2 mb-3">تصنيف الطلاب (الفئات)</h4>
+                                <div className="grid grid-cols-2 md:grid-cols-5 gap-2 text-center">
+                                    <div className="bg-gray-100 p-2 rounded border"><p className="font-bold text-green-700">ممتاز</p><p className="text-lg">{compAnalysis.studentCategories.excellent}</p></div>
+                                    <div className="bg-gray-100 p-2 rounded border"><p className="font-bold text-blue-700">جيد جداً</p><p className="text-lg">{compAnalysis.studentCategories.veryGood}</p></div>
+                                    <div className="bg-gray-100 p-2 rounded border"><p className="font-bold text-yellow-700">جيد</p><p className="text-lg">{compAnalysis.studentCategories.good}</p></div>
+                                    <div className="bg-gray-100 p-2 rounded border"><p className="font-bold text-orange-700">مقبول</p><p className="text-lg">{compAnalysis.studentCategories.acceptable}</p></div>
+                                    <div className="bg-gray-100 p-2 rounded border"><p className="font-bold text-red-700">ضعيف</p><p className="text-lg">{compAnalysis.studentCategories.weak}</p></div>
+                                </div>
+                            </div>
+
+                            <div>
+                                <h4 className="font-bold text-lg text-purple-700 border-b pb-2 mb-3">تحليل الأسئلة / المعايير</h4>
+                                <div className="overflow-x-auto">
+                                    <table className="w-full text-center border">
+                                        <thead className="bg-gray-100">
+                                            <tr><th className="p-2 border">المعيار</th><th className="p-2 border">المتوسط</th><th className="p-2 border">مستوى الصعوبة</th><th className="p-2 border">عدد الأصفار</th></tr>
+                                        </thead>
+                                        <tbody>
+                                            {compAnalysis.columnStats.map((stat, i) => (
+                                                <tr key={i} className="border-b">
+                                                    <td className="p-2 border font-bold">{stat.name}</td>
+                                                    <td className="p-2 border">{stat.average}</td>
+                                                    <td className="p-2 border">
+                                                        <span className={`px-2 py-1 rounded text-xs font-bold ${stat.difficultyLabel === 'سهل جداً' ? 'bg-green-100 text-green-800' : stat.difficultyLabel === 'صعب جداً' ? 'bg-red-100 text-red-800' : 'bg-blue-100 text-blue-800'}`}>
+                                                            {stat.difficultyLabel}
+                                                        </span>
+                                                    </td>
+                                                    <td className="p-2 border text-red-600 font-bold">{stat.zeroCount}</td>
+                                                </tr>
+                                            ))}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
+                                <div className="bg-orange-50 p-4 rounded-lg border border-orange-200">
+                                    <h4 className="font-bold text-orange-800 mb-2"><i className="fas fa-exclamation-triangle ml-2"></i>تحليل الفجوات التعليمية</h4>
+                                    <ul className="list-disc list-inside space-y-1 text-orange-900">
+                                        {compAnalysis.columnStats.filter(s => s.difficultyLabel === 'صعب جداً').length > 0 ? (
+                                            compAnalysis.columnStats.filter(s => s.difficultyLabel === 'صعب جداً').map((s, i) => (
+                                                <li key={i}>ضعف عام في معيار: <strong>{s.name}</strong></li>
+                                            ))
+                                        ) : <li>لا توجد فجوات حادة واضحة في المعايير.</li>}
+                                        {compAnalysis.studentCategories.weak > 0 && <li>يوجد <strong>{compAnalysis.studentCategories.weak}</strong> طلاب في فئة "ضعيف" يحتاجون لتدخل علاجي.</li>}
+                                    </ul>
+                                </div>
+                                <div className="bg-teal-50 p-4 rounded-lg border border-teal-200">
+                                    <h4 className="font-bold text-teal-800 mb-2"><i className="fas fa-lightbulb ml-2"></i>المقترحات والتوصيات</h4>
+                                    <ul className="list-disc list-inside space-y-1 text-teal-900">
+                                        {compAnalysis.studentCategories.weak > 0 && <li>تصميم حصص إضافية أو أوراق عمل مكثفة للطلاب في فئة "ضعيف".</li>}
+                                        {compAnalysis.studentCategories.excellent > 0 && <li>تقديم أنشطة إثرائية وتحديات لـ <strong>{compAnalysis.studentCategories.excellent}</strong> طلاب متفوقين.</li>}
+                                        {compAnalysis.columnStats.filter(s => s.difficultyLabel === 'صعب جداً').length > 0 && <li>إعادة شرح المعايير الصعبة باستخدام استراتيجيات تدريس مختلفة.</li>}
+                                        <li>تقديم تغذية راجعة فردية للطلاب للوقوف على نقاط الضعف.</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    ) : (
+                        <p className="text-center text-gray-500 py-4">لا توجد بيانات متاحة للتحليل في هذه الفترة.</p>
+                    )}
                 </div>
             )}
 
@@ -420,6 +723,11 @@ const ParticipationLog: React.FC<{ onBack: () => void }> = ({ onBack }) => {
 
                         {session.isExpanded && (
                             <div className="p-2 md:p-4">
+                                <div className="mb-2 flex gap-2 no-print justify-end">
+                                    <button onClick={handleAddColumn} className="bg-green-500 text-white px-3 py-1 rounded text-xs font-bold">إضافة عمود +</button>
+                                    <button onClick={handleRemoveColumn} className="bg-red-500 text-white px-3 py-1 rounded text-xs font-bold">حذف عمود -</button>
+                                </div>
+
                                 <div className="overflow-x-auto w-full shadow-sm rounded">
                                     <div className="export-container" id={`participation-export-${session.id}`}>
                                         <div className="mb-4 border-b-2 border-black pb-2">
@@ -475,21 +783,42 @@ const ParticipationLog: React.FC<{ onBack: () => void }> = ({ onBack }) => {
                                                                 {editingStudentId === student.id ? (
                                                                     <div className="flex gap-1">
                                                                         <input value={tempStudentName} onChange={e => setTempStudentName(e.target.value)} className="border border-black p-0 w-full text-black text-[9px]" autoFocus />
-                                                                        <button onClick={() => handleSaveStudentName(session.id)} className="text-green-600 text-[9px]"><i className="fas fa-check"></i></button>
                                                                     </div>
                                                                 ) : (
                                                                     safeString(student.name)
                                                                 )}
                                                             </td>
-                                                            <td className="border border-black p-0 h-full"><div className="flex justify-center items-center h-full py-1">{renderScoreBtn(session.id, student.id, student.score1, 'score1')}</div></td>
-                                                            <td className="border border-black p-0 h-full"><div className="flex justify-center items-center h-full py-1">{renderScoreBtn(session.id, student.id, student.score2, 'score2')}</div></td>
-                                                            <td className="border border-black p-0 h-full"><div className="flex justify-center items-center h-full py-1">{renderScoreBtn(session.id, student.id, student.score3, 'score3')}</div></td>
-                                                            <td className="border border-black p-0 h-full"><div className="flex justify-center items-center h-full py-1">{renderScoreBtn(session.id, student.id, student.score4, 'score4')}</div></td>
+                                                            {headers.map((_, i) => (
+                                                                <td key={i} className="border border-black p-0 h-full">
+                                                                    <div className="flex justify-center items-center h-full py-1">
+                                                                        {editingStudentId === student.id ? (
+                                                                            <input 
+                                                                                type="number" 
+                                                                                value={tempScores[i] === undefined ? '' : tempScores[i]} 
+                                                                                onChange={e => {
+                                                                                    const newScores = [...tempScores];
+                                                                                    newScores[i] = Number(e.target.value) || 0;
+                                                                                    setTempScores(newScores);
+                                                                                }} 
+                                                                                className="w-full text-center text-black text-[9px] border p-0"
+                                                                            />
+                                                                        ) : (
+                                                                            renderScoreBtn(session.id, student.id, student.scores[i] || 0, i)
+                                                                        )}
+                                                                    </div>
+                                                                </td>
+                                                            ))}
                                                             
-                                                            <td className="border border-black p-0 font-black bg-gray-100 align-middle">{String(student.total)}</td>
+                                                            <td className="border border-black p-0 font-black bg-gray-100 align-middle">
+                                                                {editingStudentId === student.id ? tempScores.reduce((a, b) => a + (Number(b) || 0), 0) : String(student.total)}
+                                                            </td>
                                                             <td className="border border-black p-0 no-print">
                                                                 <div className="flex justify-center gap-1">
-                                                                    <button onClick={() => handleStartEditStudent(student)} className="text-blue-600 hover:scale-110 text-[9px]"><i className="fas fa-pencil-alt"></i></button>
+                                                                    {editingStudentId === student.id ? (
+                                                                        <button onClick={() => handleSaveStudentName(session.id)} className="text-green-600 hover:scale-110 text-[9px]"><i className="fas fa-check"></i></button>
+                                                                    ) : (
+                                                                        <button onClick={() => handleStartEditStudent(student)} className="text-blue-600 hover:scale-110 text-[9px]"><i className="fas fa-pencil-alt"></i></button>
+                                                                    )}
                                                                     <button onClick={() => handleDeleteStudent(session.id, student.id)} className="text-red-600 hover:scale-110 text-[9px]"><i className="fas fa-trash"></i></button>
                                                                 </div>
                                                             </td>
@@ -527,6 +856,7 @@ const ParticipationLog: React.FC<{ onBack: () => void }> = ({ onBack }) => {
                                             onKeyDown={e => e.key === 'Enter' && handleAddStudentToSession(session.id)}
                                         />
                                         <button onClick={() => handleAddStudentToSession(session.id)} className="bg-blue-600 text-white px-4 rounded font-bold"><i className="fas fa-plus"></i></button>
+                                        <button onClick={() => { setImportSessionId(session.id); setShowImportModal(true); }} className="bg-indigo-500 text-white px-4 rounded font-bold">استيراد أسماء</button>
                                     </div>
                                     <ActionButtons textToCopy="" elementIdToPrint={`participation-export-${session.id}`} />
                                 </div>
