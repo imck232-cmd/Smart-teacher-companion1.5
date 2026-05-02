@@ -36,8 +36,7 @@ const Home: React.FC<HomeProps> = ({ onSelectTool, lastActiveTool, onOpenMostUse
         </h2>
       </div>
 
-      {/* Quick Action Buttons Grid */}
-      <div className="mb-8 px-2 grid grid-cols-1 sm:grid-cols-3 gap-3">
+      <div className="mb-4 px-2 grid grid-cols-1 sm:grid-cols-4 gap-3">
         {/* Today's Tasks (Distinct Color) */}
         <button 
             onClick={() => onSelectTool('importantDates')}
@@ -54,7 +53,7 @@ const Home: React.FC<HomeProps> = ({ onSelectTool, lastActiveTool, onOpenMostUse
             className="bg-gradient-to-br from-amber-500 to-orange-600 text-white font-bold py-4 rounded-2xl shadow-lg transform transition hover:scale-[1.02] flex flex-col items-center justify-center gap-2 relative overflow-hidden border-2 border-white/20"
         >
             <i className="fas fa-star text-yellow-200 text-2xl animate-pulse"></i>
-            <span className="text-lg">الأكثر استخداماً</span>
+            <span className="text-sm">الأكثر استخداماً</span>
         </button>
 
         {/* Daily Schedule (Distinct Color + Renamed) */}
@@ -64,7 +63,16 @@ const Home: React.FC<HomeProps> = ({ onSelectTool, lastActiveTool, onOpenMostUse
         >
             <span className="absolute -top-2 -right-2 bg-white text-blue-700 text-[10px] font-bold px-2 py-0.5 rounded-full border border-blue-200 shadow-sm animate-pulse">جديد</span>
             <i className="fas fa-chalkboard-teacher text-xl"></i>
-            <span className="text-sm">جدول الحصص اليومي</span>
+            <span className="text-sm">جدول الحصص</span>
+        </button>
+
+        {/* Alternative App Link (Orange Color) */}
+        <button 
+            onClick={() => window.open('https://ai.studio/apps/d890e19e-f4dc-4235-a24f-f353db54173b', '_blank', 'noopener,noreferrer')}
+            className="bg-gradient-to-br from-orange-400 to-red-500 text-white font-bold py-4 rounded-2xl shadow-lg transform transition hover:scale-[1.02] flex flex-col items-center justify-center gap-2 border-2 border-white/20 relative"
+        >
+            <i className="fas fa-external-link-alt text-xl text-white/90"></i>
+            <span className="text-sm text-center">رفيق المعلم الذكي البديل</span>
         </button>
       </div>
 
