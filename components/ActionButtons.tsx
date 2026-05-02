@@ -144,8 +144,8 @@ const ActionButtons: React.FC<ActionButtonsProps> = ({ textToCopy, elementIdToPr
             }
         });
 
-        // Use PNG for better text clarity instead of JPEG
-        const imgData = canvas.toDataURL('image/png');
+        // Use JPEG with high quality to avoid jsPDF format issues while maintaining clarity
+        const imgData = canvas.toDataURL('image/jpeg', 1.0);
         const pdf = new jspdf.jsPDF({
           orientation: 'landscape', // Landscape is better for wide tables
           unit: 'pt',
@@ -169,7 +169,7 @@ const ActionButtons: React.FC<ActionButtonsProps> = ({ textToCopy, elementIdToPr
         const xOffset = (pdfWidth - finalWidth) / 2;
         
         // Add image
-        pdf.addImage(imgData, 'PNG', xOffset, 0, finalWidth, finalHeight);
+        pdf.addImage(imgData, 'JPEG', xOffset, 0, finalWidth, finalHeight, undefined, 'FAST');
         pdf.save('document.pdf');
     } catch (error) {
         console.error("PDF generation failed", error);
