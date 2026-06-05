@@ -24,10 +24,10 @@ const SummarizeLesson = React.lazy(() => import('./components/tools/SummarizeLes
 const SemesterPlanner = React.lazy(() => import('./components/tools/SemesterPlanner'));
 const ClassSchedule = React.lazy(() => import('./components/tools/ClassSchedule'));
 const ImportantDates = React.lazy(() => import('./components/tools/ImportantDates'));
-import MostUsedTools from './components/tools/MostUsedTools';
+const MostUsedTools = React.lazy(() => import('./components/tools/MostUsedTools'));
+const SmartLessonPlanner = React.lazy(() => import('./components/tools/SmartLessonPlanner'));
 const ParticipationLog = React.lazy(() => import('./components/tools/ParticipationLog'));
 const GradeSheet = React.lazy(() => import('./components/tools/GradeSheet'));
-import SmartLessonPlanner from './components/tools/SmartLessonPlanner';
 const TranscribeAudio = React.lazy(() => import('./components/tools/TranscribeAudio'));
 const CurriculumDownloader = React.lazy(() => import('./components/tools/CurriculumDownloader'));
 const ExamFromContent = React.lazy(() => import('./components/tools/ExamFromContent'));
