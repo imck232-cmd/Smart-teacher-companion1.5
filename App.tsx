@@ -67,10 +67,35 @@ const App: React.FC = () => {
   const clickSoundRef = useRef<HTMLAudioElement | null>(null);
   const flashTimerRef = useRef<any>(null); 
 
+  const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
+
   const safeString = (val: any) => (typeof val === 'string' || typeof val === 'number') ? String(val) : '';
   const safeNumber = (val: any, fallback: number) => {
       const num = Number(val);
       return isNaN(num) ? fallback : num;
+  };
+
+  useEffect(() => {
+      const handler = (e: any) => {
+          e.preventDefault();
+          setDeferredPrompt(e);
+      };
+      window.addEventListener('beforeinstallprompt', handler);
+      return () => window.removeEventListener('beforeinstallprompt', handler);
+  }, []);
+
+  const handleInstallClick = () => {
+    if (deferredPrompt) {
+        deferredPrompt.prompt();
+        deferredPrompt.userChoice.then((choiceResult: any) => {
+            if (choiceResult.outcome === 'accepted') {
+                console.log('User accepted the A2HS prompt');
+            } else {
+                console.log('User dismissed the A2HS prompt');
+            }
+            setDeferredPrompt(null);
+        });
+    }
   };
 
   const loadPauseSettings = useCallback(() => {
@@ -273,6 +298,8 @@ const App: React.FC = () => {
         onToggleAppearance={() => { setIsAppearanceSettingsOpen(true); setIsSidebarOpen(false); }}
         onToggleSidebar={() => setIsSidebarOpen(!isSidebarOpen)} 
         tickerText={showTicker ? tickerText : undefined} 
+        onInstallPwa={handleInstallClick}
+        canInstallPwa={!!deferredPrompt}
       />
       
       {overlayImage && <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 animate-fadeIn pointer-events-none"><div className="relative max-w-4xl max-h-[90vh] p-4"><img src={overlayImage} alt="Flash" className="max-w-full max-h-full rounded-xl shadow-2xl border-4 border-white/10" /></div></div>}

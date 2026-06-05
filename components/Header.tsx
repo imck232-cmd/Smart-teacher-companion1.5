@@ -5,10 +5,12 @@ interface HeaderProps {
     onToggleThemeSwitcher: () => void;
     onToggleAppearance: () => void;
     onToggleSidebar: () => void;
-    tickerText?: string; // Added prop for ticker text
+    tickerText?: string; 
+    onInstallPwa?: () => void;
+    canInstallPwa?: boolean;
 }
 
-const Header: React.FC<HeaderProps> = ({ onToggleThemeSwitcher, onToggleAppearance, onToggleSidebar, tickerText }) => {
+const Header: React.FC<HeaderProps> = ({ onToggleThemeSwitcher, onToggleAppearance, onToggleSidebar, tickerText, onInstallPwa, canInstallPwa }) => {
   const [isCollapsed, setIsCollapsed] = useState(false);
   const whatsappUrl = "https://wa.me/967780804012";
 
@@ -66,6 +68,15 @@ const Header: React.FC<HeaderProps> = ({ onToggleThemeSwitcher, onToggleAppearan
         <h1 className="text-3xl md:text-5xl font-bold font-heading mb-2">
           رفيق المعلم الذكي
         </h1>
+        
+        {canInstallPwa && onInstallPwa && (
+            <button 
+                onClick={onInstallPwa}
+                className="mx-auto flex items-center justify-center gap-2 bg-gradient-to-r from-blue-600 to-indigo-600 text-white px-4 py-2 rounded-full font-bold shadow hover:shadow-lg transition-all text-sm mb-2 hover:scale-105"
+            >
+                <i className="fas fa-download"></i> إضافة رفيق المعلم إلى الشاشة الرئيسية (تطبيق)
+            </button>
+        )}
         
         {/* Combined Info Line: Author + WhatsApp */}
         <div className="flex flex-wrap items-center justify-center gap-3 text-sm md:text-base mt-2 opacity-90 mb-3">

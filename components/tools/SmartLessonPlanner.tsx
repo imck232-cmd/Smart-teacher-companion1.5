@@ -592,7 +592,7 @@ const SmartLessonPlanner: React.FC<{ onBack: () => void }> = ({ onBack }) => {
                     style={{ 
                         width: '210mm',
                         minHeight: '297mm',
-                        padding: '10mm',
+                        padding: '5mm',
                         border: '1px solid #ccc',
                         fontFamily: "'Times New Roman', serif",
                         fontSize: '11pt',

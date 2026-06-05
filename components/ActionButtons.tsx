@@ -76,7 +76,7 @@ const ActionButtons: React.FC<ActionButtonsProps> = ({ textToCopy, elementIdToPr
                         scrollable.style.maxWidth = 'none';
                         scrollable.style.maxHeight = 'none';
                     });
-                    el.style.width = 'max-content';
+                    // Only expand height, don't force width so text can wrap
                     el.style.height = 'max-content';
                 }
             }
@@ -139,7 +139,7 @@ const ActionButtons: React.FC<ActionButtonsProps> = ({ textToCopy, elementIdToPr
                         scrollable.style.maxWidth = 'none';
                         scrollable.style.maxHeight = 'none';
                     });
-                    el.style.width = 'max-content';
+                    // Only expand height, don't force width so text can wrap
                     el.style.height = 'max-content';
                 }
             }
@@ -154,23 +154,29 @@ const ActionButtons: React.FC<ActionButtonsProps> = ({ textToCopy, elementIdToPr
         });
         
         const imgProps = pdf.getImageProperties(imgData);
+        
+        // Use a small margin (e.g. 15pt) to ensure "هوامش ضيقة"
+        const margin = 15;
         const pdfWidth = pdf.internal.pageSize.getWidth();
         const pdfHeight = pdf.internal.pageSize.getHeight();
+        const usableWidth = pdfWidth - margin * 2;
+        const usableHeight = pdfHeight - margin * 2;
         
         const ratio = imgProps.width / imgProps.height;
-        let finalWidth = pdfWidth;
-        let finalHeight = pdfWidth / ratio;
+        let finalWidth = usableWidth;
+        let finalHeight = finalWidth / ratio;
         
         // If it's taller than the page, scale it down to fit
-        if (finalHeight > pdfHeight) {
-            finalHeight = pdfHeight;
+        if (finalHeight > usableHeight) {
+            finalHeight = usableHeight;
             finalWidth = finalHeight * ratio;
         }
         
-        const xOffset = (pdfWidth - finalWidth) / 2;
+        const xOffset = margin + (usableWidth - finalWidth) / 2;
+        const yOffset = margin + (usableHeight - finalHeight) / 2; // Center horizontally and vertically
         
         // Add image
-        pdf.addImage(imgData, 'JPEG', xOffset, 0, finalWidth, finalHeight, undefined, 'FAST');
+        pdf.addImage(imgData, 'JPEG', xOffset, yOffset, finalWidth, finalHeight, undefined, 'FAST');
         pdf.save('document.pdf');
     } catch (error) {
         console.error("PDF generation failed", error);
