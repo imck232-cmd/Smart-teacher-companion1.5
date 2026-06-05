@@ -49,7 +49,7 @@ const SummarizeLesson: React.FC<{ onBack: () => void }> = ({ onBack }) => {
                 {error && <p className="text-red-500 text-center mt-4">{error}</p>}
 
                 {summary && (
-                    <div className="mt-8 neumorphic-inset p-6 bg-white/50" id="summary-result">
+                    <div className="mt-8 neumorphic-inset p-6 bg-white dark:bg-gray-800/50" id="summary-result">
                         <h3 className="font-bold text-xl mb-4 text-primary border-b pb-2 border-primary/20">الملخص:</h3>
                         <div className="prose dark:prose-invert max-w-none text-base-text">
                             <ReactMarkdown>{summary}</ReactMarkdown>

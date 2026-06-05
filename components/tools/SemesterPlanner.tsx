@@ -258,7 +258,7 @@ const SemesterPlanner: React.FC<{ onBack: () => void }> = ({ onBack }) => {
         <div className="pb-20">
             <ToolHeader title="خطة توزيع المنهج الفصلية" onBack={onBack} />
             
-            <div className="no-print neumorphic-outset p-6 mb-8 flex flex-wrap gap-4 items-center justify-center sticky top-20 z-40 bg-white/95 backdrop-blur-md border border-indigo-100 shadow-lg">
+            <div className="no-print neumorphic-outset p-6 mb-8 flex flex-wrap gap-4 items-center justify-center sticky top-20 z-40 bg-white dark:bg-gray-800/95 backdrop-blur-md border border-indigo-100 shadow-lg">
                 <button onClick={() => setShowWizard(true)} className="bg-indigo-600 text-white px-8 py-3 rounded-2xl font-black hover:scale-105 shadow-xl flex items-center gap-2 transition-all">
                     <i className="fas fa-magic"></i> معالج إعداد الخطة
                 </button>
@@ -272,17 +272,17 @@ const SemesterPlanner: React.FC<{ onBack: () => void }> = ({ onBack }) => {
 
             {isBulkGenerating && (
                 <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 backdrop-blur-xl">
-                    <div className="bg-white p-12 rounded-[2.5rem] shadow-2xl flex flex-col items-center max-w-md text-center border-4 border-indigo-100">
+                    <div className="bg-white dark:bg-gray-800 p-12 rounded-[2.5rem] shadow-2xl flex flex-col items-center max-w-md text-center border-4 border-indigo-100">
                         <div className="w-24 h-24 border-8 border-indigo-600 border-t-transparent rounded-full animate-spin mb-8"></div>
-                        <h4 className="text-3xl font-black text-gray-900 mb-4">جاري تنظيم الخطة...</h4>
-                        <p className="text-gray-600 font-bold leading-relaxed">نقوم الآن بحساب التواريخ بدقة وتوليد المحتوى التربوي المتوافق مع مادة {meta.subject}.</p>
+                        <h4 className="text-3xl font-black text-gray-900 dark:text-white mb-4">جاري تنظيم الخطة...</h4>
+                        <p className="text-gray-600 dark:text-gray-300 font-bold leading-relaxed">نقوم الآن بحساب التواريخ بدقة وتوليد المحتوى التربوي المتوافق مع مادة {meta.subject}.</p>
                     </div>
                 </div>
             )}
 
             {showWizard && (
                 <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/70 backdrop-blur-md overflow-y-auto">
-                    <div className="bg-white rounded-[2.5rem] shadow-2xl w-full max-w-5xl p-10 max-h-[90vh] overflow-y-auto border border-indigo-50">
+                    <div className="bg-white dark:bg-gray-800 rounded-[2.5rem] shadow-2xl w-full max-w-5xl p-10 max-h-[90vh] overflow-y-auto border border-indigo-50">
                         <div className="flex justify-between items-center mb-10 border-b pb-6">
                             <h3 className="text-4xl font-black text-indigo-900">إعداد الخطة الفصلية</h3>
                             <button onClick={() => setShowWizard(false)} className="text-gray-400 hover:text-red-500 transition-colors"><i className="fas fa-times text-3xl"></i></button>
@@ -312,15 +312,15 @@ const SemesterPlanner: React.FC<{ onBack: () => void }> = ({ onBack }) => {
                         </div>
 
                         <div className="mb-10">
-                            <h4 className="font-black text-gray-800 mb-6 flex items-center gap-3 text-xl">
+                            <h4 className="font-black text-gray-800 dark:text-gray-100 mb-6 flex items-center gap-3 text-xl">
                                 <i className="fas fa-magic text-indigo-600"></i> إعداد الخطة عن طريق الذكاء الاصطناعي
                             </h4>
-                            <p className="text-gray-600 mb-4 font-bold">انسخ رد الذكاء الاصطناعي الخاص بتوزيع المقرر والصقه هنا.</p>
+                            <p className="text-gray-600 dark:text-gray-300 mb-4 font-bold">انسخ رد الذكاء الاصطناعي الخاص بتوزيع المقرر والصقه هنا.</p>
                             <textarea 
                                 value={aiInput}
                                 onChange={e => setAiInput(e.target.value)}
                                 placeholder="الصق الخطة الفصلية هنا..."
-                                className="w-full h-48 border-2 border-indigo-200 rounded-2xl p-4 bg-indigo-50 text-black outline-none focus:border-indigo-600 focus:bg-white transition-all resize-y"
+                                className="w-full h-48 border-2 border-indigo-200 rounded-2xl p-4 bg-indigo-50 text-black dark:text-white outline-none focus:border-indigo-600 focus:bg-white dark:bg-gray-800 transition-all resize-y"
                             />
                         </div>
 
@@ -332,12 +332,12 @@ const SemesterPlanner: React.FC<{ onBack: () => void }> = ({ onBack }) => {
             )}
 
             {/* Document Body - Horizontal scrolling container */}
-            <div className="flex flex-col gap-16 items-center overflow-x-auto p-4 w-full bg-gray-200/40 cursor-grab active:cursor-grabbing scrollbar-thin scrollbar-thumb-indigo-500 scrollbar-track-transparent">
+            <div className="flex flex-col gap-16 items-center overflow-x-auto p-4 w-full bg-gray-200 dark:bg-gray-800/40 cursor-grab active:cursor-grabbing scrollbar-thin scrollbar-thumb-indigo-500 scrollbar-track-transparent">
                 <div className="flex flex-col gap-16 min-w-max">
                     {paginatedRows.map((pageRows, pageIdx) => (
                         <div 
                             key={pageIdx}
-                            className="semester-plan-page bg-white text-black shadow-2xl p-[12mm] min-h-[210mm] w-[297mm] border-[2px] border-black relative flex flex-col shrink-0"
+                            className="semester-plan-page bg-white dark:bg-gray-800 text-black dark:text-white shadow-2xl p-[12mm] min-h-[210mm] w-[297mm] border-[2px] border-black relative flex flex-col shrink-0"
                             style={{ 
                                 direction: 'rtl', 
                                 textAlign: 'right', 
@@ -349,12 +349,12 @@ const SemesterPlanner: React.FC<{ onBack: () => void }> = ({ onBack }) => {
                         >
                             {/* Page Header Section */}
                             <div className="flex justify-between items-start mb-4 w-full border-b-[2px] border-black pb-3">
-                                <div className="w-[32%] flex flex-col gap-0.5 font-bold leading-tight text-right text-black text-[11pt]">
+                                <div className="w-[32%] flex flex-col gap-0.5 font-bold leading-tight text-right text-black dark:text-white text-[11pt]">
                                     <p className="font-black text-base mb-1">الجمهورية اليمنية</p>
                                     <p>{meta.ministry}</p>
-                                    <div className="flex items-center gap-1"><span>{meta.office}</span><div contentEditable onBlur={e => setMeta({...meta, office: e.currentTarget.innerText})} className="min-w-[50px] border-b border-black outline-none px-1 text-black font-bold" dangerouslySetInnerHTML={{__html: meta.office}}></div></div>
-                                    <div className="flex items-center gap-1"><span>{meta.district}</span><div contentEditable onBlur={e => setMeta({...meta, district: e.currentTarget.innerText})} className="min-w-[50px] border-b border-black outline-none px-1 text-black font-bold" dangerouslySetInnerHTML={{__html: meta.district}}></div></div>
-                                    <div className="flex items-center gap-1"><span>{meta.school}</span><div contentEditable onBlur={e => setMeta({...meta, school: e.currentTarget.innerText})} className="min-w-[50px] border-b border-black outline-none px-1 text-black font-bold" dangerouslySetInnerHTML={{__html: meta.school}}></div></div>
+                                    <div className="flex items-center gap-1"><span>{meta.office}</span><div contentEditable onBlur={e => setMeta({...meta, office: e.currentTarget.innerText})} className="min-w-[50px] border-b border-black outline-none px-1 text-black dark:text-white font-bold" dangerouslySetInnerHTML={{__html: meta.office}}></div></div>
+                                    <div className="flex items-center gap-1"><span>{meta.district}</span><div contentEditable onBlur={e => setMeta({...meta, district: e.currentTarget.innerText})} className="min-w-[50px] border-b border-black outline-none px-1 text-black dark:text-white font-bold" dangerouslySetInnerHTML={{__html: meta.district}}></div></div>
+                                    <div className="flex items-center gap-1"><span>{meta.school}</span><div contentEditable onBlur={e => setMeta({...meta, school: e.currentTarget.innerText})} className="min-w-[50px] border-b border-black outline-none px-1 text-black dark:text-white font-bold" dangerouslySetInnerHTML={{__html: meta.school}}></div></div>
                                 </div>
 
                                 <div className="w-[36%] flex flex-col items-center gap-1">
@@ -374,24 +374,24 @@ const SemesterPlanner: React.FC<{ onBack: () => void }> = ({ onBack }) => {
                                         }} />
                                     </div>
                                     <div className="mt-1 text-center w-full">
-                                        <div className="bg-white border-[2.5px] border-black p-2 rounded-2xl shadow-[4px_4px_0px_#000] flex flex-col justify-center items-center">
-                                            <div contentEditable onBlur={e => setMeta({...meta, subject: e.currentTarget.innerText})} className="text-center font-black text-xl w-full outline-none leading-tight text-black" dangerouslySetInnerHTML={{__html: `خطة توزيع مقرر مادة: ${meta.subject}`}}></div>
-                                            <div contentEditable onBlur={e => setMeta({...meta, semester: e.currentTarget.innerText})} className="text-center font-bold text-xs w-full outline-none text-black" dangerouslySetInnerHTML={{__html: `الفصل الدراسي ${meta.semester} للعام الدراسي ${meta.year}هـ`}}></div>
+                                        <div className="bg-white dark:bg-gray-800 border-[2.5px] border-black p-2 rounded-2xl shadow-[4px_4px_0px_#000] flex flex-col justify-center items-center">
+                                            <div contentEditable onBlur={e => setMeta({...meta, subject: e.currentTarget.innerText})} className="text-center font-black text-xl w-full outline-none leading-tight text-black dark:text-white" dangerouslySetInnerHTML={{__html: `خطة توزيع مقرر مادة: ${meta.subject}`}}></div>
+                                            <div contentEditable onBlur={e => setMeta({...meta, semester: e.currentTarget.innerText})} className="text-center font-bold text-xs w-full outline-none text-black dark:text-white" dangerouslySetInnerHTML={{__html: `الفصل الدراسي ${meta.semester} للعام الدراسي ${meta.year}هـ`}}></div>
                                         </div>
                                     </div>
                                 </div>
 
-                                <div className="w-[32%] flex flex-col gap-2 font-bold items-start text-left pl-2 text-black text-[11pt]">
-                                    <div className="flex items-center gap-2 w-full justify-end"><span>المادة:</span> <div contentEditable onBlur={e => setMeta({...meta, subject: e.currentTarget.innerText})} className="min-w-[100px] border-b border-black outline-none px-2 text-center font-black text-black" dangerouslySetInnerHTML={{__html: meta.subject}}></div></div>
-                                    <div className="flex items-center gap-2 w-full justify-end"><span>الصف:</span> <div contentEditable onBlur={e => setMeta({...meta, grade: e.currentTarget.innerText})} className="min-w-[100px] border-b border-black outline-none px-2 text-center font-black text-black" dangerouslySetInnerHTML={{__html: meta.grade}}></div></div>
+                                <div className="w-[32%] flex flex-col gap-2 font-bold items-start text-left pl-2 text-black dark:text-white text-[11pt]">
+                                    <div className="flex items-center gap-2 w-full justify-end"><span>المادة:</span> <div contentEditable onBlur={e => setMeta({...meta, subject: e.currentTarget.innerText})} className="min-w-[100px] border-b border-black outline-none px-2 text-center font-black text-black dark:text-white" dangerouslySetInnerHTML={{__html: meta.subject}}></div></div>
+                                    <div className="flex items-center gap-2 w-full justify-end"><span>الصف:</span> <div contentEditable onBlur={e => setMeta({...meta, grade: e.currentTarget.innerText})} className="min-w-[100px] border-b border-black outline-none px-2 text-center font-black text-black dark:text-white" dangerouslySetInnerHTML={{__html: meta.grade}}></div></div>
                                     <div className="text-[10pt] text-gray-400 mt-2 font-bold opacity-60 w-full text-left">صفحة {pageIdx + 1} من {paginatedRows.length}</div>
                                 </div>
                             </div>
 
                             {/* Main Table Section - Constant 13pt */}
                             <div className="flex-grow overflow-hidden">
-                                <table className="w-full border-collapse border-[2px] border-black text-[13pt] text-black table-fixed">
-                                    <thead className="bg-gray-100 font-black text-center border-b-[2px] border-black text-[11pt]">
+                                <table className="w-full border-collapse border-[2px] border-black text-[13pt] text-black dark:text-white table-fixed">
+                                    <thead className="bg-gray-100 dark:bg-gray-700 font-black text-center border-b-[2px] border-black text-[11pt]">
                                         <tr>
                                             <th className="border border-black p-2 w-[120px]" colSpan={2}>التاريخ</th>
                                             <th className="border border-black p-2 w-[50px]" rowSpan={2}>الحصص</th>
@@ -404,7 +404,7 @@ const SemesterPlanner: React.FC<{ onBack: () => void }> = ({ onBack }) => {
                                             <th className="border border-black p-2" rowSpan={2}>التقويم</th>
                                             <th className="border border-black p-2 w-[80px]" rowSpan={2}>ملحوظات</th>
                                         </tr>
-                                        <tr className="bg-gray-50 font-black text-[9pt]">
+                                        <tr className="bg-gray-50 dark:bg-gray-900 font-black text-[9pt]">
                                             <th className="border border-black p-1 w-[60px]">هجري</th>
                                             <th className="border border-black p-1 w-[60px]">ميلادي</th>
                                             <th className="border border-black p-1 w-[60px]">صفية</th>
@@ -413,19 +413,19 @@ const SemesterPlanner: React.FC<{ onBack: () => void }> = ({ onBack }) => {
                                     </thead>
                                     <tbody>
                                         {pageRows.map((row) => (
-                                            <tr key={row.id} className="text-[13pt] text-black hover:bg-indigo-50/10 transition-colors align-top">
-                                                <td className="border border-black p-1 text-center font-bold align-middle"><div contentEditable onBlur={e => handleRowChange(row.id, 'hijriDate', e.currentTarget.innerText)} className="w-full outline-none text-[9pt] leading-tight text-black" dangerouslySetInnerHTML={{__html: row.hijriDate}}></div></td>
-                                                <td className="border border-black p-1 text-center font-bold align-middle"><div contentEditable onBlur={e => handleRowChange(row.id, 'gregorianDate', e.currentTarget.innerText)} className="w-full outline-none text-[9pt] leading-tight text-black" dangerouslySetInnerHTML={{__html: row.gregorianDate}}></div></td>
-                                                <td className="border border-black p-1 text-center font-black align-middle text-black text-[11pt]"><div contentEditable onBlur={e => handleRowChange(row.id, 'periodCount', e.currentTarget.innerText)} className="outline-none" dangerouslySetInnerHTML={{__html: row.periodCount}}></div></td>
-                                                <td className="border border-black p-2 font-black leading-tight align-middle text-black text-[11pt]"><div contentEditable onBlur={e => handleRowChange(row.id, 'lessonTitle', e.currentTarget.innerText)} className="outline-none whitespace-pre-wrap break-words" dangerouslySetInnerHTML={{__html: row.lessonTitle}}></div></td>
-                                                <td className="border border-black p-2 leading-tight align-middle text-black"><div contentEditable onBlur={e => handleRowChange(row.id, 'objectives', e.currentTarget.innerText)} className="outline-none whitespace-pre-wrap break-words text-[11pt]" dangerouslySetInnerHTML={{__html: row.objectives}}></div></td>
-                                                <td className="border border-black p-2 leading-tight text-center align-middle text-black"><div contentEditable onBlur={e => handleRowChange(row.id, 'teachingMethods', e.currentTarget.innerText)} className="outline-none whitespace-pre-wrap break-words text-[11pt]" dangerouslySetInnerHTML={{__html: row.teachingMethods}}></div></td>
-                                                <td className="border border-black p-2 leading-tight text-center align-middle text-black"><div contentEditable onBlur={e => handleRowChange(row.id, 'educationalAids', e.currentTarget.innerText)} className="outline-none whitespace-pre-wrap break-words text-[11pt]" dangerouslySetInnerHTML={{__html: row.educationalAids}}></div></td>
-                                                <td className="border border-black p-2 leading-tight text-center align-middle text-black"><div contentEditable onBlur={e => handleRowChange(row.id, 'activitiesIn', e.currentTarget.innerText)} className="outline-none whitespace-pre-wrap break-words text-[11pt]" dangerouslySetInnerHTML={{__html: row.activitiesIn}}></div></td>
-                                                <td className="border border-black p-2 leading-tight text-center align-middle text-black"><div contentEditable onBlur={e => handleRowChange(row.id, 'activitiesOut', e.currentTarget.innerText)} className="outline-none whitespace-pre-wrap break-words text-[11pt]" dangerouslySetInnerHTML={{__html: row.activitiesOut}}></div></td>
-                                                <td className="border border-black p-2 leading-tight text-center align-middle text-black"><div contentEditable onBlur={e => handleRowChange(row.id, 'values', e.currentTarget.innerText)} className="outline-none whitespace-pre-wrap break-words text-[11pt]" dangerouslySetInnerHTML={{__html: row.values}}></div></td>
-                                                <td className="border border-black p-2 leading-tight text-center align-middle text-black"><div contentEditable onBlur={e => handleRowChange(row.id, 'evaluation', e.currentTarget.innerText)} className="outline-none whitespace-pre-wrap break-words text-[11pt]" dangerouslySetInnerHTML={{__html: row.evaluation}}></div></td>
-                                                <td className="border border-black p-2 leading-tight align-middle text-black"><div contentEditable onBlur={e => handleRowChange(row.id, 'notes', e.currentTarget.innerText)} className="outline-none whitespace-pre-wrap break-words text-[11pt]" dangerouslySetInnerHTML={{__html: row.notes}}></div></td>
+                                            <tr key={row.id} className="text-[13pt] text-black dark:text-white hover:bg-indigo-50/10 transition-colors align-top">
+                                                <td className="border border-black p-1 text-center font-bold align-middle"><div contentEditable onBlur={e => handleRowChange(row.id, 'hijriDate', e.currentTarget.innerText)} className="w-full outline-none text-[9pt] leading-tight text-black dark:text-white" dangerouslySetInnerHTML={{__html: row.hijriDate}}></div></td>
+                                                <td className="border border-black p-1 text-center font-bold align-middle"><div contentEditable onBlur={e => handleRowChange(row.id, 'gregorianDate', e.currentTarget.innerText)} className="w-full outline-none text-[9pt] leading-tight text-black dark:text-white" dangerouslySetInnerHTML={{__html: row.gregorianDate}}></div></td>
+                                                <td className="border border-black p-1 text-center font-black align-middle text-black dark:text-white text-[11pt]"><div contentEditable onBlur={e => handleRowChange(row.id, 'periodCount', e.currentTarget.innerText)} className="outline-none" dangerouslySetInnerHTML={{__html: row.periodCount}}></div></td>
+                                                <td className="border border-black p-2 font-black leading-tight align-middle text-black dark:text-white text-[11pt]"><div contentEditable onBlur={e => handleRowChange(row.id, 'lessonTitle', e.currentTarget.innerText)} className="outline-none whitespace-pre-wrap break-words" dangerouslySetInnerHTML={{__html: row.lessonTitle}}></div></td>
+                                                <td className="border border-black p-2 leading-tight align-middle text-black dark:text-white"><div contentEditable onBlur={e => handleRowChange(row.id, 'objectives', e.currentTarget.innerText)} className="outline-none whitespace-pre-wrap break-words text-[11pt]" dangerouslySetInnerHTML={{__html: row.objectives}}></div></td>
+                                                <td className="border border-black p-2 leading-tight text-center align-middle text-black dark:text-white"><div contentEditable onBlur={e => handleRowChange(row.id, 'teachingMethods', e.currentTarget.innerText)} className="outline-none whitespace-pre-wrap break-words text-[11pt]" dangerouslySetInnerHTML={{__html: row.teachingMethods}}></div></td>
+                                                <td className="border border-black p-2 leading-tight text-center align-middle text-black dark:text-white"><div contentEditable onBlur={e => handleRowChange(row.id, 'educationalAids', e.currentTarget.innerText)} className="outline-none whitespace-pre-wrap break-words text-[11pt]" dangerouslySetInnerHTML={{__html: row.educationalAids}}></div></td>
+                                                <td className="border border-black p-2 leading-tight text-center align-middle text-black dark:text-white"><div contentEditable onBlur={e => handleRowChange(row.id, 'activitiesIn', e.currentTarget.innerText)} className="outline-none whitespace-pre-wrap break-words text-[11pt]" dangerouslySetInnerHTML={{__html: row.activitiesIn}}></div></td>
+                                                <td className="border border-black p-2 leading-tight text-center align-middle text-black dark:text-white"><div contentEditable onBlur={e => handleRowChange(row.id, 'activitiesOut', e.currentTarget.innerText)} className="outline-none whitespace-pre-wrap break-words text-[11pt]" dangerouslySetInnerHTML={{__html: row.activitiesOut}}></div></td>
+                                                <td className="border border-black p-2 leading-tight text-center align-middle text-black dark:text-white"><div contentEditable onBlur={e => handleRowChange(row.id, 'values', e.currentTarget.innerText)} className="outline-none whitespace-pre-wrap break-words text-[11pt]" dangerouslySetInnerHTML={{__html: row.values}}></div></td>
+                                                <td className="border border-black p-2 leading-tight text-center align-middle text-black dark:text-white"><div contentEditable onBlur={e => handleRowChange(row.id, 'evaluation', e.currentTarget.innerText)} className="outline-none whitespace-pre-wrap break-words text-[11pt]" dangerouslySetInnerHTML={{__html: row.evaluation}}></div></td>
+                                                <td className="border border-black p-2 leading-tight align-middle text-black dark:text-white"><div contentEditable onBlur={e => handleRowChange(row.id, 'notes', e.currentTarget.innerText)} className="outline-none whitespace-pre-wrap break-words text-[11pt]" dangerouslySetInnerHTML={{__html: row.notes}}></div></td>
                                             </tr>
                                         ))}
                                         {/* Filler rows to maintain structure */}
@@ -437,20 +437,20 @@ const SemesterPlanner: React.FC<{ onBack: () => void }> = ({ onBack }) => {
                             </div>
 
                             {/* Signatures Area - Fixed Bottom */}
-                            <div className="mt-4 grid grid-cols-3 gap-8 text-center font-black text-[12pt] border-t-[2px] border-black pt-4 text-black">
+                            <div className="mt-4 grid grid-cols-3 gap-8 text-center font-black text-[12pt] border-t-[2px] border-black pt-4 text-black dark:text-white">
                                 <div className="flex flex-col gap-2">
                                     <p className="underline underline-offset-4">معلم المادة</p>
-                                    <div contentEditable onBlur={e => setMeta({...meta, teacherName: e.currentTarget.innerText})} className="bg-transparent text-center border-b border-dotted border-black w-full outline-none font-black min-h-[30px] text-black" dangerouslySetInnerHTML={{__html: meta.teacherName || '............................'}}></div>
+                                    <div contentEditable onBlur={e => setMeta({...meta, teacherName: e.currentTarget.innerText})} className="bg-transparent text-center border-b border-dotted border-black w-full outline-none font-black min-h-[30px] text-black dark:text-white" dangerouslySetInnerHTML={{__html: meta.teacherName || '............................'}}></div>
                                     <p className="text-[10pt] font-bold">التوقيع: ...........................</p>
                                 </div>
                                 <div className="flex flex-col gap-2">
                                     <p className="underline underline-offset-4">المشرف التربوي</p>
-                                    <div contentEditable onBlur={e => setMeta({...meta, supervisorName: e.currentTarget.innerText})} className="bg-transparent text-center border-b border-dotted border-black w-full outline-none font-black min-h-[30px] text-black" dangerouslySetInnerHTML={{__html: meta.supervisorName || '............................'}}></div>
+                                    <div contentEditable onBlur={e => setMeta({...meta, supervisorName: e.currentTarget.innerText})} className="bg-transparent text-center border-b border-dotted border-black w-full outline-none font-black min-h-[30px] text-black dark:text-white" dangerouslySetInnerHTML={{__html: meta.supervisorName || '............................'}}></div>
                                     <p className="text-[10pt] font-bold">التوقيع: ...........................</p>
                                 </div>
                                 <div className="flex flex-col gap-2">
                                     <p className="underline underline-offset-4">إدارة المدرسة</p>
-                                    <div contentEditable onBlur={e => setMeta({...meta, schoolAdminName: e.currentTarget.innerText})} className="bg-transparent text-center border-b border-dotted border-black w-full outline-none font-black min-h-[30px] text-black" dangerouslySetInnerHTML={{__html: meta.schoolAdminName || '............................'}}></div>
+                                    <div contentEditable onBlur={e => setMeta({...meta, schoolAdminName: e.currentTarget.innerText})} className="bg-transparent text-center border-b border-dotted border-black w-full outline-none font-black min-h-[30px] text-black dark:text-white" dangerouslySetInnerHTML={{__html: meta.schoolAdminName || '............................'}}></div>
                                     <p className="text-[10pt] font-bold">التوقيع والختم: ...........................</p>
                                 </div>
                             </div>

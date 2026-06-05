@@ -437,16 +437,16 @@ const GradeSheet: React.FC<{ onBack: () => void }> = ({ onBack }) => {
                 <select 
                     value={currentSheetId || ''}
                     onChange={(e) => handleSheetChange(e.target.value)}
-                    className="flex-grow max-w-md p-2 border rounded font-bold text-black bg-white"
+                    className="flex-grow max-w-md p-2 border rounded font-bold text-black dark:text-white bg-white dark:bg-gray-800"
                 >
                     {allSheets.map(sheet => <option key={sheet.id} value={sheet.id}>{safeString(sheet.info.date)} - {safeString(sheet.info.subject)} ({safeString(sheet.info.class)})</option>)}
                     {allSheets.length === 0 && <option>لا توجد كشوفات</option>}
                 </select>
                 
                 <div className="flex gap-3">
-                    <div className="flex items-center bg-white rounded px-2 border">
+                    <div className="flex items-center bg-white dark:bg-gray-800 rounded px-2 border">
                         <span className="text-xs font-bold text-gray-500 ml-2">المعلم:</span>
-                        <input value={safeString(teacherName)} onChange={e => setTeacherName(e.target.value)} placeholder="الاسم..." className="p-1 outline-none text-black w-32 text-sm bg-transparent" />
+                        <input value={safeString(teacherName)} onChange={e => setTeacherName(e.target.value)} placeholder="الاسم..." className="p-1 outline-none text-black dark:text-white w-32 text-sm bg-transparent" />
                     </div>
                     <button onClick={() => {
                         if (activeSheet) setNewSheetInfo({ ...activeSheet.info, date: new Date().toISOString().split('T')[0] });
@@ -459,18 +459,18 @@ const GradeSheet: React.FC<{ onBack: () => void }> = ({ onBack }) => {
 
             {isCreatingNewSheet && (
                 <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4 no-print" onClick={() => setIsCreatingNewSheet(false)}>
-                    <div className="bg-white rounded-xl p-6 w-full max-w-lg shadow-2xl" onClick={e => e.stopPropagation()}>
+                    <div className="bg-white dark:bg-gray-800 rounded-xl p-6 w-full max-w-lg shadow-2xl" onClick={e => e.stopPropagation()}>
                         <h3 className="text-xl font-bold text-blue-800 mb-4 border-b pb-2">كشف جديد</h3>
                         <div className="grid grid-cols-2 gap-3 mb-4">
-                            <input placeholder="المدرسة" value={safeString(newSheetInfo.school)} onChange={e => setNewSheetInfo({...newSheetInfo, school: e.target.value})} className="p-2 border rounded text-black bg-white" />
-                            <input placeholder="الصف" value={safeString(newSheetInfo.class)} onChange={e => setNewSheetInfo({...newSheetInfo, class: e.target.value})} className="p-2 border rounded text-black bg-white" />
-                            <input placeholder="الشعبة" value={safeString(newSheetInfo.division)} onChange={e => setNewSheetInfo({...newSheetInfo, division: e.target.value})} className="p-2 border rounded text-black bg-white" />
-                            <input placeholder="المادة" value={safeString(newSheetInfo.subject)} onChange={e => setNewSheetInfo({...newSheetInfo, subject: e.target.value})} className="p-2 border rounded text-black bg-white" />
-                            <input placeholder="عنوان الكشف (الشهر)" value={safeString(newSheetInfo.month)} onChange={e => setNewSheetInfo({...newSheetInfo, month: e.target.value})} className="p-2 border rounded text-black bg-white" />
-                            <input type="date" value={safeString(newSheetInfo.date)} onChange={e => setNewSheetInfo({...newSheetInfo, date: e.target.value})} className="p-2 border rounded text-black bg-white" />
+                            <input placeholder="المدرسة" value={safeString(newSheetInfo.school)} onChange={e => setNewSheetInfo({...newSheetInfo, school: e.target.value})} className="p-2 border rounded text-black dark:text-white bg-white dark:bg-gray-800" />
+                            <input placeholder="الصف" value={safeString(newSheetInfo.class)} onChange={e => setNewSheetInfo({...newSheetInfo, class: e.target.value})} className="p-2 border rounded text-black dark:text-white bg-white dark:bg-gray-800" />
+                            <input placeholder="الشعبة" value={safeString(newSheetInfo.division)} onChange={e => setNewSheetInfo({...newSheetInfo, division: e.target.value})} className="p-2 border rounded text-black dark:text-white bg-white dark:bg-gray-800" />
+                            <input placeholder="المادة" value={safeString(newSheetInfo.subject)} onChange={e => setNewSheetInfo({...newSheetInfo, subject: e.target.value})} className="p-2 border rounded text-black dark:text-white bg-white dark:bg-gray-800" />
+                            <input placeholder="عنوان الكشف (الشهر)" value={safeString(newSheetInfo.month)} onChange={e => setNewSheetInfo({...newSheetInfo, month: e.target.value})} className="p-2 border rounded text-black dark:text-white bg-white dark:bg-gray-800" />
+                            <input type="date" value={safeString(newSheetInfo.date)} onChange={e => setNewSheetInfo({...newSheetInfo, date: e.target.value})} className="p-2 border rounded text-black dark:text-white bg-white dark:bg-gray-800" />
                         </div>
                         <div className="flex justify-end gap-2 mt-4">
-                            <button onClick={() => confirmCreateSheet(false)} className="px-4 py-2 rounded bg-gray-500 text-white font-bold">إنشاء فارغ</button>
+                            <button onClick={() => confirmCreateSheet(false)} className="px-4 py-2 rounded bg-gray-50 dark:bg-gray-9000 text-white font-bold">إنشاء فارغ</button>
                             <button onClick={() => confirmCreateSheet(true)} className="px-4 py-2 rounded bg-blue-600 text-white font-bold">إنشاء ونسخ الطلاب</button>
                         </div>
                     </div>
@@ -479,17 +479,17 @@ const GradeSheet: React.FC<{ onBack: () => void }> = ({ onBack }) => {
 
             {showImportModal && (
                 <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4 no-print" onClick={() => setShowImportModal(false)}>
-                    <div className="bg-white rounded-xl p-6 w-full max-w-lg shadow-2xl" onClick={e => e.stopPropagation()}>
+                    <div className="bg-white dark:bg-gray-800 rounded-xl p-6 w-full max-w-lg shadow-2xl" onClick={e => e.stopPropagation()}>
                         <h3 className="text-xl font-bold text-blue-800 mb-4 border-b pb-2">استيراد أسماء الطلاب</h3>
-                        <p className="text-sm text-gray-600 mb-2">قم بلصق أسماء الطلاب هنا، كل اسم في سطر جديد:</p>
+                        <p className="text-sm text-gray-600 dark:text-gray-300 mb-2">قم بلصق أسماء الطلاب هنا، كل اسم في سطر جديد:</p>
                         <textarea 
                             value={importText}
                             onChange={(e) => setImportText(e.target.value)}
-                            className="w-full h-48 p-2 border rounded text-black bg-white mb-4"
+                            className="w-full h-48 p-2 border rounded text-black dark:text-white bg-white dark:bg-gray-800 mb-4"
                             placeholder="أحمد محمد&#10;خالد عبدالله&#10;سعيد علي..."
                         />
                         <div className="flex justify-end gap-2">
-                            <button onClick={() => setShowImportModal(false)} className="px-4 py-2 rounded bg-gray-500 text-white font-bold">إلغاء</button>
+                            <button onClick={() => setShowImportModal(false)} className="px-4 py-2 rounded bg-gray-50 dark:bg-gray-9000 text-white font-bold">إلغاء</button>
                             <button onClick={handleBulkImport} className="px-4 py-2 rounded bg-blue-600 text-white font-bold">استيراد</button>
                         </div>
                     </div>
@@ -503,8 +503,8 @@ const GradeSheet: React.FC<{ onBack: () => void }> = ({ onBack }) => {
                             <div className="grid grid-cols-3 items-center">
                                 <div className="text-right space-y-1 font-bold text-sm">
                                     <p>وزارة التربية والتعليم</p>
-                                    <p>المدرسة: <input value={safeString(activeInfo.school)} onChange={e => updateInfoField('school', e.target.value)} className="border-b border-gray-400 focus:outline-none w-40 text-black bg-transparent font-bold" /></p>
-                                    <p>المادة: <input value={safeString(activeInfo.subject)} onChange={e => updateInfoField('subject', e.target.value)} className="border-b border-gray-400 focus:outline-none w-40 text-black bg-transparent font-bold" /></p>
+                                    <p>المدرسة: <input value={safeString(activeInfo.school)} onChange={e => updateInfoField('school', e.target.value)} className="border-b border-gray-400 focus:outline-none w-40 text-black dark:text-white bg-transparent font-bold" /></p>
+                                    <p>المادة: <input value={safeString(activeInfo.subject)} onChange={e => updateInfoField('subject', e.target.value)} className="border-b border-gray-400 focus:outline-none w-40 text-black dark:text-white bg-transparent font-bold" /></p>
                                 </div>
                                 <div className="text-center">
                                     <h2 className="text-xl font-black underline mb-2">كشف رصد الدرجات</h2>
@@ -512,12 +512,12 @@ const GradeSheet: React.FC<{ onBack: () => void }> = ({ onBack }) => {
                                         value={safeString(activeInfo.month)} 
                                         onChange={e => updateInfoField('month', e.target.value)} 
                                         placeholder="عنوان الكشف / الشهر"
-                                        className="text-center font-bold text-lg border-b-2 border-black focus:outline-none w-full bg-transparent text-black" 
+                                        className="text-center font-bold text-lg border-b-2 border-black focus:outline-none w-full bg-transparent text-black dark:text-white" 
                                     />
                                 </div>
                                 <div className="text-left space-y-1 font-bold text-sm" dir="ltr">
-                                    <p>Class: <input value={safeString(activeInfo.class)} onChange={e => updateInfoField('class', e.target.value)} className="border-b border-gray-400 focus:outline-none w-20 text-center text-black bg-transparent font-bold" /> / <input value={safeString(activeInfo.division)} onChange={e => updateInfoField('division', e.target.value)} className="border-b border-gray-400 focus:outline-none w-12 text-center text-black bg-transparent font-bold" /></p>
-                                    <p>Date: <input type="date" value={safeString(activeInfo.date)} onChange={e => updateInfoField('date', e.target.value)} className="border-b border-gray-400 focus:outline-none text-black bg-transparent font-bold" /></p>
+                                    <p>Class: <input value={safeString(activeInfo.class)} onChange={e => updateInfoField('class', e.target.value)} className="border-b border-gray-400 focus:outline-none w-20 text-center text-black dark:text-white bg-transparent font-bold" /> / <input value={safeString(activeInfo.division)} onChange={e => updateInfoField('division', e.target.value)} className="border-b border-gray-400 focus:outline-none w-12 text-center text-black dark:text-white bg-transparent font-bold" /></p>
+                                    <p>Date: <input type="date" value={safeString(activeInfo.date)} onChange={e => updateInfoField('date', e.target.value)} className="border-b border-gray-400 focus:outline-none text-black dark:text-white bg-transparent font-bold" /></p>
                                 </div>
                             </div>
                         </div>
@@ -528,15 +528,15 @@ const GradeSheet: React.FC<{ onBack: () => void }> = ({ onBack }) => {
                         </div>
 
                         <div className="overflow-x-auto">
-                            <table className="w-full table-fixed text-center border-collapse text-black text-[9px] sm:text-xs border-2 border-black">
+                            <table className="w-full table-fixed text-center border-collapse text-black dark:text-white text-[9px] sm:text-xs border-2 border-black">
                                 <thead>
-                                    <tr className="bg-gray-100">
+                                    <tr className="bg-gray-100 dark:bg-gray-700">
                                         <th className="border border-black p-0 w-6">م</th>
                                         <th className="border border-black p-1 text-right w-16 truncate">اسم الطالب</th>
                                         {headers.map((h, i) => (
                                             <th 
                                                 key={i} 
-                                                className="border border-black p-1 w-8 cursor-pointer hover:bg-gray-200 relative group"
+                                                className="border border-black p-1 w-8 cursor-pointer hover:bg-gray-200 dark:bg-gray-800 relative group"
                                                 onClick={() => handleRenameHeader(i)}
                                                 title="انقر لتغيير اسم العمود"
                                             >
@@ -544,18 +544,18 @@ const GradeSheet: React.FC<{ onBack: () => void }> = ({ onBack }) => {
                                                 <i className="fas fa-pencil-alt text-[8px] text-gray-400 absolute top-0 left-0 opacity-0 group-hover:opacity-100 no-print"></i>
                                             </th>
                                         ))}
-                                        <th className="border border-black p-1 w-8 bg-gray-200">المجموع</th>
+                                        <th className="border border-black p-1 w-8 bg-gray-200 dark:bg-gray-800">المجموع</th>
                                         <th className="border border-black p-0 w-8 no-print"></th>
                                     </tr>
                                 </thead>
                                 <tbody>
                                     {activeStudents.map((student, idx) => (
-                                        <tr key={student.id} className="border-b border-black hover:bg-gray-50">
+                                        <tr key={student.id} className="border-b border-black hover:bg-gray-50 dark:bg-gray-900">
                                             <td className="border border-black p-0 font-bold">{idx+1}</td>
                                             <td className="border border-black p-1 text-right font-bold truncate">
                                                 {editingStudentId === student.id ? (
                                                     <div className="flex items-center gap-1">
-                                                        <input value={tempStudentName} onChange={e => setTempStudentName(e.target.value)} className="w-full border p-0 text-black text-[9px]" autoFocus />
+                                                        <input value={tempStudentName} onChange={e => setTempStudentName(e.target.value)} className="w-full border p-0 text-black dark:text-white text-[9px]" autoFocus />
                                                         <button onClick={handleSaveEdit} className="text-green-600 text-[9px]"><i className="fas fa-check"></i></button>
                                                     </div>
                                                 ) : (
@@ -571,11 +571,11 @@ const GradeSheet: React.FC<{ onBack: () => void }> = ({ onBack }) => {
                                                         value={student.scores[i] === null ? '' : String(student.scores[i])} 
                                                         placeholder="غ" 
                                                         onChange={e => updateGrade(student.id, i, e.target.value)} 
-                                                        className={`w-full text-center font-bold bg-transparent outline-none p-0 ${student.scores[i] === null ? 'bg-red-50' : 'text-black'}`} 
+                                                        className={`w-full text-center font-bold bg-transparent outline-none p-0 ${student.scores[i] === null ? 'bg-red-50' : 'text-black dark:text-white'}`} 
                                                     />
                                                 </td>
                                             ))}
-                                            <td className="border border-black p-0 font-black bg-gray-100">{String(student.total)}</td>
+                                            <td className="border border-black p-0 font-black bg-gray-100 dark:bg-gray-700">{String(student.total)}</td>
                                             <td className="border border-black p-0 no-print">
                                                 <div className="flex gap-1 justify-center">
                                                     <button onClick={() => handleStartEdit(student)} className="text-blue-500 text-[9px]"><i className="fas fa-pencil-alt"></i></button>
@@ -592,7 +592,7 @@ const GradeSheet: React.FC<{ onBack: () => void }> = ({ onBack }) => {
                                                 <input 
                                                     value={newStudentName} 
                                                     onChange={e => setNewStudentName(e.target.value)} 
-                                                    className="p-1 border rounded flex-grow bg-white text-black text-xs" 
+                                                    className="p-1 border rounded flex-grow bg-white dark:bg-gray-800 text-black dark:text-white text-xs" 
                                                     placeholder="اسم الطالب الجديد..." 
                                                     onKeyDown={e => e.key === 'Enter' && handleAddStudent()} 
                                                 />
@@ -603,7 +603,7 @@ const GradeSheet: React.FC<{ onBack: () => void }> = ({ onBack }) => {
                                     </tr>
                                 </tbody>
                                 <tfoot>
-                                    <tr className="bg-gray-200 font-bold border-t-2 border-black">
+                                    <tr className="bg-gray-200 dark:bg-gray-800 font-bold border-t-2 border-black">
                                         <td colSpan={2} className="border border-black p-0 text-center">الإجمالي</td>
                                         {headers.map((_, i) => (
                                             <td key={i} className="border border-black p-0">{String(totals[i] || 0)}</td>
@@ -615,7 +615,7 @@ const GradeSheet: React.FC<{ onBack: () => void }> = ({ onBack }) => {
                             </table>
                         </div>
 
-                        <div className="mt-8 flex justify-between items-end text-black pt-4 border-t-2 border-black text-center text-xs">
+                        <div className="mt-8 flex justify-between items-end text-black dark:text-white pt-4 border-t-2 border-black text-center text-xs">
                             <div>
                                 <p className="mb-4 font-bold">معلم المادة</p>
                                 <p className="font-bold text-base">{safeString(teacherName)}</p>
@@ -643,7 +643,7 @@ const GradeSheet: React.FC<{ onBack: () => void }> = ({ onBack }) => {
             </div>
 
             {showIndicators && (
-                <div className="mt-6 p-4 bg-white border rounded shadow animate-fadeIn no-print">
+                <div className="mt-6 p-4 bg-white dark:bg-gray-800 border rounded shadow animate-fadeIn no-print">
                     <h3 className="font-bold text-lg mb-3 text-indigo-800">لوحة المؤشرات (Analytics Panel)</h3>
                     
                     {compAnalysis && (
@@ -655,23 +655,23 @@ const GradeSheet: React.FC<{ onBack: () => void }> = ({ onBack }) => {
                     )}
 
                     <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-                        <input type="date" value={analyticsStartDate} onChange={e => setAnalyticsStartDate(e.target.value)} className="bg-white text-black p-2 rounded border" />
-                        <input type="date" value={analyticsEndDate} onChange={e => setAnalyticsEndDate(e.target.value)} className="bg-white text-black p-2 rounded border" />
-                        <select value={analyticsCriterion} onChange={e => setAnalyticsCriterion(e.target.value === 'total' ? 'total' : Number(e.target.value))} className="bg-white text-black p-2 rounded border">
+                        <input type="date" value={analyticsStartDate} onChange={e => setAnalyticsStartDate(e.target.value)} className="bg-white dark:bg-gray-800 text-black dark:text-white p-2 rounded border" />
+                        <input type="date" value={analyticsEndDate} onChange={e => setAnalyticsEndDate(e.target.value)} className="bg-white dark:bg-gray-800 text-black dark:text-white p-2 rounded border" />
+                        <select value={analyticsCriterion} onChange={e => setAnalyticsCriterion(e.target.value === 'total' ? 'total' : Number(e.target.value))} className="bg-white dark:bg-gray-800 text-black dark:text-white p-2 rounded border">
                             <option value="total">المجموع الكلي</option>
                             {headers.map((h, i) => <option key={i} value={i}>{safeString(h)}</option>)}
                         </select>
                         <div className="flex gap-2">
-                            <button onClick={() => setAnalyticsSort('desc')} className={`flex-1 rounded font-bold ${analyticsSort === 'desc' ? 'bg-indigo-500 text-white' : 'bg-white'}`}>الأعلى</button>
-                            <button onClick={() => setAnalyticsSort('asc')} className={`flex-1 rounded font-bold ${analyticsSort === 'asc' ? 'bg-indigo-500 text-white' : 'bg-white'}`}>الأدنى</button>
+                            <button onClick={() => setAnalyticsSort('desc')} className={`flex-1 rounded font-bold ${analyticsSort === 'desc' ? 'bg-indigo-500 text-white' : 'bg-white dark:bg-gray-800'}`}>الأعلى</button>
+                            <button onClick={() => setAnalyticsSort('asc')} className={`flex-1 rounded font-bold ${analyticsSort === 'asc' ? 'bg-indigo-500 text-white' : 'bg-white dark:bg-gray-800'}`}>الأدنى</button>
                         </div>
                     </div>
-                    <div className="overflow-x-auto bg-white rounded-xl shadow-sm mb-6">
+                    <div className="overflow-x-auto bg-white dark:bg-gray-800 rounded-xl shadow-sm mb-6">
                         <table className="w-full text-center">
                             <thead className="bg-indigo-100 text-indigo-900"><tr><th className="p-3">#</th><th className="p-3 text-right">الطالب</th><th className="p-3">النقاط</th></tr></thead>
                             <tbody>
                                 {analyticsData.map((d, i) => (
-                                    <tr key={i} className="border-b"><td className="p-3 text-indigo-500 font-bold">{i+1}</td><td className="p-3 text-right text-black font-bold">{safeString(d.name)}</td><td className="p-3"><span className="bg-indigo-600 text-white px-3 py-1 rounded-full font-bold">{String(d.totalScore)}</span></td></tr>
+                                    <tr key={i} className="border-b"><td className="p-3 text-indigo-500 font-bold">{i+1}</td><td className="p-3 text-right text-black dark:text-white font-bold">{safeString(d.name)}</td><td className="p-3"><span className="bg-indigo-600 text-white px-3 py-1 rounded-full font-bold">{String(d.totalScore)}</span></td></tr>
                                 ))}
                             </tbody>
                         </table>
@@ -680,22 +680,22 @@ const GradeSheet: React.FC<{ onBack: () => void }> = ({ onBack }) => {
             )}
 
             {showAnalysis && (
-                <div className="mt-6 p-6 bg-white border rounded shadow animate-fadeIn no-print mb-8">
+                <div className="mt-6 p-6 bg-white dark:bg-gray-800 border rounded shadow animate-fadeIn no-print mb-8">
                     <h3 className="font-bold text-xl mb-4 text-purple-800 border-b pb-2">تحليل النتائج الشامل</h3>
                     
                     <div className="flex gap-4 mb-6">
                         <div className="flex flex-col">
-                            <label className="text-xs font-bold text-gray-600 mb-1">تاريخ البداية</label>
-                            <input type="date" value={analyticsStartDate} onChange={e => setAnalyticsStartDate(e.target.value)} className="p-2 border rounded text-black bg-white" />
+                            <label className="text-xs font-bold text-gray-600 dark:text-gray-300 mb-1">تاريخ البداية</label>
+                            <input type="date" value={analyticsStartDate} onChange={e => setAnalyticsStartDate(e.target.value)} className="p-2 border rounded text-black dark:text-white bg-white dark:bg-gray-800" />
                         </div>
                         <div className="flex flex-col">
-                            <label className="text-xs font-bold text-gray-600 mb-1">تاريخ النهاية</label>
-                            <input type="date" value={analyticsEndDate} onChange={e => setAnalyticsEndDate(e.target.value)} className="p-2 border rounded text-black bg-white" />
+                            <label className="text-xs font-bold text-gray-600 dark:text-gray-300 mb-1">تاريخ النهاية</label>
+                            <input type="date" value={analyticsEndDate} onChange={e => setAnalyticsEndDate(e.target.value)} className="p-2 border rounded text-black dark:text-white bg-white dark:bg-gray-800" />
                         </div>
                     </div>
 
                     {compAnalysis ? (
-                        <div className="text-black text-sm leading-relaxed space-y-6">
+                        <div className="text-black dark:text-white text-sm leading-relaxed space-y-6">
                             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                                 <div className="bg-purple-50 p-4 rounded-lg border border-purple-200 text-center">
                                     <h4 className="font-bold text-purple-800 mb-2">المتوسط الحسابي</h4>
@@ -719,11 +719,11 @@ const GradeSheet: React.FC<{ onBack: () => void }> = ({ onBack }) => {
                             <div>
                                 <h4 className="font-bold text-lg text-purple-700 border-b pb-2 mb-3">تصنيف الطلاب (الفئات)</h4>
                                 <div className="grid grid-cols-2 md:grid-cols-5 gap-2 text-center">
-                                    <div className="bg-gray-100 p-2 rounded border"><p className="font-bold text-green-700">ممتاز</p><p className="text-lg">{compAnalysis.studentCategories.excellent}</p></div>
-                                    <div className="bg-gray-100 p-2 rounded border"><p className="font-bold text-blue-700">جيد جداً</p><p className="text-lg">{compAnalysis.studentCategories.veryGood}</p></div>
-                                    <div className="bg-gray-100 p-2 rounded border"><p className="font-bold text-yellow-700">جيد</p><p className="text-lg">{compAnalysis.studentCategories.good}</p></div>
-                                    <div className="bg-gray-100 p-2 rounded border"><p className="font-bold text-orange-700">مقبول</p><p className="text-lg">{compAnalysis.studentCategories.acceptable}</p></div>
-                                    <div className="bg-gray-100 p-2 rounded border"><p className="font-bold text-red-700">ضعيف</p><p className="text-lg">{compAnalysis.studentCategories.weak}</p></div>
+                                    <div className="bg-gray-100 dark:bg-gray-700 p-2 rounded border"><p className="font-bold text-green-700">ممتاز</p><p className="text-lg">{compAnalysis.studentCategories.excellent}</p></div>
+                                    <div className="bg-gray-100 dark:bg-gray-700 p-2 rounded border"><p className="font-bold text-blue-700">جيد جداً</p><p className="text-lg">{compAnalysis.studentCategories.veryGood}</p></div>
+                                    <div className="bg-gray-100 dark:bg-gray-700 p-2 rounded border"><p className="font-bold text-yellow-700">جيد</p><p className="text-lg">{compAnalysis.studentCategories.good}</p></div>
+                                    <div className="bg-gray-100 dark:bg-gray-700 p-2 rounded border"><p className="font-bold text-orange-700">مقبول</p><p className="text-lg">{compAnalysis.studentCategories.acceptable}</p></div>
+                                    <div className="bg-gray-100 dark:bg-gray-700 p-2 rounded border"><p className="font-bold text-red-700">ضعيف</p><p className="text-lg">{compAnalysis.studentCategories.weak}</p></div>
                                 </div>
                             </div>
 
@@ -731,7 +731,7 @@ const GradeSheet: React.FC<{ onBack: () => void }> = ({ onBack }) => {
                                 <h4 className="font-bold text-lg text-purple-700 border-b pb-2 mb-3">تحليل الأسئلة / المعايير</h4>
                                 <div className="overflow-x-auto">
                                     <table className="w-full text-center border">
-                                        <thead className="bg-gray-100">
+                                        <thead className="bg-gray-100 dark:bg-gray-700">
                                             <tr><th className="p-2 border">المعيار</th><th className="p-2 border">المتوسط</th><th className="p-2 border">مستوى الصعوبة</th><th className="p-2 border">عدد الأصفار</th></tr>
                                         </thead>
                                         <tbody>

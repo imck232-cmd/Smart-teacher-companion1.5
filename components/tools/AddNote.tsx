@@ -85,7 +85,7 @@ const AddNote: React.FC<{ onBack: () => void }> = ({ onBack }) => {
                 {editingId && (
                     <button 
                         onClick={() => { setEditingId(null); setCurrentNote(''); }}
-                        className="neumorphic-button w-full py-2 mt-2 bg-gray-500 text-white font-bold"
+                        className="neumorphic-button w-full py-2 mt-2 bg-gray-50 dark:bg-gray-9000 text-white font-bold"
                     >
                         إلغاء التعديل
                     </button>

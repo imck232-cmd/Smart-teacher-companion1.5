@@ -42,7 +42,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onSelectTool, onClose }) => {
                   onClick={() => onSelectTool(tool.key)}
                   className="w-full text-right flex items-center p-4 rounded-xl hover:bg-primary hover:text-white group transition-all duration-200 shadow-sm border border-transparent hover:border-white/20"
                 >
-                  <div className="w-10 h-10 flex items-center justify-center bg-primary/10 rounded-lg ml-4 group-hover:bg-white/20 transition-colors">
+                  <div className="w-10 h-10 flex items-center justify-center bg-primary/10 rounded-lg ml-4 group-hover:bg-white dark:bg-gray-800/20 transition-colors">
                     <i className={`${tool.icon} text-lg text-primary group-hover:text-white`}></i>
                   </div>
                   <span className="font-bold text-base-text group-hover:text-white flex-grow">{tool.label}</span>

@@ -445,7 +445,7 @@ const SmartLessonPlanner: React.FC<{ onBack: () => void }> = ({ onBack }) => {
                  
                  <div className="text-right bg-blue-50 border border-blue-200 p-6 rounded-2xl mb-6 shadow-sm max-w-4xl mx-auto">
                      <h4 className="font-bold text-blue-800 text-lg mb-3">اتبع الخطوات الآتية بدقة:</h4>
-                     <ol className="list-decimal list-inside space-y-2 text-gray-800 font-medium mb-4">
+                     <ol className="list-decimal list-inside space-y-2 text-gray-800 dark:text-gray-100 font-medium mb-4">
                          <li>قم بنسخ الأمر (البرومبت) الموجود في الأسفل وألصقه في Gemini أو ChatGPT.</li>
                          <li>أرفق الملف (PDF/Word) للدرس الذي تريد تحضيره (اختياري).</li>
                          <li>قم بإرسال الطلب، ثم انسخ الجواب الذي سيعطيك إياه الذكاء الاصطناعي.</li>
@@ -498,7 +498,7 @@ const SmartLessonPlanner: React.FC<{ onBack: () => void }> = ({ onBack }) => {
                                  <i className="fas fa-copy ml-1"></i> نسخ الأمر
                              </button>
                          </div>
-                         <pre className="bg-gray-100 p-4 rounded-xl text-xs md:text-sm text-gray-700 whitespace-pre-wrap font-mono border border-gray-300 text-right text-black mt-2 leading-tight">
+                         <pre className="bg-gray-100 dark:bg-gray-700 p-4 rounded-xl text-xs md:text-sm text-gray-700 dark:text-gray-200 whitespace-pre-wrap font-mono border border-gray-300 dark:border-gray-600 text-right text-black dark:text-white mt-2 leading-tight">
 {`أنت مساعد لمعلم خبير. من فضلك حضّر درساً بعنوان (اكتب عنوان الدرس هنا) بما يتناسب بشكل دقيق مع المرحلة الدراسية. احرص على طباعة المخرجات تماماً بهذا التنسيق الحرفي وبدون أي نصوص إضافية:
 
 [عنوان الدرس]
@@ -542,16 +542,16 @@ const SmartLessonPlanner: React.FC<{ onBack: () => void }> = ({ onBack }) => {
                         value={aiInput}
                         onChange={e => setAiInput(e.target.value)}
                         placeholder="الصق نص التحضير الذي تم نسخه من الذكاء الاصطناعي هنا..."
-                        className="w-full h-48 p-4 border rounded-xl bg-white text-black mb-4 focus:ring-2 focus:ring-blue-500 shadow-inner resize-y leading-tight"
+                        className="w-full h-48 p-4 border rounded-xl bg-white dark:bg-gray-800 text-black dark:text-white mb-4 focus:ring-2 focus:ring-blue-500 shadow-inner resize-y leading-tight"
                     />
                      <div className="flex flex-wrap gap-4 justify-center">
                         <button onClick={handleAnalyzePaste} disabled={isAnalyzing} className="neumorphic-button bg-blue-600 text-white px-8 py-4 font-bold text-lg shadow-lg hover:bg-blue-700 disabled:opacity-50 transition-colors rounded-xl">
                             {isAnalyzing ? 'جاري المعالجة...' : 'تفريغ وتعبئة الجدول'}
                         </button>
-                        <button onClick={() => setShowModal(true)} className="neumorphic-button bg-gray-500 text-white px-6 py-4 font-bold text-lg hover:bg-gray-600 transition-colors rounded-xl">
+                        <button onClick={() => setShowModal(true)} className="neumorphic-button bg-gray-50 dark:bg-gray-9000 text-white px-6 py-4 font-bold text-lg hover:bg-gray-600 transition-colors rounded-xl">
                             تحديث البيانات الأساسية (المدرسة، المادة...)
                         </button>
-                        <button onClick={() => contentFileInputRef.current?.click()} disabled={isReadingFile} className="neumorphic-button bg-gray-200 text-gray-700 px-6 py-4 font-bold hover:bg-gray-300 disabled:opacity-60 rounded-xl">
+                        <button onClick={() => contentFileInputRef.current?.click()} disabled={isReadingFile} className="neumorphic-button bg-gray-200 dark:bg-gray-800 text-gray-700 dark:text-gray-200 px-6 py-4 font-bold hover:bg-gray-300 disabled:opacity-60 rounded-xl">
                             {isReadingFile ? <i className="fas fa-spinner fa-spin"></i> : <i className="fas fa-file-upload ml-2"></i>} إدراج ملف (PDF/Word)
                         </button>
                          <input type="file" ref={contentFileInputRef} accept=".pdf,.docx,.txt" className="hidden" onChange={handleContentFileUpload} />
@@ -561,20 +561,20 @@ const SmartLessonPlanner: React.FC<{ onBack: () => void }> = ({ onBack }) => {
 
             {showModal && (
                 <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 no-print">
-                    <div className="bg-white rounded-2xl shadow-2xl w-full max-w-4xl max-h-[95vh] overflow-y-auto p-6 animate-scaleIn">
+                    <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl w-full max-w-4xl max-h-[95vh] overflow-y-auto p-6 animate-scaleIn">
                         <h3 className="text-2xl font-bold text-center text-indigo-800 mb-6 border-b pb-4">بيانات الدرس الجديد</h3>
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
-                            <div><label className="block text-sm font-bold text-gray-700">المنطقة التعليمية</label><input type="text" value={modalData.district} onChange={e => setModalData({...modalData, district: e.target.value})} className="w-full p-2 border rounded bg-white text-black" /></div>
-                            <div><label className="block text-sm font-bold text-gray-700">المدرسة</label><input type="text" value={modalData.school} onChange={e => setModalData({...modalData, school: e.target.value})} className="w-full p-2 border rounded bg-white text-black" /></div>
-                            <div><label className="block text-sm font-bold text-gray-700">المعلم</label><input type="text" value={modalData.teacherName} onChange={e => setModalData({...modalData, teacherName: e.target.value})} className="w-full p-2 border rounded bg-white text-black" /></div>
-                            <div><label className="block text-sm font-bold text-gray-700">المادة</label><select value={modalData.subject} onChange={e => setModalData({...modalData, subject: e.target.value, subjectBranch: ''})} className="w-full p-2 border rounded bg-white text-black"><option value="">اختر...</option>{subjectsList.map(s => <option key={s} value={s}>{s}</option>)}</select></div>
-                            <div><label className="block text-sm font-bold text-gray-700">فرع المادة</label>{modalData.subject && subjectBranchesMap[modalData.subject] ? (<select value={modalData.subjectBranch} onChange={e => setModalData({...modalData, subjectBranch: e.target.value})} className="w-full p-2 border rounded bg-white text-black"><option value="">اختر الفرع...</option>{subjectBranchesMap[modalData.subject].map(b => <option key={b} value={b}>{b}</option>)}</select>) : (<input type="text" placeholder="اكتب فرع المادة..." value={modalData.subjectBranch} onChange={e => setModalData({...modalData, subjectBranch: e.target.value})} className="w-full p-2 border rounded bg-white text-black" />)}</div>
-                             <div><label className="block text-sm font-bold text-gray-700">عنوان الدرس</label><input type="text" value={modalData.lessonTitle} onChange={e => setModalData({...modalData, lessonTitle: e.target.value})} className="w-full p-2 border rounded bg-white text-black font-bold" /></div>
-                            <div><label className="block text-sm font-bold text-gray-700">الصف</label><select value={modalData.classLevel} onChange={e => setModalData({...modalData, classLevel: e.target.value})} className="w-full p-2 border rounded bg-white text-black"><option value="">اختر...</option>{gradesList.map(g => <option key={g} value={g}>{g}</option>)}</select></div>
-                            <div><label className="block text-sm font-bold text-gray-700">الشعبة</label><select value={modalData.division} onChange={e => setModalData({...modalData, division: e.target.value})} className="w-full p-2 border rounded bg-white text-black"><option value="">اختر...</option>{divisions.map(d => <option key={d} value={d}>{d}</option>)}</select></div>
-                            <div><label className="block text-sm font-bold text-gray-700">الحصة</label><select value={modalData.period} onChange={e => setModalData({...modalData, period: e.target.value})} className="w-full p-2 border rounded bg-white text-black"><option value="">اختر...</option>{periods.map(p => <option key={p} value={p}>{p}</option>)}</select></div>
-                            <div><label className="block text-sm font-bold text-gray-700">التاريخ</label><input type="date" value={modalData.date} onChange={handleModalDateChange} className="w-full p-2 border rounded bg-white text-black" /></div>
-                            <div><label className="block text-sm font-bold text-gray-700">اليوم</label><input type="text" value={modalData.day} readOnly className="w-full p-2 border rounded bg-gray-100 text-gray-600" /></div>
+                            <div><label className="block text-sm font-bold text-gray-700 dark:text-gray-200">المنطقة التعليمية</label><input type="text" value={modalData.district} onChange={e => setModalData({...modalData, district: e.target.value})} className="w-full p-2 border rounded bg-white dark:bg-gray-800 text-black dark:text-white" /></div>
+                            <div><label className="block text-sm font-bold text-gray-700 dark:text-gray-200">المدرسة</label><input type="text" value={modalData.school} onChange={e => setModalData({...modalData, school: e.target.value})} className="w-full p-2 border rounded bg-white dark:bg-gray-800 text-black dark:text-white" /></div>
+                            <div><label className="block text-sm font-bold text-gray-700 dark:text-gray-200">المعلم</label><input type="text" value={modalData.teacherName} onChange={e => setModalData({...modalData, teacherName: e.target.value})} className="w-full p-2 border rounded bg-white dark:bg-gray-800 text-black dark:text-white" /></div>
+                            <div><label className="block text-sm font-bold text-gray-700 dark:text-gray-200">المادة</label><select value={modalData.subject} onChange={e => setModalData({...modalData, subject: e.target.value, subjectBranch: ''})} className="w-full p-2 border rounded bg-white dark:bg-gray-800 text-black dark:text-white"><option value="">اختر...</option>{subjectsList.map(s => <option key={s} value={s}>{s}</option>)}</select></div>
+                            <div><label className="block text-sm font-bold text-gray-700 dark:text-gray-200">فرع المادة</label>{modalData.subject && subjectBranchesMap[modalData.subject] ? (<select value={modalData.subjectBranch} onChange={e => setModalData({...modalData, subjectBranch: e.target.value})} className="w-full p-2 border rounded bg-white dark:bg-gray-800 text-black dark:text-white"><option value="">اختر الفرع...</option>{subjectBranchesMap[modalData.subject].map(b => <option key={b} value={b}>{b}</option>)}</select>) : (<input type="text" placeholder="اكتب فرع المادة..." value={modalData.subjectBranch} onChange={e => setModalData({...modalData, subjectBranch: e.target.value})} className="w-full p-2 border rounded bg-white dark:bg-gray-800 text-black dark:text-white" />)}</div>
+                             <div><label className="block text-sm font-bold text-gray-700 dark:text-gray-200">عنوان الدرس</label><input type="text" value={modalData.lessonTitle} onChange={e => setModalData({...modalData, lessonTitle: e.target.value})} className="w-full p-2 border rounded bg-white dark:bg-gray-800 text-black dark:text-white font-bold" /></div>
+                            <div><label className="block text-sm font-bold text-gray-700 dark:text-gray-200">الصف</label><select value={modalData.classLevel} onChange={e => setModalData({...modalData, classLevel: e.target.value})} className="w-full p-2 border rounded bg-white dark:bg-gray-800 text-black dark:text-white"><option value="">اختر...</option>{gradesList.map(g => <option key={g} value={g}>{g}</option>)}</select></div>
+                            <div><label className="block text-sm font-bold text-gray-700 dark:text-gray-200">الشعبة</label><select value={modalData.division} onChange={e => setModalData({...modalData, division: e.target.value})} className="w-full p-2 border rounded bg-white dark:bg-gray-800 text-black dark:text-white"><option value="">اختر...</option>{divisions.map(d => <option key={d} value={d}>{d}</option>)}</select></div>
+                            <div><label className="block text-sm font-bold text-gray-700 dark:text-gray-200">الحصة</label><select value={modalData.period} onChange={e => setModalData({...modalData, period: e.target.value})} className="w-full p-2 border rounded bg-white dark:bg-gray-800 text-black dark:text-white"><option value="">اختر...</option>{periods.map(p => <option key={p} value={p}>{p}</option>)}</select></div>
+                            <div><label className="block text-sm font-bold text-gray-700 dark:text-gray-200">التاريخ</label><input type="date" value={modalData.date} onChange={handleModalDateChange} className="w-full p-2 border rounded bg-white dark:bg-gray-800 text-black dark:text-white" /></div>
+                            <div><label className="block text-sm font-bold text-gray-700 dark:text-gray-200">اليوم</label><input type="text" value={modalData.day} readOnly className="w-full p-2 border rounded bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300" /></div>
                         </div>
                         <div className="flex gap-4 mt-8 pt-4 border-t">
                              {isGenerating ? <button disabled className="flex-1 bg-gray-400 text-white py-3 rounded-xl font-bold cursor-wait">جاري الإنشاء...</button> : <button onClick={confirmCreation} className="flex-1 bg-green-600 text-white py-3 rounded-xl font-bold hover:bg-green-700 text-lg"><i className="fas fa-check ml-2"></i> ابدأ التحضير</button>}
@@ -588,7 +588,7 @@ const SmartLessonPlanner: React.FC<{ onBack: () => void }> = ({ onBack }) => {
             <div className="flex justify-center overflow-x-auto mt-8">
                 <div 
                     id="lesson-plan-export" 
-                    className="bg-white text-black shadow-2xl mx-auto origin-top [&_[contenteditable]]:text-black [&_input]:text-black"
+                    className="bg-white dark:bg-gray-800 text-black dark:text-white shadow-2xl mx-auto origin-top [&_[contenteditable]]:text-black dark:text-white [&_input]:text-black dark:text-white"
                     style={{ 
                         width: '210mm',
                         minHeight: '297mm',
@@ -604,11 +604,11 @@ const SmartLessonPlanner: React.FC<{ onBack: () => void }> = ({ onBack }) => {
                     {/* Header - 3 Columns */}
                     <div className="flex justify-between items-start mb-2 w-full">
                          {/* Right: Ministry Info */}
-                         <div className="text-right w-1/3 font-bold space-y-1 text-[11px] leading-tight text-black">
+                         <div className="text-right w-1/3 font-bold space-y-1 text-[11px] leading-tight text-black dark:text-white">
                             <p>الجمهورية اليمنية</p>
                             <p>وزارة التربية والتعليم والبحث العلمي</p>
-                            <div className="flex items-center gap-1"><span>المنطقة:</span> <div contentEditable onBlur={(e) => handleContentEditableChange('district', e)} className="border-b border-black min-w-[80px] px-1 bg-transparent text-center focus:outline-none font-bold text-black" dangerouslySetInnerHTML={{ __html: plan.district }}></div></div>
-                            <div className="flex items-center gap-1"><span>المدارس:</span> <div contentEditable onBlur={(e) => handleContentEditableChange('school', e)} className="border-b border-black min-w-[80px] px-1 bg-transparent text-center focus:outline-none font-bold text-black" dangerouslySetInnerHTML={{ __html: plan.school }}></div></div>
+                            <div className="flex items-center gap-1"><span>المنطقة:</span> <div contentEditable onBlur={(e) => handleContentEditableChange('district', e)} className="border-b border-black min-w-[80px] px-1 bg-transparent text-center focus:outline-none font-bold text-black dark:text-white" dangerouslySetInnerHTML={{ __html: plan.district }}></div></div>
+                            <div className="flex items-center gap-1"><span>المدارس:</span> <div contentEditable onBlur={(e) => handleContentEditableChange('school', e)} className="border-b border-black min-w-[80px] px-1 bg-transparent text-center focus:outline-none font-bold text-black dark:text-white" dangerouslySetInnerHTML={{ __html: plan.school }}></div></div>
                          </div>
                          
                          {/* Center: Logos & Title */}
@@ -622,13 +622,13 @@ const SmartLessonPlanner: React.FC<{ onBack: () => void }> = ({ onBack }) => {
                             {/* REPLACED INPUT WITH DIV FOR TITLE - Auto width for long titles */}
                             <div className="relative mt-1">
                                 <div className="border-2 border-black px-4 py-2 font-black text-lg rounded-lg shadow-[2px_2px_0px_rgba(0,0,0,0.1)] inline-block min-w-[150px] whitespace-nowrap">
-                                    <div contentEditable onBlur={(e) => handleContentEditableChange('lessonTitle', e)} className="bg-transparent text-center focus:outline-none text-black" dangerouslySetInnerHTML={{ __html: plan.lessonTitle || 'عنوان الدرس' }}></div>
+                                    <div contentEditable onBlur={(e) => handleContentEditableChange('lessonTitle', e)} className="bg-transparent text-center focus:outline-none text-black dark:text-white" dangerouslySetInnerHTML={{ __html: plan.lessonTitle || 'عنوان الدرس' }}></div>
                                 </div>
                             </div>
                          </div>
                          
                          {/* Left: Date/Day/Subject */}
-                         <div className="text-left w-1/3 font-bold space-y-1 text-[11px] leading-tight flex flex-col items-end text-black">
+                         <div className="text-left w-1/3 font-bold space-y-1 text-[11px] leading-tight flex flex-col items-end text-black dark:text-white">
                              <div className="flex items-center gap-2 justify-end w-full"><span>اليوم:</span> <span className="border-b border-black min-w-[60px] text-center">{plan.day}</span></div>
                              <div className="flex items-center gap-2 justify-end w-full"><span>التاريخ:</span> <span className="border-b border-black min-w-[60px] text-center">{plan.date}</span></div>
                              <div className="flex items-center gap-2 justify-end w-full"><span>المادة:</span> <span className="border-b border-black min-w-[60px] text-center">{plan.subject}</span></div>
@@ -640,15 +640,15 @@ const SmartLessonPlanner: React.FC<{ onBack: () => void }> = ({ onBack }) => {
                     <div className="border-t-2 border-double border-gray-800 mb-2 mx-1"></div>
 
                     {/* Row 1: Class Info Grid */}
-                    <div className="grid grid-cols-4 border border-black text-center mb-2 divide-x divide-x-reverse divide-black font-bold text-[11px] bg-gray-50 text-black">
+                    <div className="grid grid-cols-4 border border-black text-center mb-2 divide-x divide-x-reverse divide-black font-bold text-[11px] bg-gray-50 dark:bg-gray-900 text-black dark:text-white">
                         <div className="p-1 flex items-center justify-center gap-1"><span>الصف:</span> <span>{plan.classLevel}</span></div>
                         <div className="p-1 flex items-center justify-center gap-1"><span>الشعبة:</span> <span>{plan.division}</span></div>
                         <div className="p-1 flex items-center justify-center gap-1"><span>الحصة:</span> <span>{plan.period}</span></div>
-                        <div className="p-1 flex items-center justify-center gap-1"><span>السلوك:</span> <div contentEditable onBlur={(e) => handleContentEditableChange('behavior', e)} className="bg-transparent min-w-[40px] border-b border-dotted border-black text-center focus:outline-none inline-block text-black" dangerouslySetInnerHTML={{ __html: plan.behavior }}></div></div>
+                        <div className="p-1 flex items-center justify-center gap-1"><span>السلوك:</span> <div contentEditable onBlur={(e) => handleContentEditableChange('behavior', e)} className="bg-transparent min-w-[40px] border-b border-dotted border-black text-center focus:outline-none inline-block text-black dark:text-white" dangerouslySetInnerHTML={{ __html: plan.behavior }}></div></div>
                     </div>
 
                     {/* Row 2: Methods & Aids */}
-                    <div className="grid grid-cols-2 gap-0 mb-2 text-[11px] border border-black text-black">
+                    <div className="grid grid-cols-2 gap-0 mb-2 text-[11px] border border-black text-black dark:text-white">
                         <div className="border-l border-black p-1">
                              <span className="font-bold underline block mb-1">طرق وأساليب التدريس:</span>
                              <div className="flex flex-wrap gap-2 text-[10px] pr-2">
@@ -666,13 +666,13 @@ const SmartLessonPlanner: React.FC<{ onBack: () => void }> = ({ onBack }) => {
                     </div>
 
                     {/* Row 3: Intro */}
-                    <div className="border border-black p-1 mb-2 text-[11px] relative text-black">
-                         <div className="absolute top-1 left-2 bg-gray-100 border border-black px-2 rounded text-[10px]">نوع التمهيد: {plan.introType}</div>
+                    <div className="border border-black p-1 mb-2 text-[11px] relative text-black dark:text-white">
+                         <div className="absolute top-1 left-2 bg-gray-100 dark:bg-gray-700 border border-black px-2 rounded text-[10px]">نوع التمهيد: {plan.introType}</div>
                          <span className="font-bold underline block mb-1">التمهيد للدرس:</span>
                          <div 
                             contentEditable
                             onBlur={(e) => handleContentEditableChange('introText', e)}
-                            className="w-full bg-transparent focus:outline-none leading-relaxed min-h-[40px] whitespace-pre-wrap break-words text-black"
+                            className="w-full bg-transparent focus:outline-none leading-relaxed min-h-[40px] whitespace-pre-wrap break-words text-black dark:text-white"
                             dir="rtl"
                             dangerouslySetInnerHTML={{ __html: plan.introText }}
                          ></div>
@@ -680,9 +680,9 @@ const SmartLessonPlanner: React.FC<{ onBack: () => void }> = ({ onBack }) => {
 
                     {/* Row 4: Objectives Table - Increased Eval Width */}
                     <div className="mb-2">
-                        <table className="w-full border-collapse border border-black text-[10px] table-fixed text-black">
+                        <table className="w-full border-collapse border border-black text-[10px] table-fixed text-black dark:text-white">
                             <thead>
-                                <tr className="bg-gray-200">
+                                <tr className="bg-gray-200 dark:bg-gray-800">
                                     <th className="border border-black p-1 w-16">المجال</th>
                                     <th className="border border-black p-1 w-16">المستوى</th>
                                     <th className="border border-black p-1">الأهداف السلوكية (صياغة الهدف)</th>
@@ -692,10 +692,10 @@ const SmartLessonPlanner: React.FC<{ onBack: () => void }> = ({ onBack }) => {
                             <tbody>
                                 {plan.objectives.map((obj, i) => (
                                     <tr key={i}>
-                                        <td className="border border-black p-1 font-bold text-center bg-gray-50 text-black">{obj.domain}</td>
-                                        <td className="border border-black p-0 align-middle"><div contentEditable onBlur={(e) => { const v = e.currentTarget.innerText; handleObjectiveChange(i, 'level', v); }} className="w-full h-full min-h-[20px] text-center bg-transparent focus:outline-none font-medium flex items-center justify-center whitespace-pre-wrap text-black" dangerouslySetInnerHTML={{__html: obj.level}}></div></td>
-                                        <td className="border border-black p-0 align-middle"><div contentEditable onBlur={(e) => { const v = e.currentTarget.innerText; handleObjectiveChange(i, 'text', v); }} className="w-full h-full min-h-[20px] px-1 bg-transparent focus:outline-none font-medium text-right flex items-center whitespace-pre-wrap text-black" dangerouslySetInnerHTML={{__html: obj.text}}></div></td>
-                                        <td className="border border-black p-0 align-middle"><div contentEditable onBlur={(e) => { const v = e.currentTarget.innerText; handleObjectiveChange(i, 'evaluation', v); }} className="w-full h-full min-h-[20px] px-1 bg-transparent focus:outline-none text-center font-medium flex items-center justify-center whitespace-pre-wrap text-black" dangerouslySetInnerHTML={{__html: obj.evaluation}}></div></td>
+                                        <td className="border border-black p-1 font-bold text-center bg-gray-50 dark:bg-gray-900 text-black dark:text-white">{obj.domain}</td>
+                                        <td className="border border-black p-0 align-middle"><div contentEditable onBlur={(e) => { const v = e.currentTarget.innerText; handleObjectiveChange(i, 'level', v); }} className="w-full h-full min-h-[20px] text-center bg-transparent focus:outline-none font-medium flex items-center justify-center whitespace-pre-wrap text-black dark:text-white" dangerouslySetInnerHTML={{__html: obj.level}}></div></td>
+                                        <td className="border border-black p-0 align-middle"><div contentEditable onBlur={(e) => { const v = e.currentTarget.innerText; handleObjectiveChange(i, 'text', v); }} className="w-full h-full min-h-[20px] px-1 bg-transparent focus:outline-none font-medium text-right flex items-center whitespace-pre-wrap text-black dark:text-white" dangerouslySetInnerHTML={{__html: obj.text}}></div></td>
+                                        <td className="border border-black p-0 align-middle"><div contentEditable onBlur={(e) => { const v = e.currentTarget.innerText; handleObjectiveChange(i, 'evaluation', v); }} className="w-full h-full min-h-[20px] px-1 bg-transparent focus:outline-none text-center font-medium flex items-center justify-center whitespace-pre-wrap text-black dark:text-white" dangerouslySetInnerHTML={{__html: obj.evaluation}}></div></td>
                                     </tr>
                                 ))}
                             </tbody>
@@ -703,36 +703,36 @@ const SmartLessonPlanner: React.FC<{ onBack: () => void }> = ({ onBack }) => {
                     </div>
 
                     {/* Row 5: Content Area */}
-                    <div className="border border-black p-1 mb-2 flex-grow flex flex-col text-black" style={{ minHeight: '180px' }}>
+                    <div className="border border-black p-1 mb-2 flex-grow flex flex-col text-black dark:text-white" style={{ minHeight: '180px' }}>
                         <div className="flex border-b border-black pb-1 mb-1 text-[11px] font-bold">
-                            <div className="w-1/2 border-l border-black pl-2 flex items-center">دور المعلم: <div contentEditable onBlur={(e) => handleContentEditableChange('teacherRole', e)} className="font-normal flex-grow bg-transparent border-b border-dotted border-gray-400 focus:outline-none inline-block ml-1 text-black" dangerouslySetInnerHTML={{__html: plan.teacherRole}}></div></div>
-                            <div className="w-1/2 pr-2 flex items-center">دور المتعلم: <div contentEditable onBlur={(e) => handleContentEditableChange('learnerRole', e)} className="font-normal flex-grow bg-transparent border-b border-dotted border-gray-400 focus:outline-none inline-block ml-1 text-black" dangerouslySetInnerHTML={{__html: plan.learnerRole}}></div></div>
+                            <div className="w-1/2 border-l border-black pl-2 flex items-center">دور المعلم: <div contentEditable onBlur={(e) => handleContentEditableChange('teacherRole', e)} className="font-normal flex-grow bg-transparent border-b border-dotted border-gray-400 focus:outline-none inline-block ml-1 text-black dark:text-white" dangerouslySetInnerHTML={{__html: plan.teacherRole}}></div></div>
+                            <div className="w-1/2 pr-2 flex items-center">دور المتعلم: <div contentEditable onBlur={(e) => handleContentEditableChange('learnerRole', e)} className="font-normal flex-grow bg-transparent border-b border-dotted border-gray-400 focus:outline-none inline-block ml-1 text-black dark:text-white" dangerouslySetInnerHTML={{__html: plan.learnerRole}}></div></div>
                         </div>
                         
-                        <h5 className="font-bold underline mb-1 text-[11px] text-black">محتوى الدرس:</h5>
+                        <h5 className="font-bold underline mb-1 text-[11px] text-black dark:text-white">محتوى الدرس:</h5>
                         <div 
                             contentEditable
                             onBlur={(e) => handleContentEditableChange('content', e)}
-                            className="w-full flex-grow bg-transparent focus:outline-none text-[11px] leading-[1.2] whitespace-pre-wrap break-words min-h-[100px] text-black"
+                            className="w-full flex-grow bg-transparent focus:outline-none text-[11px] leading-[1.2] whitespace-pre-wrap break-words min-h-[100px] text-black dark:text-white"
                             style={{ backgroundImage: 'linear-gradient(transparent 95%, #f5f5f5 95%)', backgroundSize: '100% 1.2em', lineHeight: '1.2em' }}
                             dir="rtl"
                             dangerouslySetInnerHTML={{ __html: plan.content }}
                         ></div>
                         
                         <div className="border-t border-black pt-1 mt-1 flex gap-2 text-[11px] items-center">
-                            <span className="font-bold whitespace-nowrap text-black">الأنشطة المصاحبة:</span>
-                            <div contentEditable onBlur={(e) => handleContentEditableChange('activities', e)} className="flex-grow bg-transparent border-b border-dotted border-black focus:outline-none text-black" dangerouslySetInnerHTML={{ __html: plan.activities }}></div>
+                            <span className="font-bold whitespace-nowrap text-black dark:text-white">الأنشطة المصاحبة:</span>
+                            <div contentEditable onBlur={(e) => handleContentEditableChange('activities', e)} className="flex-grow bg-transparent border-b border-dotted border-black focus:outline-none text-black dark:text-white" dangerouslySetInnerHTML={{ __html: plan.activities }}></div>
                         </div>
                     </div>
 
                     {/* Row 6: Closure & Homework */}
-                    <div className="grid grid-cols-2 border border-black mb-2 text-[11px] text-black">
+                    <div className="grid grid-cols-2 border border-black mb-2 text-[11px] text-black dark:text-white">
                         <div className="border-l border-black p-1">
                             <div className="flex justify-between mb-1"><span className="font-bold underline">غلق الدرس:</span> <span className="text-[9px] border border-black px-1 rounded">نوعه: {plan.closureType}</span></div>
                             <div 
                                 contentEditable
                                 onBlur={(e) => handleContentEditableChange('closureText', e)}
-                                className="w-full bg-transparent focus:outline-none whitespace-pre-wrap break-words min-h-[40px] text-black"
+                                className="w-full bg-transparent focus:outline-none whitespace-pre-wrap break-words min-h-[40px] text-black dark:text-white"
                                 dir="rtl"
                                 dangerouslySetInnerHTML={{ __html: plan.closureText }}
                             ></div>
@@ -742,7 +742,7 @@ const SmartLessonPlanner: React.FC<{ onBack: () => void }> = ({ onBack }) => {
                             <div 
                                 contentEditable
                                 onBlur={(e) => handleContentEditableChange('homeworkText', e)}
-                                className="w-full bg-transparent focus:outline-none whitespace-pre-wrap break-words min-h-[40px] text-black"
+                                className="w-full bg-transparent focus:outline-none whitespace-pre-wrap break-words min-h-[40px] text-black dark:text-white"
                                 dir="rtl"
                                 dangerouslySetInnerHTML={{ __html: plan.homeworkText }}
                             ></div>
@@ -750,21 +750,21 @@ const SmartLessonPlanner: React.FC<{ onBack: () => void }> = ({ onBack }) => {
                     </div>
 
                     {/* Row 7: Admin Notes & Reflection - STACKED */}
-                    <div className="border border-black p-1 mb-2 text-[10px] flex flex-col gap-1 text-black">
+                    <div className="border border-black p-1 mb-2 text-[10px] flex flex-col gap-1 text-black dark:text-white">
                         <div className="flex gap-1 items-start w-full">
                             <span className="font-bold whitespace-nowrap pt-1">ملاحظات إدارية:</span>
-                            <div contentEditable onBlur={(e) => handleContentEditableChange('adminNotes', e)} className="flex-grow border-b border-dotted border-black bg-transparent focus:outline-none min-h-[20px] whitespace-pre-wrap text-black" dangerouslySetInnerHTML={{__html: plan.adminNotes}}></div>
+                            <div contentEditable onBlur={(e) => handleContentEditableChange('adminNotes', e)} className="flex-grow border-b border-dotted border-black bg-transparent focus:outline-none min-h-[20px] whitespace-pre-wrap text-black dark:text-white" dangerouslySetInnerHTML={{__html: plan.adminNotes}}></div>
                         </div>
                         <div className="flex gap-1 items-start w-full">
                             <span className="font-bold whitespace-nowrap pt-1">ترنيمة قلم:</span>
-                            <div contentEditable onBlur={(e) => handleContentEditableChange('reflection', e)} className="flex-grow border-b border-dotted border-black bg-transparent focus:outline-none min-h-[20px] whitespace-pre-wrap text-black" dangerouslySetInnerHTML={{__html: plan.reflection}}></div>
+                            <div contentEditable onBlur={(e) => handleContentEditableChange('reflection', e)} className="flex-grow border-b border-dotted border-black bg-transparent focus:outline-none min-h-[20px] whitespace-pre-wrap text-black dark:text-white" dangerouslySetInnerHTML={{__html: plan.reflection}}></div>
                         </div>
                     </div>
 
                     {/* Footer */}
-                    <div className="flex justify-between items-end mt-auto text-[12px] pt-1 border-t-2 border-black text-black">
+                    <div className="flex justify-between items-end mt-auto text-[12px] pt-1 border-t-2 border-black text-black dark:text-white">
                         <div className="text-right">
-                            <p className="font-bold mb-3">اسم المعلم/ة: <span className="font-normal text-black">{plan.teacherName}</span></p>
+                            <p className="font-bold mb-3">اسم المعلم/ة: <span className="font-normal text-black dark:text-white">{plan.teacherName}</span></p>
                             <p className="font-bold">التوقيع: ..........................</p>
                         </div>
                         <div className="font-black italic text-base opacity-80 text-center">

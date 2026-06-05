@@ -61,7 +61,7 @@ const CurriculumDownloader: React.FC<{ onBack: () => void }> = ({ onBack }) => {
             <div className="space-y-8">
                 {/* Section 1 */}
                 <div className="neumorphic-outset p-6">
-                    <h3 className="text-xl font-bold text-primary mb-4 border-b border-gray-200 pb-2">
+                    <h3 className="text-xl font-bold text-primary mb-4 border-b border-gray-200 dark:border-gray-700 pb-2">
                         <i className="fas fa-globe-americas ml-2"></i> بوابات المناهج الرسمية
                     </h3>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -71,12 +71,12 @@ const CurriculumDownloader: React.FC<{ onBack: () => void }> = ({ onBack }) => {
                                 href={link.url}
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                className="flex items-center gap-4 p-4 rounded-xl bg-white border border-gray-100 shadow-sm hover:shadow-md hover:border-primary/50 transition-all group"
+                                className="flex items-center gap-4 p-4 rounded-xl bg-white dark:bg-gray-800 border border-gray-100 shadow-sm hover:shadow-md hover:border-primary/50 transition-all group"
                             >
                                 {link.icon.startsWith('http') ? (
                                     <img src={link.icon} alt={link.country} className="w-10 h-10 object-contain" />
                                 ) : (
-                                    <div className="w-10 h-10 flex items-center justify-center bg-gray-100 rounded-full text-primary group-hover:bg-primary group-hover:text-white transition-colors">
+                                    <div className="w-10 h-10 flex items-center justify-center bg-gray-100 dark:bg-gray-700 rounded-full text-primary group-hover:bg-primary group-hover:text-white transition-colors">
                                         <i className={`${link.icon} text-xl`}></i>
                                     </div>
                                 )}
@@ -114,24 +114,24 @@ const CurriculumDownloader: React.FC<{ onBack: () => void }> = ({ onBack }) => {
                     {myFiles.length > 0 ? (
                         <div className="space-y-2">
                             {myFiles.map((file, idx) => (
-                                <div key={idx} className="flex items-center justify-between p-3 bg-white rounded-lg border border-gray-200">
+                                <div key={idx} className="flex items-center justify-between p-3 bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700">
                                     <div className="flex items-center gap-3">
                                         <i className={`fas ${file.type.includes('image') ? 'fa-image text-purple-500' : 'fa-file-pdf text-red-500'} text-xl`}></i>
                                         <div>
                                             {/* Strictly render strings */}
-                                            <p className="font-bold text-sm text-gray-800">{String(file.name)}</p>
+                                            <p className="font-bold text-sm text-gray-800 dark:text-gray-100">{String(file.name)}</p>
                                             <p className="text-xs text-gray-500">{String(file.size)}</p>
                                         </div>
                                     </div>
                                     <div className="flex gap-2">
-                                        <button onClick={() => handleOpenFile(file)} className="w-8 h-8 flex items-center justify-center rounded-full bg-gray-100 hover:bg-blue-100 text-gray-600 hover:text-blue-600"><i className="fas fa-eye"></i></button>
-                                        <button onClick={() => handleDeleteFile(idx)} className="w-8 h-8 flex items-center justify-center rounded-full bg-gray-100 hover:bg-red-100 text-gray-600 hover:text-red-600"><i className="fas fa-trash"></i></button>
+                                        <button onClick={() => handleOpenFile(file)} className="w-8 h-8 flex items-center justify-center rounded-full bg-gray-100 dark:bg-gray-700 hover:bg-blue-100 text-gray-600 dark:text-gray-300 hover:text-blue-600"><i className="fas fa-eye"></i></button>
+                                        <button onClick={() => handleDeleteFile(idx)} className="w-8 h-8 flex items-center justify-center rounded-full bg-gray-100 dark:bg-gray-700 hover:bg-red-100 text-gray-600 dark:text-gray-300 hover:text-red-600"><i className="fas fa-trash"></i></button>
                                     </div>
                                 </div>
                             ))}
                         </div>
                     ) : (
-                        <div className="text-center py-8 border-2 border-dashed border-gray-300 rounded-xl bg-white/50">
+                        <div className="text-center py-8 border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-xl bg-white dark:bg-gray-800/50">
                             <p className="text-gray-500">لم تقم بإضافة ملفات بعد.</p>
                         </div>
                     )}
@@ -146,14 +146,14 @@ const CurriculumDownloader: React.FC<{ onBack: () => void }> = ({ onBack }) => {
                         href="https://tools.pdf24.org/ar/"
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="flex items-center justify-between p-4 rounded-xl bg-white border border-red-200 shadow-sm hover:shadow-md transition-all group"
+                        className="flex items-center justify-between p-4 rounded-xl bg-white dark:bg-gray-800 border border-red-200 shadow-sm hover:shadow-md transition-all group"
                     >
                          <div className="flex items-center gap-4">
                             <div className="w-12 h-12 flex items-center justify-center bg-red-100 rounded-full text-red-600 group-hover:bg-red-600 group-hover:text-white transition-colors">
                                 <i className="fas fa-tools text-2xl"></i>
                             </div>
                             <div>
-                                <h4 className="font-bold text-lg text-gray-800">التحكم بملف PDF</h4>
+                                <h4 className="font-bold text-lg text-gray-800 dark:text-gray-100">التحكم بملف PDF</h4>
                                 <p className="text-sm text-gray-500">دمج، ضغط، وتحويل ملفات PDF (PDF24)</p>
                             </div>
                          </div>

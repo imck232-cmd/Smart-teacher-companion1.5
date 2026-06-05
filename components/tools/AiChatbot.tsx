@@ -74,7 +74,7 @@ const AiChatbot: React.FC<{ onBack: () => void }> = ({ onBack }) => {
         )}
         {messages.map((msg, index) => (
           <div key={index} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'} mb-4`}>
-            <div className={`max-w-[85%] p-4 rounded-2xl shadow-sm ${msg.role === 'user' ? 'bg-indigo-600 text-white rounded-bl-none' : 'bg-white text-gray-800 rounded-br-none border border-gray-100'}`}>
+            <div className={`max-w-[85%] p-4 rounded-2xl shadow-sm ${msg.role === 'user' ? 'bg-indigo-600 text-white rounded-bl-none' : 'bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-100 rounded-br-none border border-gray-100'}`}>
               <div className="prose prose-sm max-w-none break-words" style={{ color: msg.role === 'user' ? 'white' : 'inherit' }}>
                 <ReactMarkdown>{msg.content}</ReactMarkdown>
               </div>
@@ -83,7 +83,7 @@ const AiChatbot: React.FC<{ onBack: () => void }> = ({ onBack }) => {
         ))}
         {isLoading && messages[messages.length - 1]?.role !== 'model' && (
            <div className="flex justify-start mb-3">
-             <div className="bg-white p-3 rounded-2xl rounded-br-none shadow-sm flex items-center gap-2">
+             <div className="bg-white dark:bg-gray-800 p-3 rounded-2xl rounded-br-none shadow-sm flex items-center gap-2">
                 <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"></div>
                 <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
                 <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.4s' }}></div>
@@ -94,7 +94,7 @@ const AiChatbot: React.FC<{ onBack: () => void }> = ({ onBack }) => {
       
       {error && <p className="text-red-500 text-center mb-2 bg-red-50 p-2 rounded">{error}</p>}
       
-      <div className="flex items-center neumorphic-outset rounded-xl p-2 gap-2 bg-white">
+      <div className="flex items-center neumorphic-outset rounded-xl p-2 gap-2 bg-white dark:bg-gray-800">
         <input
           type="text"
           value={input}

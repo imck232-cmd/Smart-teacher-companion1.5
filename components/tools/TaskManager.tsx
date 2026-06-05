@@ -113,13 +113,13 @@ const TaskManager: React.FC<{ onBack: () => void }> = ({ onBack }) => {
       <div className="neumorphic-outset p-6">
         {/* Add Task Form */}
         <form onSubmit={handleAddTask} className="flex items-center gap-3 mb-6 no-print">
-          <div className="flex-grow neumorphic-inset flex items-center p-1 !bg-white">
+          <div className="flex-grow neumorphic-inset flex items-center p-1 !bg-white dark:bg-gray-800">
             <input
               type="text"
               value={inputText}
               onChange={(e) => setInputText(e.target.value)}
               placeholder="أضف مهمة جديدة..."
-              className="w-full bg-white p-2 focus:outline-none text-black"
+              className="w-full bg-white dark:bg-gray-800 p-2 focus:outline-none text-black dark:text-white"
               style={{ color: 'black', backgroundColor: 'white' }}
             />
           </div>
@@ -131,14 +131,14 @@ const TaskManager: React.FC<{ onBack: () => void }> = ({ onBack }) => {
         {/* Filters and Actions */}
         <div className="flex flex-wrap justify-between items-center mb-4 gap-4 no-print">
           <div className="flex p-1 rounded-xl neumorphic-inset">
-             <button onClick={() => setFilter('all')} className={`px-4 py-2 rounded-xl transition-all duration-300 ${filter === 'all' ? 'neumorphic-button active bg-primary text-white' : 'text-gray-600'}`}>الكل</button>
-             <button onClick={() => setFilter('active')} className={`px-4 py-2 rounded-xl transition-all duration-300 ${filter === 'active' ? 'neumorphic-button active bg-primary text-white' : 'text-gray-600'}`}>النشطة</button>
-             <button onClick={() => setFilter('completed')} className={`px-4 py-2 rounded-xl transition-all duration-300 ${filter === 'completed' ? 'neumorphic-button active bg-primary text-white' : 'text-gray-600'}`}>المكتملة</button>
+             <button onClick={() => setFilter('all')} className={`px-4 py-2 rounded-xl transition-all duration-300 ${filter === 'all' ? 'neumorphic-button active bg-primary text-white' : 'text-gray-600 dark:text-gray-300'}`}>الكل</button>
+             <button onClick={() => setFilter('active')} className={`px-4 py-2 rounded-xl transition-all duration-300 ${filter === 'active' ? 'neumorphic-button active bg-primary text-white' : 'text-gray-600 dark:text-gray-300'}`}>النشطة</button>
+             <button onClick={() => setFilter('completed')} className={`px-4 py-2 rounded-xl transition-all duration-300 ${filter === 'completed' ? 'neumorphic-button active bg-primary text-white' : 'text-gray-600 dark:text-gray-300'}`}>المكتملة</button>
           </div>
           <div className="flex gap-2">
             {completedCount > 0 && (
                 <button onClick={handleClearCompleted} className="neumorphic-button bg-secondary text-white text-sm py-2 px-4">
-                حذف المكتمل <span className="bg-white/20 text-xs rounded-full px-2 py-0.5 ml-2">{completedCount}</span>
+                حذف المكتمل <span className="bg-white dark:bg-gray-800/20 text-xs rounded-full px-2 py-0.5 ml-2">{completedCount}</span>
                 </button>
             )}
             {filteredTasks.length > 0 && <ActionButtons textToCopy="" elementIdToPrint="tasks-list" />}
@@ -149,7 +149,7 @@ const TaskManager: React.FC<{ onBack: () => void }> = ({ onBack }) => {
         <div id="tasks-list" className="space-y-3">
           {filteredTasks.length > 0 ? (
             filteredTasks.map(task => (
-              <div key={task.id} className="neumorphic-inset p-3 flex items-center gap-3 transition-opacity duration-300 !bg-white break-inside-avoid">
+              <div key={task.id} className="neumorphic-inset p-3 flex items-center gap-3 transition-opacity duration-300 !bg-white dark:bg-gray-800 break-inside-avoid">
                 {editingTaskId === task.id ? (
                   <>
                     <input
@@ -157,7 +157,7 @@ const TaskManager: React.FC<{ onBack: () => void }> = ({ onBack }) => {
                       value={editingText}
                       onChange={(e) => setEditingText(e.target.value)}
                       onKeyDown={(e) => e.key === 'Enter' && handleSaveEdit(task.id)}
-                      className="w-full bg-white p-1 focus:outline-none text-black border-b-2 border-primary"
+                      className="w-full bg-white dark:bg-gray-800 p-1 focus:outline-none text-black dark:text-white border-b-2 border-primary"
                       style={{ color: 'black' }}
                       autoFocus
                     />
@@ -175,7 +175,7 @@ const TaskManager: React.FC<{ onBack: () => void }> = ({ onBack }) => {
                       checked={task.completed}
                       onChange={() => handleToggleComplete(task.id)}
                     />
-                    <span className={`flex-grow text-black font-medium ${task.completed ? 'line-through opacity-60' : ''}`}>
+                    <span className={`flex-grow text-black dark:text-white font-medium ${task.completed ? 'line-through opacity-60' : ''}`}>
                       {String(task.text)}
                     </span>
                     <button onClick={() => handleStartEditing(task)} className="neumorphic-button w-10 h-10 flex-shrink-0 flex items-center justify-center no-print">

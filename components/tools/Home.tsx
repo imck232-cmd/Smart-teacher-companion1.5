@@ -1,6 +1,6 @@
 
-import React, { useEffect } from 'react';
-import { tools, ToolKey } from '../../constants';
+import React, { useState, useEffect, useMemo } from 'react';
+import { tools, ToolKey, externalLinkTools } from '../../constants';
 
 interface HomeProps {
   onSelectTool: (toolKey: ToolKey) => void;
@@ -8,102 +8,219 @@ interface HomeProps {
   onOpenMostUsed: () => void;
 }
 
+const CATEGORIES = [
+    {
+        id: 'favorites',
+        title: 'الأدوات السريعة والمفضلة',
+        icon: 'fas fa-star',
+        color: 'from-amber-400 to-orange-500',
+        tools: ['importantDates', 'classSchedule', 'smartLessonPlanner', 'chatBot']
+    },
+    {
+        id: 'management',
+        title: 'التنظيم والإدارة',
+        icon: 'fas fa-tasks',
+        color: 'from-blue-500 to-indigo-600',
+        tools: ['yourTasks', 'participationLog', 'gradeSheet', 'archives', 'addNote']
+    },
+    {
+        id: 'planning',
+        title: 'التخطيط والمناهج',
+        icon: 'fas fa-book-reader',
+        color: 'from-emerald-500 to-teal-600',
+        tools: ['curriculumDownloader', 'createSemesterPlan', 'createLessonPlan', 'summarizeLesson', 'solveBookQuestions', 'analyzeLiterary']
+    },
+    {
+        id: 'testing',
+        title: 'التقويم والاختبارات',
+        icon: 'fas fa-pencil-ruler',
+        color: 'from-purple-500 to-fuchsia-600',
+        tools: ['createExam', 'createExamFromContent', 'formulateQuestions', 'periodicTests']
+    },
+    {
+        id: 'ai',
+        title: 'الذكاء الاصطناعي والإبداع',
+        icon: 'fas fa-robot',
+        color: 'from-rose-400 to-red-500',
+        tools: ['aiTools', 'createAIPrompts', 'creativeIdeas', 'imageAnalyzer', 'textToSpeechInternal', 'transcribeAudio', 'pauseWithUs', 'educationalGames']
+    },
+    {
+        id: 'multimedia',
+        title: 'المحتوى المرئي والوسائط',
+        icon: 'fas fa-photo-video',
+        color: 'from-cyan-500 to-blue-500',
+        tools: ['createImage', 'createLogo', 'designCover', 'createVideo', 'createPowerpoint', 'createTeachingAid', 'createFlashcards', 'textToSong', 'textToSpeech', 'createBarcode']
+    },
+    {
+        id: 'events',
+        title: 'الأنشطة والفعاليات',
+        icon: 'fas fa-calendar-alt',
+        color: 'from-pink-500 to-rose-500',
+        tools: ['createSchoolBroadcast', 'createSchoolCelebration', 'createStory']
+    }
+];
+
 const Home: React.FC<HomeProps> = ({ onSelectTool, lastActiveTool, onOpenMostUsed }) => {
-  
+  const [searchQuery, setSearchQuery] = useState('');
+
   // Scroll to the last active tool button when returning to home
   useEffect(() => {
-    if (lastActiveTool) {
+    if (lastActiveTool && !searchQuery) {
       const element = document.getElementById(`tool-btn-${lastActiveTool}`);
       if (element) {
         element.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        // Add a temporary highlight effect
         element.classList.add('ring-4', 'ring-primary/50');
         setTimeout(() => {
             element.classList.remove('ring-4', 'ring-primary/50');
         }, 1000);
       }
     }
-  }, [lastActiveTool]);
+  }, [lastActiveTool, searchQuery]);
+
+  const filteredTools = useMemo(() => {
+    if (!searchQuery.trim()) return tools;
+    return tools.filter(t => t.label.toLowerCase().includes(searchQuery.toLowerCase()));
+  }, [searchQuery]);
+
+  const renderToolButton = (tool: any) => (
+    <button 
+      key={tool.key} 
+      id={`tool-btn-${tool.key}`}
+      onClick={() => onSelectTool(tool.key)}
+      className="group relative bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 hover:shadow-md hover:border-primary/30 transition-all text-right flex items-center p-4 gap-4 overflow-hidden"
+    >
+      <div className="absolute inset-0 bg-gradient-to-l from-primary/5 to-transparent w-0 group-hover:w-full transition-all duration-500 ease-out z-0"></div>
+      <div className="flex-shrink-0 w-12 h-12 rounded-xl bg-primary/10 dark:bg-primary/20 flex items-center justify-center text-primary dark:text-blue-400 group-hover:scale-110 transition-transform z-10">
+        <i className={`${tool.icon} text-2xl`}></i>
+      </div>
+      <div className="flex-grow z-10">
+        <span className="text-gray-900 dark:text-white font-bold block">{tool.label}</span>
+      </div>
+      {tool.isNew && (
+        <span className="absolute top-2 left-2 bg-green-100 dark:bg-emerald-900 text-green-700 dark:text-emerald-300 text-[10px] font-bold px-2 py-0.5 rounded-full border border-green-200 dark:border-emerald-700 z-10 animate-pulse">
+            جديد
+        </span>
+      )}
+    </button>
+  );
 
   return (
-    <div className="max-w-lg mx-auto pb-12">
-      <div className="text-center mb-8">
-        <h1 className="text-5xl font-bold font-heading text-heading-text mb-4">
+    <div className="max-w-6xl mx-auto pb-12 px-2 animate-fadeIn">
+      {/* Header & Search */}
+      <div className="text-center mb-10">
+        <h1 className="text-4xl md:text-5xl font-extrabold font-heading text-gray-900 dark:text-white mb-4 drop-shadow-sm">
           رفيق المعلم الذكي
         </h1>
-        <h2 className="text-xl font-heading text-heading-text/80">
-          أدوات تساعدك للوصول إلى الإبداع
+        <h2 className="text-lg md:text-xl font-heading text-gray-600 dark:text-gray-300 mb-8 max-w-2xl mx-auto">
+          كل ما تحتاجه لإدارة مهامك، تحضير دروسك، وإطلاق العنان لإبداعك في مكان واحد
         </h2>
+        
+        <div className="relative max-w-2xl mx-auto">
+            <div className="absolute inset-y-0 right-0 flex items-center pr-4 pointer-events-none">
+                <i className="fas fa-search text-gray-400 dark:text-gray-500 text-lg"></i>
+            </div>
+            <input 
+                type="text" 
+                value={searchQuery}
+                onChange={e => setSearchQuery(e.target.value)}
+                placeholder="ابحث عن أداة (مثال: تحضير، جدول، ذكاء اصطناعي)..."
+                className="w-full h-14 pl-4 pr-12 rounded-2xl bg-white dark:bg-gray-800 border-2 border-gray-200 dark:border-gray-700 text-gray-900 dark:text-white shadow-sm focus:border-primary dark:focus:border-primary focus:ring-4 focus:ring-primary/20 transition-all text-lg"
+            />
+            {searchQuery && (
+                <button 
+                    onClick={() => setSearchQuery('')}
+                    className="absolute inset-y-0 left-0 flex items-center pl-4 text-gray-400 hover:text-gray-600 dark:text-gray-300 dark:hover:text-gray-300 transition-colors"
+                >
+                    <i className="fas fa-times-circle text-lg"></i>
+                </button>
+            )}
+        </div>
       </div>
 
-      <div className="mb-4 px-2 grid grid-cols-1 sm:grid-cols-4 gap-3">
-        {/* Today's Tasks (Distinct Color) */}
-        <button 
-            onClick={() => onSelectTool('importantDates')}
-            className="relative bg-gradient-to-br from-emerald-500 to-teal-600 text-white font-bold py-4 rounded-2xl shadow-md transform transition hover:scale-[1.02] flex flex-col items-center justify-center gap-2 border-2 border-white/20"
-        >
-            <span className="absolute -top-2 -right-2 bg-white text-emerald-700 text-[10px] font-bold px-2 py-0.5 rounded-full border border-emerald-200 shadow-sm animate-pulse">جديد</span>
-            <i className="fas fa-calendar-check text-xl"></i>
-            <span className="text-sm">أعمال اليوم</span>
-        </button>
-
-        {/* Most Used Button (Distinct Color) */}
-        <button 
-            onClick={onOpenMostUsed}
-            className="bg-gradient-to-br from-amber-500 to-orange-600 text-white font-bold py-4 rounded-2xl shadow-lg transform transition hover:scale-[1.02] flex flex-col items-center justify-center gap-2 relative overflow-hidden border-2 border-white/20"
-        >
-            <i className="fas fa-star text-yellow-200 text-2xl animate-pulse"></i>
-            <span className="text-sm">الأكثر استخداماً</span>
-        </button>
-
-        {/* Daily Schedule (Distinct Color + Renamed) */}
-        <button 
-            onClick={() => onSelectTool('classSchedule')}
-            className="relative bg-gradient-to-br from-blue-500 to-indigo-600 text-white font-bold py-4 rounded-2xl shadow-md transform transition hover:scale-[1.02] flex flex-col items-center justify-center gap-2 border-2 border-white/20"
-        >
-            <span className="absolute -top-2 -right-2 bg-white text-blue-700 text-[10px] font-bold px-2 py-0.5 rounded-full border border-blue-200 shadow-sm animate-pulse">جديد</span>
-            <i className="fas fa-chalkboard-teacher text-xl"></i>
-            <span className="text-sm">جدول الحصص</span>
-        </button>
-
-        {/* Alternative App Link (Orange Color) */}
-        <button 
-            onClick={() => window.open('https://ai.studio/apps/d890e19e-f4dc-4235-a24f-f353db54173b', '_blank', 'noopener,noreferrer')}
-            className="bg-gradient-to-br from-orange-400 to-red-500 text-white font-bold py-4 rounded-2xl shadow-lg transform transition hover:scale-[1.02] flex flex-col items-center justify-center gap-2 border-2 border-white/20 relative"
-        >
-            <i className="fas fa-external-link-alt text-xl text-white/90"></i>
-            <span className="text-sm text-center">رفيق المعلم الذكي البديل</span>
-        </button>
-      </div>
-
-      <div className="space-y-4 px-2">
-        {tools.map((tool) => (
-          <div 
-            key={tool.key} 
-            id={`tool-btn-${tool.key}`}
-            className="relative flex items-center h-16 w-full cursor-pointer group" 
-            onClick={() => onSelectTool(tool.key)}
-          >
-             {/* Icon */}
-            <div className="absolute right-0 top-0 z-20 w-16 h-16 rounded-full bg-primary border-4 border-icon flex items-center justify-center shadow-md transition-transform group-hover:scale-110 duration-300"
-                 style={{ color: 'var(--color-tool-text-override, rgb(var(--color-icon)))' }}>
-                <i className={`${tool.icon} text-3xl`}></i>
-            </div>
-             {/* Button Label */}
-            <div className="absolute left-0 top-2 h-12 w-[calc(100%-3rem)] bg-component-bg rounded-l-full rounded-r-none flex items-center justify-center shadow-sm border border-gray-100 dark:border-gray-700 transition-all transform group-hover:translate-x-[-5px] group-hover:bg-primary group-hover:text-white"
-                 style={{ color: 'var(--color-tool-text-override, rgb(var(--color-base-text)))' }}>
-                <span className="text-lg font-bold group-hover:text-white transition-colors">{tool.label}</span>
-                
-                {/* NEW BADGE INDICATOR */}
-                {tool.isNew && (
-                    <span className="absolute -top-3 left-4 bg-green-100 text-green-800 text-[10px] font-bold px-2 py-0.5 rounded border border-green-300 z-30 shadow-sm">
-                        جديد
-                    </span>
-                )}
-            </div>
+      {searchQuery ? (
+          // Search Results View
+          <div>
+              <h3 className="text-xl font-bold text-gray-800 dark:text-gray-200 mb-4 px-2">
+                  نتائج البحث ({filteredTools.length})
+              </h3>
+              {filteredTools.length > 0 ? (
+                  <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                      {filteredTools.map(renderToolButton)}
+                  </div>
+              ) : (
+                  <div className="text-center py-12 text-gray-500 dark:text-gray-400">
+                      <i className="fas fa-search-minus text-4xl mb-3"></i>
+                      <p>لم يتم العثور على أدوات تطابق بحثك.</p>
+                  </div>
+              )}
           </div>
-        ))}
-      </div>
+      ) : (
+          // Bento Grid Categories View
+          <div className="space-y-10">
+              {/* Highlight Dashboard Action Cards (Quick Access) */}
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                  <button onClick={() => onSelectTool('classSchedule')} className="bg-gradient-to-br from-indigo-500 to-purple-600 text-white rounded-3xl p-6 shadow-lg hover:shadow-xl hover:-translate-y-1 transition-all flex flex-col justify-between aspect-square group relative overflow-hidden">
+                      <div className="absolute top-0 right-0 p-4 opacity-20 transform group-hover:scale-125 transition-transform"><i className="fas fa-table text-6xl"></i></div>
+                      <div className="bg-white/20 w-12 h-12 rounded-2xl flex items-center justify-center backdrop-blur-sm z-10"><i className="fas fa-table text-2xl"></i></div>
+                      <div className="text-right z-10">
+                          <h3 className="font-bold text-xl mb-1">الجدول</h3>
+                          <p className="text-white/80 text-sm">حصصك الأسبوعية</p>
+                      </div>
+                  </button>
+                  <button onClick={onOpenMostUsed} className="bg-gradient-to-br from-amber-400 to-orange-500 text-white rounded-3xl p-6 shadow-lg hover:shadow-xl hover:-translate-y-1 transition-all flex flex-col justify-between aspect-square group relative overflow-hidden">
+                      <div className="absolute top-0 right-0 p-4 opacity-20 transform group-hover:rotate-12 transition-transform"><i className="fas fa-star text-6xl"></i></div>
+                      <div className="bg-white/20 w-12 h-12 rounded-2xl flex items-center justify-center backdrop-blur-sm z-10"><i className="fas fa-star text-2xl"></i></div>
+                      <div className="text-right z-10">
+                          <h3 className="font-bold text-xl mb-1">المفضلة</h3>
+                          <p className="text-white/80 text-sm">أدواتك المفضلة</p>
+                      </div>
+                  </button>
+                  <button onClick={() => onSelectTool('smartLessonPlanner')} className="bg-gradient-to-br from-emerald-400 to-teal-500 text-white rounded-3xl p-6 shadow-lg hover:shadow-xl hover:-translate-y-1 transition-all flex flex-col justify-between aspect-square group relative overflow-hidden">
+                      <div className="absolute top-0 right-0 p-4 opacity-20 transform group-hover:scale-110 transition-transform"><i className="fas fa-book-reader text-6xl"></i></div>
+                      <div className="bg-white/20 w-12 h-12 rounded-2xl flex items-center justify-center backdrop-blur-sm z-10"><i className="fas fa-book-reader text-2xl animate-pulse"></i></div>
+                      <div className="text-right z-10">
+                          <span className="absolute top-4 left-4 bg-white/90 text-teal-600 text-xs font-bold px-2 py-1 rounded-full shadow-sm">الأكثر طلباً</span>
+                          <h3 className="font-bold text-xl mb-1">التحضير</h3>
+                          <p className="text-white/80 text-sm">إعداد ذكي للدروس</p>
+                      </div>
+                  </button>
+                  <button onClick={() => window.open('https://ai.studio/apps/d890e19e-f4dc-4235-a24f-f353db54173b', '_blank', 'noopener,noreferrer')} className="bg-gradient-to-br from-slate-700 to-slate-900 dark:from-slate-800 dark:to-black text-white rounded-3xl p-6 shadow-lg hover:shadow-xl hover:-translate-y-1 transition-all flex flex-col justify-between aspect-square group relative overflow-hidden">
+                       <div className="absolute top-0 right-0 p-4 opacity-10 transform group-hover:rotate-6 transition-transform"><i className="fas fa-external-link-alt text-6xl"></i></div>
+                       <div className="bg-white/10 w-12 h-12 rounded-2xl flex items-center justify-center backdrop-blur-sm z-10"><i className="fas fa-external-link-alt text-2xl"></i></div>
+                       <div className="text-right z-10">
+                          <h3 className="font-bold text-lg leading-tight mb-1">بريق<br/>(البديل المجاني)</h3>
+                          <p className="text-white/60 text-xs">نسخة احتياطية</p>
+                      </div>
+                  </button>
+              </div>
+
+              {/* Bento Grid Categories map */}
+              <div className="grid grid-cols-1 xl:grid-cols-2 gap-8">
+                  {CATEGORIES.map(category => {
+                      // Resolve tools for this category
+                      const catTools = category.tools.map(key => tools.find(t => t.key === key)).filter(Boolean) as any[];
+                      // Skip if empty
+                      if (catTools.length === 0) return null;
+
+                      return (
+                          <div key={category.id} className="bg-gray-50 dark:bg-gray-800/50 rounded-[2rem] p-6 lg:p-8 border border-gray-200 dark:border-gray-700/50 dark:border-gray-700/50 shadow-inner">
+                              <div className="flex items-center gap-4 mb-6 px-2">
+                                  <div className={`w-12 h-12 rounded-2xl bg-gradient-to-br ${category.color} text-white flex items-center justify-center shadow-md`}>
+                                      <i className={`${category.icon} text-xl`}></i>
+                                  </div>
+                                  <h3 className="text-2xl font-bold text-gray-900 dark:text-white">
+                                      {category.title}
+                                  </h3>
+                              </div>
+                              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 lg:gap-4">
+                                  {catTools.map(renderToolButton)}
+                              </div>
+                          </div>
+                      );
+                  })}
+              </div>
+          </div>
+      )}
     </div>
   );
 };

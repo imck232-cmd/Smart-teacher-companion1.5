@@ -147,7 +147,7 @@ const ProImageGenerator: React.FC<{ onBack: () => void }> = ({ onBack }) => {
                             <button
                                 key={opt}
                                 onClick={() => setSize(opt)}
-                                className={`flex-1 py-3 rounded-xl font-bold transition-all ${size === opt ? 'bg-primary text-white shadow-lg transform scale-105' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'}`}
+                                className={`flex-1 py-3 rounded-xl font-bold transition-all ${size === opt ? 'bg-primary text-white shadow-lg transform scale-105' : 'bg-gray-200 dark:bg-gray-800 text-gray-700 dark:text-gray-200 hover:bg-gray-300'}`}
                                 disabled={isLoading}
                             >
                                 {opt}
@@ -172,7 +172,7 @@ const ProImageGenerator: React.FC<{ onBack: () => void }> = ({ onBack }) => {
 
                 {generatedImage && (
                     <div className="mt-8 animate-fadeIn">
-                        <div className="neumorphic-inset p-2 rounded-xl bg-white overflow-hidden">
+                        <div className="neumorphic-inset p-2 rounded-xl bg-white dark:bg-gray-800 overflow-hidden">
                             <img src={generatedImage} alt="Generated" className="w-full h-auto rounded-lg shadow-inner" />
                         </div>
                         <div className="mt-4 text-center">

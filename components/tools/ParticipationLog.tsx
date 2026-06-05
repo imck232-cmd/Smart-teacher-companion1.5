@@ -477,10 +477,10 @@ const ParticipationLog: React.FC<{ onBack: () => void }> = ({ onBack }) => {
     const compAnalysis = getComprehensiveAnalysis();
 
     const renderScoreBtn = (sessionId: string, studentId: string, score: number, index: number) => {
-        let colorClass = 'bg-white text-black border border-black';
-        if (score >= 1) colorClass = 'bg-yellow-50 text-black border border-black';
-        if (score >= 3) colorClass = 'bg-green-50 text-black border border-black';
-        if (score >= 5) colorClass = 'bg-blue-50 text-black border border-black font-bold';
+        let colorClass = 'bg-white dark:bg-gray-800 text-black dark:text-white border border-black';
+        if (score >= 1) colorClass = 'bg-yellow-50 text-black dark:text-white border border-black';
+        if (score >= 3) colorClass = 'bg-green-50 text-black dark:text-white border border-black';
+        if (score >= 5) colorClass = 'bg-blue-50 text-black dark:text-white border border-black font-bold';
         
         return (
             <button 
@@ -509,22 +509,22 @@ const ParticipationLog: React.FC<{ onBack: () => void }> = ({ onBack }) => {
                         تحليل النتائج
                     </button>
                 </div>
-                <div className="flex items-center gap-2 bg-white p-2 rounded-lg border border-gray-200 w-full md:w-auto">
-                    <label className="text-xs font-bold text-gray-600">المدرسة:</label>
+                <div className="flex items-center gap-2 bg-white dark:bg-gray-800 p-2 rounded-lg border border-gray-200 dark:border-gray-700 w-full md:w-auto">
+                    <label className="text-xs font-bold text-gray-600 dark:text-gray-300">المدرسة:</label>
                     <input 
                         type="text" 
                         value={safeString(schoolName)} 
                         onChange={e => setSchoolName(e.target.value)} 
                         placeholder="اسم المدرسة..."
-                        className="p-1 bg-white border-b border-gray-300 focus:border-blue-500 focus:outline-none text-black text-sm flex-grow w-24"
+                        className="p-1 bg-white dark:bg-gray-800 border-b border-gray-300 dark:border-gray-600 focus:border-blue-500 focus:outline-none text-black dark:text-white text-sm flex-grow w-24"
                     />
-                    <label className="text-xs font-bold text-gray-600">المعلم:</label>
+                    <label className="text-xs font-bold text-gray-600 dark:text-gray-300">المعلم:</label>
                     <input 
                         type="text" 
                         value={safeString(teacherName)} 
                         onChange={e => setTeacherName(e.target.value)} 
                         placeholder="الاسم..."
-                        className="p-1 bg-white border-b border-gray-300 focus:border-blue-500 focus:outline-none text-black text-sm flex-grow w-24"
+                        className="p-1 bg-white dark:bg-gray-800 border-b border-gray-300 dark:border-gray-600 focus:border-blue-500 focus:outline-none text-black dark:text-white text-sm flex-grow w-24"
                     />
                 </div>
             </div>
@@ -533,14 +533,14 @@ const ParticipationLog: React.FC<{ onBack: () => void }> = ({ onBack }) => {
                 <div className="neumorphic-outset p-6 mb-8 bg-green-50/50 border border-green-200 animate-fadeIn no-print">
                     <h3 className="font-bold text-lg text-green-800 mb-4">بيانات السجل الجديد</h3>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                        <input type="text" placeholder="عنوان السجل (مثال: مشاركة شهر رجب)" value={safeString(newSessionData.recordTitle)} onChange={e => setNewSessionData({...newSessionData, recordTitle: e.target.value})} className="p-2 border rounded text-black" />
-                        <input type="text" placeholder="المادة" value={safeString(newSessionData.subject)} onChange={e => setNewSessionData({...newSessionData, subject: e.target.value})} className="p-2 border rounded text-black" />
-                        <input type="text" placeholder="الصف (مثال: ثاني ثانوي)" value={safeString(newSessionData.className)} onChange={e => setNewSessionData({...newSessionData, className: e.target.value})} className="p-2 border rounded text-black" />
-                        <input type="text" placeholder="العام الدراسي" value={safeString(newSessionData.schoolYear)} onChange={e => setNewSessionData({...newSessionData, schoolYear: e.target.value})} className="p-2 border rounded text-black" />
-                        <input type="date" value={safeString(newSessionData.date)} onChange={e => setNewSessionData({...newSessionData, date: e.target.value})} className="p-2 border rounded text-black" />
+                        <input type="text" placeholder="عنوان السجل (مثال: مشاركة شهر رجب)" value={safeString(newSessionData.recordTitle)} onChange={e => setNewSessionData({...newSessionData, recordTitle: e.target.value})} className="p-2 border rounded text-black dark:text-white" />
+                        <input type="text" placeholder="المادة" value={safeString(newSessionData.subject)} onChange={e => setNewSessionData({...newSessionData, subject: e.target.value})} className="p-2 border rounded text-black dark:text-white" />
+                        <input type="text" placeholder="الصف (مثال: ثاني ثانوي)" value={safeString(newSessionData.className)} onChange={e => setNewSessionData({...newSessionData, className: e.target.value})} className="p-2 border rounded text-black dark:text-white" />
+                        <input type="text" placeholder="العام الدراسي" value={safeString(newSessionData.schoolYear)} onChange={e => setNewSessionData({...newSessionData, schoolYear: e.target.value})} className="p-2 border rounded text-black dark:text-white" />
+                        <input type="date" value={safeString(newSessionData.date)} onChange={e => setNewSessionData({...newSessionData, date: e.target.value})} className="p-2 border rounded text-black dark:text-white" />
                     </div>
                     <div className="flex gap-3">
-                        <button onClick={() => handleCreateSession(false)} className="neumorphic-button bg-gray-500 text-white px-4 py-2 font-bold flex-1">إنشاء فارغ</button>
+                        <button onClick={() => handleCreateSession(false)} className="neumorphic-button bg-gray-50 dark:bg-gray-9000 text-white px-4 py-2 font-bold flex-1">إنشاء فارغ</button>
                         <button onClick={() => handleCreateSession(true)} className="neumorphic-button bg-green-600 text-white px-4 py-2 font-bold flex-1">إنشاء ونسخ الطلاب</button>
                     </div>
                 </div>
@@ -548,17 +548,17 @@ const ParticipationLog: React.FC<{ onBack: () => void }> = ({ onBack }) => {
 
             {showImportModal && (
                 <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4 no-print" onClick={() => setShowImportModal(false)}>
-                    <div className="bg-white rounded-xl p-6 w-full max-w-lg shadow-2xl" onClick={e => e.stopPropagation()}>
+                    <div className="bg-white dark:bg-gray-800 rounded-xl p-6 w-full max-w-lg shadow-2xl" onClick={e => e.stopPropagation()}>
                         <h3 className="text-xl font-bold text-blue-800 mb-4 border-b pb-2">استيراد أسماء الطلاب</h3>
-                        <p className="text-sm text-gray-600 mb-2">قم بلصق أسماء الطلاب هنا، كل اسم في سطر جديد:</p>
+                        <p className="text-sm text-gray-600 dark:text-gray-300 mb-2">قم بلصق أسماء الطلاب هنا، كل اسم في سطر جديد:</p>
                         <textarea 
                             value={importText}
                             onChange={(e) => setImportText(e.target.value)}
-                            className="w-full h-48 p-2 border rounded text-black bg-white mb-4"
+                            className="w-full h-48 p-2 border rounded text-black dark:text-white bg-white dark:bg-gray-800 mb-4"
                             placeholder="أحمد محمد&#10;خالد عبدالله&#10;سعيد علي..."
                         />
                         <div className="flex justify-end gap-2">
-                            <button onClick={() => setShowImportModal(false)} className="px-4 py-2 rounded bg-gray-500 text-white font-bold">إلغاء</button>
+                            <button onClick={() => setShowImportModal(false)} className="px-4 py-2 rounded bg-gray-50 dark:bg-gray-9000 text-white font-bold">إلغاء</button>
                             <button onClick={handleBulkImport} className="px-4 py-2 rounded bg-blue-600 text-white font-bold">استيراد</button>
                         </div>
                     </div>
@@ -578,23 +578,23 @@ const ParticipationLog: React.FC<{ onBack: () => void }> = ({ onBack }) => {
                     )}
 
                     <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-                        <input type="date" value={analyticsStartDate} onChange={e => setAnalyticsStartDate(e.target.value)} className="bg-white text-black p-2 rounded border" />
-                        <input type="date" value={analyticsEndDate} onChange={e => setAnalyticsEndDate(e.target.value)} className="bg-white text-black p-2 rounded border" />
-                        <select value={analyticsCriterion} onChange={e => setAnalyticsCriterion(e.target.value === 'total' ? 'total' : Number(e.target.value))} className="bg-white text-black p-2 rounded border">
+                        <input type="date" value={analyticsStartDate} onChange={e => setAnalyticsStartDate(e.target.value)} className="bg-white dark:bg-gray-800 text-black dark:text-white p-2 rounded border" />
+                        <input type="date" value={analyticsEndDate} onChange={e => setAnalyticsEndDate(e.target.value)} className="bg-white dark:bg-gray-800 text-black dark:text-white p-2 rounded border" />
+                        <select value={analyticsCriterion} onChange={e => setAnalyticsCriterion(e.target.value === 'total' ? 'total' : Number(e.target.value))} className="bg-white dark:bg-gray-800 text-black dark:text-white p-2 rounded border">
                             <option value="total">المجموع الكلي</option>
                             {headers.map((h, i) => <option key={i} value={i}>{safeString(h)}</option>)}
                         </select>
                         <div className="flex gap-2">
-                            <button onClick={() => setAnalyticsSort('desc')} className={`flex-1 rounded font-bold ${analyticsSort === 'desc' ? 'bg-indigo-500 text-white' : 'bg-white'}`}>الأعلى</button>
-                            <button onClick={() => setAnalyticsSort('asc')} className={`flex-1 rounded font-bold ${analyticsSort === 'asc' ? 'bg-indigo-500 text-white' : 'bg-white'}`}>الأدنى</button>
+                            <button onClick={() => setAnalyticsSort('desc')} className={`flex-1 rounded font-bold ${analyticsSort === 'desc' ? 'bg-indigo-500 text-white' : 'bg-white dark:bg-gray-800'}`}>الأعلى</button>
+                            <button onClick={() => setAnalyticsSort('asc')} className={`flex-1 rounded font-bold ${analyticsSort === 'asc' ? 'bg-indigo-500 text-white' : 'bg-white dark:bg-gray-800'}`}>الأدنى</button>
                         </div>
                     </div>
-                    <div className="overflow-x-auto bg-white rounded-xl shadow-sm mb-6">
+                    <div className="overflow-x-auto bg-white dark:bg-gray-800 rounded-xl shadow-sm mb-6">
                         <table className="w-full text-center">
                             <thead className="bg-indigo-100 text-indigo-900"><tr><th className="p-3">#</th><th className="p-3 text-right">الطالب</th><th className="p-3">النقاط</th></tr></thead>
                             <tbody>
                                 {analyticsData.map((d, i) => (
-                                    <tr key={i} className="border-b"><td className="p-3 text-indigo-500 font-bold">{i+1}</td><td className="p-3 text-right text-black font-bold">{safeString(d.name)}</td><td className="p-3"><span className="bg-indigo-600 text-white px-3 py-1 rounded-full font-bold">{String(d.totalScore)}</span></td></tr>
+                                    <tr key={i} className="border-b"><td className="p-3 text-indigo-500 font-bold">{i+1}</td><td className="p-3 text-right text-black dark:text-white font-bold">{safeString(d.name)}</td><td className="p-3"><span className="bg-indigo-600 text-white px-3 py-1 rounded-full font-bold">{String(d.totalScore)}</span></td></tr>
                                 ))}
                             </tbody>
                         </table>
@@ -603,22 +603,22 @@ const ParticipationLog: React.FC<{ onBack: () => void }> = ({ onBack }) => {
             )}
 
             {showAnalysis && (
-                <div className="mt-6 p-6 bg-white border rounded shadow animate-fadeIn no-print mb-8">
+                <div className="mt-6 p-6 bg-white dark:bg-gray-800 border rounded shadow animate-fadeIn no-print mb-8">
                     <h3 className="font-bold text-xl mb-4 text-purple-800 border-b pb-2">تحليل النتائج الشامل</h3>
                     
                     <div className="flex gap-4 mb-6">
                         <div className="flex flex-col">
-                            <label className="text-xs font-bold text-gray-600 mb-1">تاريخ البداية</label>
-                            <input type="date" value={analyticsStartDate} onChange={e => setAnalyticsStartDate(e.target.value)} className="p-2 border rounded text-black bg-white" />
+                            <label className="text-xs font-bold text-gray-600 dark:text-gray-300 mb-1">تاريخ البداية</label>
+                            <input type="date" value={analyticsStartDate} onChange={e => setAnalyticsStartDate(e.target.value)} className="p-2 border rounded text-black dark:text-white bg-white dark:bg-gray-800" />
                         </div>
                         <div className="flex flex-col">
-                            <label className="text-xs font-bold text-gray-600 mb-1">تاريخ النهاية</label>
-                            <input type="date" value={analyticsEndDate} onChange={e => setAnalyticsEndDate(e.target.value)} className="p-2 border rounded text-black bg-white" />
+                            <label className="text-xs font-bold text-gray-600 dark:text-gray-300 mb-1">تاريخ النهاية</label>
+                            <input type="date" value={analyticsEndDate} onChange={e => setAnalyticsEndDate(e.target.value)} className="p-2 border rounded text-black dark:text-white bg-white dark:bg-gray-800" />
                         </div>
                     </div>
 
                     {compAnalysis ? (
-                        <div className="text-black text-sm leading-relaxed space-y-6">
+                        <div className="text-black dark:text-white text-sm leading-relaxed space-y-6">
                             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                                 <div className="bg-purple-50 p-4 rounded-lg border border-purple-200 text-center">
                                     <h4 className="font-bold text-purple-800 mb-2">المتوسط الحسابي</h4>
@@ -642,11 +642,11 @@ const ParticipationLog: React.FC<{ onBack: () => void }> = ({ onBack }) => {
                             <div>
                                 <h4 className="font-bold text-lg text-purple-700 border-b pb-2 mb-3">تصنيف الطلاب (الفئات)</h4>
                                 <div className="grid grid-cols-2 md:grid-cols-5 gap-2 text-center">
-                                    <div className="bg-gray-100 p-2 rounded border"><p className="font-bold text-green-700">ممتاز</p><p className="text-lg">{compAnalysis.studentCategories.excellent}</p></div>
-                                    <div className="bg-gray-100 p-2 rounded border"><p className="font-bold text-blue-700">جيد جداً</p><p className="text-lg">{compAnalysis.studentCategories.veryGood}</p></div>
-                                    <div className="bg-gray-100 p-2 rounded border"><p className="font-bold text-yellow-700">جيد</p><p className="text-lg">{compAnalysis.studentCategories.good}</p></div>
-                                    <div className="bg-gray-100 p-2 rounded border"><p className="font-bold text-orange-700">مقبول</p><p className="text-lg">{compAnalysis.studentCategories.acceptable}</p></div>
-                                    <div className="bg-gray-100 p-2 rounded border"><p className="font-bold text-red-700">ضعيف</p><p className="text-lg">{compAnalysis.studentCategories.weak}</p></div>
+                                    <div className="bg-gray-100 dark:bg-gray-700 p-2 rounded border"><p className="font-bold text-green-700">ممتاز</p><p className="text-lg">{compAnalysis.studentCategories.excellent}</p></div>
+                                    <div className="bg-gray-100 dark:bg-gray-700 p-2 rounded border"><p className="font-bold text-blue-700">جيد جداً</p><p className="text-lg">{compAnalysis.studentCategories.veryGood}</p></div>
+                                    <div className="bg-gray-100 dark:bg-gray-700 p-2 rounded border"><p className="font-bold text-yellow-700">جيد</p><p className="text-lg">{compAnalysis.studentCategories.good}</p></div>
+                                    <div className="bg-gray-100 dark:bg-gray-700 p-2 rounded border"><p className="font-bold text-orange-700">مقبول</p><p className="text-lg">{compAnalysis.studentCategories.acceptable}</p></div>
+                                    <div className="bg-gray-100 dark:bg-gray-700 p-2 rounded border"><p className="font-bold text-red-700">ضعيف</p><p className="text-lg">{compAnalysis.studentCategories.weak}</p></div>
                                 </div>
                             </div>
 
@@ -654,7 +654,7 @@ const ParticipationLog: React.FC<{ onBack: () => void }> = ({ onBack }) => {
                                 <h4 className="font-bold text-lg text-purple-700 border-b pb-2 mb-3">تحليل الأسئلة / المعايير</h4>
                                 <div className="overflow-x-auto">
                                     <table className="w-full text-center border">
-                                        <thead className="bg-gray-100">
+                                        <thead className="bg-gray-100 dark:bg-gray-700">
                                             <tr><th className="p-2 border">المعيار</th><th className="p-2 border">المتوسط</th><th className="p-2 border">مستوى الصعوبة</th><th className="p-2 border">عدد الأصفار</th></tr>
                                         </thead>
                                         <tbody>
@@ -706,16 +706,16 @@ const ParticipationLog: React.FC<{ onBack: () => void }> = ({ onBack }) => {
 
             <div className="space-y-6">
                 {sessions.map(session => (
-                    <div key={session.id} className="neumorphic-outset overflow-hidden transition-all duration-300 bg-white border border-gray-200">
+                    <div key={session.id} className="neumorphic-outset overflow-hidden transition-all duration-300 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700">
                         <div 
                             onClick={() => toggleSession(session.id)}
-                            className="bg-gray-50 p-4 cursor-pointer hover:bg-gray-100 flex justify-between items-center border-b border-gray-300 no-print"
+                            className="bg-gray-50 dark:bg-gray-900 p-4 cursor-pointer hover:bg-gray-100 dark:bg-gray-700 flex justify-between items-center border-b border-gray-300 dark:border-gray-600 no-print"
                         >
                             <div className="flex items-center gap-4">
                                 <i className={`fas fa-chevron-${session.isExpanded ? 'up' : 'down'} text-gray-500`}></i>
                                 <div>
-                                    <h3 className="font-bold text-lg text-black">{safeString(session.recordTitle)}</h3>
-                                    <p className="text-sm text-gray-600">{safeString(session.date)} - {safeString(session.subject)}</p>
+                                    <h3 className="font-bold text-lg text-black dark:text-white">{safeString(session.recordTitle)}</h3>
+                                    <p className="text-sm text-gray-600 dark:text-gray-300">{safeString(session.date)} - {safeString(session.subject)}</p>
                                 </div>
                             </div>
                             <button onClick={(e) => { e.stopPropagation(); handleDeleteSession(session.id); }} className="text-red-500 hover:bg-red-100 p-2 rounded-full"><i className="fas fa-trash"></i></button>
@@ -731,7 +731,7 @@ const ParticipationLog: React.FC<{ onBack: () => void }> = ({ onBack }) => {
                                 <div className="overflow-x-auto w-full shadow-sm rounded">
                                     <div className="export-container" id={`participation-export-${session.id}`}>
                                         <div className="mb-4 border-b-2 border-black pb-2">
-                                            <div className="grid grid-cols-3 items-center text-black">
+                                            <div className="grid grid-cols-3 items-center text-black dark:text-white">
                                                 <div className="text-right space-y-1 font-bold text-xs md:text-sm">
                                                     <p>وزارة التربية والتعليم</p>
                                                     <p>المدرسة: {safeString(schoolName) || '..................'}</p>
@@ -742,7 +742,7 @@ const ParticipationLog: React.FC<{ onBack: () => void }> = ({ onBack }) => {
                                                         type="text" 
                                                         value={safeString(session.recordTitle)}
                                                         onChange={(e) => handleUpdateSessionTitle(session.id, e.target.value)}
-                                                        className="text-center font-black text-lg w-full bg-transparent border-none focus:ring-0 p-0 m-0 text-black"
+                                                        className="text-center font-black text-lg w-full bg-transparent border-none focus:ring-0 p-0 m-0 text-black dark:text-white"
                                                         style={{ outline: 'none' }}
                                                     />
                                                 </div>
@@ -755,15 +755,15 @@ const ParticipationLog: React.FC<{ onBack: () => void }> = ({ onBack }) => {
                                         </div>
 
                                         <div className="overflow-x-auto">
-                                            <table className="w-full table-fixed border-collapse text-center text-black border-2 border-black text-[9px] sm:text-xs">
+                                            <table className="w-full table-fixed border-collapse text-center text-black dark:text-white border-2 border-black text-[9px] sm:text-xs">
                                                 <thead>
-                                                    <tr className="bg-gray-100">
+                                                    <tr className="bg-gray-100 dark:bg-gray-700">
                                                         <th className="border border-black p-0 w-6">م</th>
                                                         <th className="border border-black p-1 text-right w-16 truncate">اسم الطالب</th>
                                                         {headers.map((h, i) => (
                                                             <th 
                                                                 key={i} 
-                                                                className="border border-black p-[1px] w-8 cursor-pointer hover:bg-gray-200 relative group leading-tight break-words"
+                                                                className="border border-black p-[1px] w-8 cursor-pointer hover:bg-gray-200 dark:bg-gray-800 relative group leading-tight break-words"
                                                                 onClick={() => handleRenameHeader(i)}
                                                                 title="انقر لتغيير اسم المعيار"
                                                             >
@@ -771,7 +771,7 @@ const ParticipationLog: React.FC<{ onBack: () => void }> = ({ onBack }) => {
                                                                 <i className="fas fa-pencil-alt text-[8px] text-gray-400 absolute top-0 left-0 opacity-0 group-hover:opacity-100 no-print"></i>
                                                             </th>
                                                         ))}
-                                                        <th className="border border-black p-[1px] w-8 bg-gray-200 font-black">المجموع</th>
+                                                        <th className="border border-black p-[1px] w-8 bg-gray-200 dark:bg-gray-800 font-black">المجموع</th>
                                                         <th className="border border-black p-0 w-8 no-print">إجراءات</th>
                                                     </tr>
                                                 </thead>
@@ -782,7 +782,7 @@ const ParticipationLog: React.FC<{ onBack: () => void }> = ({ onBack }) => {
                                                             <td className="border border-black p-1 text-right font-bold truncate">
                                                                 {editingStudentId === student.id ? (
                                                                     <div className="flex gap-1">
-                                                                        <input value={tempStudentName} onChange={e => setTempStudentName(e.target.value)} className="border border-black p-0 w-full text-black text-[9px]" autoFocus />
+                                                                        <input value={tempStudentName} onChange={e => setTempStudentName(e.target.value)} className="border border-black p-0 w-full text-black dark:text-white text-[9px]" autoFocus />
                                                                     </div>
                                                                 ) : (
                                                                     safeString(student.name)
@@ -800,7 +800,7 @@ const ParticipationLog: React.FC<{ onBack: () => void }> = ({ onBack }) => {
                                                                                     newScores[i] = Number(e.target.value) || 0;
                                                                                     setTempScores(newScores);
                                                                                 }} 
-                                                                                className="w-full text-center text-black text-[9px] border p-0"
+                                                                                className="w-full text-center text-black dark:text-white text-[9px] border p-0"
                                                                             />
                                                                         ) : (
                                                                             renderScoreBtn(session.id, student.id, student.scores[i] || 0, i)
@@ -809,7 +809,7 @@ const ParticipationLog: React.FC<{ onBack: () => void }> = ({ onBack }) => {
                                                                 </td>
                                                             ))}
                                                             
-                                                            <td className="border border-black p-0 font-black bg-gray-100 align-middle">
+                                                            <td className="border border-black p-0 font-black bg-gray-100 dark:bg-gray-700 align-middle">
                                                                 {editingStudentId === student.id ? tempScores.reduce((a, b) => a + (Number(b) || 0), 0) : String(student.total)}
                                                             </td>
                                                             <td className="border border-black p-0 no-print">
@@ -828,7 +828,7 @@ const ParticipationLog: React.FC<{ onBack: () => void }> = ({ onBack }) => {
                                             </table>
                                         </div>
 
-                                        <div className="mt-6 pt-2 border-t-2 border-black grid grid-cols-3 text-center text-black text-xs">
+                                        <div className="mt-6 pt-2 border-t-2 border-black grid grid-cols-3 text-center text-black dark:text-white text-xs">
                                             <div>
                                                 <p className="font-bold">معلم المادة</p>
                                                 <p className="mt-4 text-base font-semibold">{safeString(teacherName)}</p>
@@ -852,7 +852,7 @@ const ParticipationLog: React.FC<{ onBack: () => void }> = ({ onBack }) => {
                                             value={newStudentName} 
                                             onChange={e => setNewStudentName(e.target.value)} 
                                             placeholder="اسم الطالب الجديد..."
-                                            className="flex-grow p-2 border border-gray-300 rounded bg-white text-black"
+                                            className="flex-grow p-2 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-800 text-black dark:text-white"
                                             onKeyDown={e => e.key === 'Enter' && handleAddStudentToSession(session.id)}
                                         />
                                         <button onClick={() => handleAddStudentToSession(session.id)} className="bg-blue-600 text-white px-4 rounded font-bold"><i className="fas fa-plus"></i></button>

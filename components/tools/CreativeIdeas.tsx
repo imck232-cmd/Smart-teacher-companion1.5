@@ -331,7 +331,7 @@ const CreativeIdeas: React.FC<{ onBack: () => void }> = ({ onBack }) => {
                                             {/* Toggle Button */}
                                             <button 
                                                 onClick={(e) => { e.stopPropagation(); toggleCategory(index); }}
-                                                className="w-10 h-10 rounded-full bg-white/20 hover:bg-white/30 flex items-center justify-center transition-all focus:outline-none focus:ring-2 focus:ring-white/50"
+                                                className="w-10 h-10 rounded-full bg-white dark:bg-gray-800/20 hover:bg-white dark:bg-gray-800/30 flex items-center justify-center transition-all focus:outline-none focus:ring-2 focus:ring-white/50"
                                             >
                                                 <i className={`fas fa-chevron-${isOpen ? 'up' : 'down'} transition-transform duration-300`}></i>
                                             </button>
@@ -344,7 +344,7 @@ const CreativeIdeas: React.FC<{ onBack: () => void }> = ({ onBack }) => {
                                         
                                         {/* AI Tools Navigation Bar */}
                                         <div 
-                                            className="flex flex-wrap gap-2 bg-white/10 backdrop-blur-md p-2 rounded-full border border-white/20"
+                                            className="flex flex-wrap gap-2 bg-white dark:bg-gray-800/10 backdrop-blur-md p-2 rounded-full border border-white/20"
                                             onClick={(e) => e.stopPropagation()} // Stop propagation to prevent toggling when clicking tools
                                         >
                                             {aiToolsLinks.map((tool, toolIdx) => (
@@ -354,7 +354,7 @@ const CreativeIdeas: React.FC<{ onBack: () => void }> = ({ onBack }) => {
                                                     target="_blank"
                                                     rel="noopener noreferrer"
                                                     data-tooltip={tool.name}
-                                                    className={`w-10 h-10 rounded-full flex items-center justify-center bg-white/90 text-slate-700 transition-all duration-200 hover:scale-110 hover:shadow-lg ${tool.color}`}
+                                                    className={`w-10 h-10 rounded-full flex items-center justify-center bg-white dark:bg-gray-800/90 text-slate-700 transition-all duration-200 hover:scale-110 hover:shadow-lg ${tool.color}`}
                                                     title={tool.name}
                                                 >
                                                     <i className={tool.icon}></i>

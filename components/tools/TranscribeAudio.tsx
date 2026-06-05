@@ -151,7 +151,7 @@ const TranscribeAudio: React.FC<{ onBack: () => void }> = ({ onBack }) => {
                 {error && <p className="text-red-500 mt-4 text-center">{error}</p>}
 
                 {result && (
-                    <div className="mt-6 neumorphic-inset p-4 bg-white/50" id="transcription-result">
+                    <div className="mt-6 neumorphic-inset p-4 bg-white dark:bg-gray-800/50" id="transcription-result">
                         <h3 className="font-bold text-lg mb-2 text-primary">النص المستخرج:</h3>
                         <div className="prose dark:prose-invert max-w-none text-base-text">
                             <ReactMarkdown>{result}</ReactMarkdown>

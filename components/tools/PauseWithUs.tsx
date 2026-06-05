@@ -205,52 +205,52 @@ const PauseWithUs: React.FC<{ onBack: () => void }> = ({ onBack }) => {
             
             {/* Settings & Toggles */}
             <div className="neumorphic-outset p-6 mb-8 bg-gradient-to-r from-gray-50 to-gray-100">
-                <h3 className="text-xl font-bold mb-4 text-gray-800">إعدادات العرض</h3>
+                <h3 className="text-xl font-bold mb-4 text-gray-800 dark:text-gray-100">إعدادات العرض</h3>
                 
                 <div className="flex flex-col gap-6">
                     {/* Ticker Toggle */}
-                    <div className="flex items-center gap-3 bg-white p-4 rounded-xl shadow-sm border">
+                    <div className="flex items-center gap-3 bg-white dark:bg-gray-800 p-4 rounded-xl shadow-sm border">
                         <div className={`w-12 h-6 rounded-full p-1 cursor-pointer transition-colors ${tickerEnabled ? 'bg-green-500' : 'bg-gray-300'}`} onClick={toggleTickerFeature}>
-                            <div className={`bg-white w-4 h-4 rounded-full shadow-md transform transition-transform ${tickerEnabled ? 'translate-x-6' : 'translate-x-0'}`}></div>
+                            <div className={`bg-white dark:bg-gray-800 w-4 h-4 rounded-full shadow-md transform transition-transform ${tickerEnabled ? 'translate-x-6' : 'translate-x-0'}`}></div>
                         </div>
                         <div>
-                            <h4 className="font-bold text-gray-700">شريط العبارات</h4>
+                            <h4 className="font-bold text-gray-700 dark:text-gray-200">شريط العبارات</h4>
                             <p className="text-xs text-gray-500">شريط متحرك أعلى الشاشة.</p>
                         </div>
                     </div>
 
                     {/* Flash Images Settings */}
-                    <div className="bg-white p-4 rounded-xl shadow-sm border">
+                    <div className="bg-white dark:bg-gray-800 p-4 rounded-xl shadow-sm border">
                         <div className="flex items-center gap-3 mb-4">
                             <div className={`w-12 h-6 rounded-full p-1 cursor-pointer transition-colors ${imagesEnabled ? 'bg-green-500' : 'bg-gray-300'}`} onClick={toggleImagesFeature}>
-                                <div className={`bg-white w-4 h-4 rounded-full shadow-md transform transition-transform ${imagesEnabled ? 'translate-x-6' : 'translate-x-0'}`}></div>
+                                <div className={`bg-white dark:bg-gray-800 w-4 h-4 rounded-full shadow-md transform transition-transform ${imagesEnabled ? 'translate-x-6' : 'translate-x-0'}`}></div>
                             </div>
                             <div>
-                                <h4 className="font-bold text-gray-700">الصور الفلاشية</h4>
+                                <h4 className="font-bold text-gray-700 dark:text-gray-200">الصور الفلاشية</h4>
                                 <p className="text-xs text-gray-500">تظهر بشكل دوري وتختفي تلقائياً.</p>
                             </div>
                         </div>
                         
                         {imagesEnabled && (
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 bg-gray-50 p-3 rounded-lg">
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 bg-gray-50 dark:bg-gray-900 p-3 rounded-lg">
                                 <div>
-                                    <label className="block text-xs font-bold text-gray-600 mb-1">تظهر كل (دقيقة):</label>
+                                    <label className="block text-xs font-bold text-gray-600 dark:text-gray-300 mb-1">تظهر كل (دقيقة):</label>
                                     <input 
                                         type="number" 
                                         min="1" 
                                         value={flashSettings.intervalMinutes}
                                         onChange={(e) => handleSettingChange('intervalMinutes', Math.max(1, parseInt(e.target.value)))}
-                                        className="w-full p-2 border rounded text-center text-black font-bold"
+                                        className="w-full p-2 border rounded text-center text-black dark:text-white font-bold"
                                     />
                                 </div>
                                 <div>
-                                    <label className="block text-xs font-bold text-gray-600 mb-1">مدة الظهور (ثانية):</label>
+                                    <label className="block text-xs font-bold text-gray-600 dark:text-gray-300 mb-1">مدة الظهور (ثانية):</label>
                                     <input 
                                         type="number" 
                                         min="1" 
                                         value={flashSettings.durationSeconds}
                                         onChange={(e) => handleSettingChange('durationSeconds', Math.max(1, parseInt(e.target.value)))}
-                                        className="w-full p-2 border rounded text-center text-black font-bold"
+                                        className="w-full p-2 border rounded text-center text-black dark:text-white font-bold"
                                     />
                                 </div>
                             </div>
@@ -275,7 +275,7 @@ const PauseWithUs: React.FC<{ onBack: () => void }> = ({ onBack }) => {
                 {images.length > 0 ? (
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                         {images.map((img, index) => (
-                            <div key={img.id} className="relative group rounded-lg overflow-hidden border-2 border-gray-200 shadow-sm">
+                            <div key={img.id} className="relative group rounded-lg overflow-hidden border-2 border-gray-200 dark:border-gray-700 shadow-sm">
                                 {/* Use safeString for URL */}
                                 <img src={safeString(img.url)} alt={`Flash ${index}`} className="w-full h-32 object-cover" />
                                 <button 
@@ -289,7 +289,7 @@ const PauseWithUs: React.FC<{ onBack: () => void }> = ({ onBack }) => {
                         ))}
                     </div>
                 ) : (
-                    <div className="text-center py-8 bg-gray-50 rounded-xl border-2 border-dashed border-gray-300">
+                    <div className="text-center py-8 bg-gray-50 dark:bg-gray-900 rounded-xl border-2 border-dashed border-gray-300 dark:border-gray-600">
                         <p className="text-gray-500">لا توجد صور محملة.</p>
                         <p className="text-xs text-gray-400 mt-1">الصور المرفوعة ستظهر في الواجهة حسب التوقيت المحدد.</p>
                     </div>
@@ -308,14 +308,14 @@ const PauseWithUs: React.FC<{ onBack: () => void }> = ({ onBack }) => {
                         value={newPhrase} 
                         onChange={e => setNewPhrase(e.target.value)} 
                         placeholder="أكتب عبارة جديدة..."
-                        className="flex-grow p-3 neumorphic-inset bg-transparent rounded-lg text-black"
+                        className="flex-grow p-3 neumorphic-inset bg-transparent rounded-lg text-black dark:text-white"
                     />
                     <button onClick={handleAddPhrase} className="neumorphic-button bg-green-600 text-white px-6 font-bold">إضافة</button>
                 </div>
 
                 <div className="space-y-3">
                     {phrases.map(phrase => (
-                        <div key={phrase.id} className={`flex items-center gap-3 p-3 rounded-xl border transition-all ${phrase.isActive ? 'bg-green-50 border-green-500 shadow-md' : 'bg-white border-gray-200'}`}>
+                        <div key={phrase.id} className={`flex items-center gap-3 p-3 rounded-xl border transition-all ${phrase.isActive ? 'bg-green-50 border-green-500 shadow-md' : 'bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700'}`}>
                             <button 
                                 onClick={() => handleActivatePhrase(phrase.id)}
                                 className={`w-8 h-8 rounded-full border-2 flex items-center justify-center transition-colors ${phrase.isActive ? 'border-green-600 bg-green-600 text-white' : 'border-gray-400 text-transparent hover:border-green-500'}`}
@@ -324,7 +324,7 @@ const PauseWithUs: React.FC<{ onBack: () => void }> = ({ onBack }) => {
                                 <i className="fas fa-check text-sm"></i>
                             </button>
                             {/* Use safeString for text */}
-                            <p className={`flex-grow font-bold ${phrase.isActive ? 'text-green-800' : 'text-gray-700'}`}>{safeString(phrase.text)}</p>
+                            <p className={`flex-grow font-bold ${phrase.isActive ? 'text-green-800' : 'text-gray-700 dark:text-gray-200'}`}>{safeString(phrase.text)}</p>
                             <button onClick={() => handleDeletePhrase(phrase.id)} className="text-red-400 hover:text-red-600 hover:bg-red-50 p-2 rounded-full transition-colors">
                                 <i className="fas fa-trash"></i>
                             </button>

@@ -89,7 +89,7 @@ const Header: React.FC<HeaderProps> = ({ onToggleThemeSwitcher, onToggleAppearan
                     href={whatsappUrl} 
                     target="_blank" 
                     rel="noopener noreferrer"
-                    className="hover:opacity-75 transition-opacity duration-200 text-green-600 bg-white rounded-full p-1 shadow-sm flex items-center justify-center w-8 h-8"
+                    className="hover:opacity-75 transition-opacity duration-200 text-green-600 bg-white dark:bg-gray-800 rounded-full p-1 shadow-sm flex items-center justify-center w-8 h-8"
                     aria-label="Contact via WhatsApp"
                 >
                     <i className="fab fa-whatsapp text-xl"></i>

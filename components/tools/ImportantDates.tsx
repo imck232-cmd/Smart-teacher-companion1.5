@@ -78,7 +78,7 @@ const ImportantDates: React.FC<{ onBack: () => void }> = ({ onBack }) => {
                     {todaysTasks.length > 0 ? (
                         <div className="space-y-2">
                             {todaysTasks.map(task => (
-                                <div key={task.id} className={`p-3 rounded-lg flex items-center justify-between ${task.done ? 'bg-green-100 text-green-800' : 'bg-white shadow-sm'}`}>
+                                <div key={task.id} className={`p-3 rounded-lg flex items-center justify-between ${task.done ? 'bg-green-100 text-green-800' : 'bg-white dark:bg-gray-800 shadow-sm'}`}>
                                     <span className={task.done ? 'line-through' : 'font-bold'}>{String(task.title)}</span>
                                     {task.done ? <i className="fas fa-check-circle"></i> : <span className="text-xs bg-red-100 text-red-600 px-2 py-1 rounded">لم ينجز</span>}
                                 </div>
@@ -122,8 +122,8 @@ const ImportantDates: React.FC<{ onBack: () => void }> = ({ onBack }) => {
                 {/* All Dates List */}
                 <div className="space-y-3">
                     {sortedItems.map(item => (
-                        <div key={item.id} className={`neumorphic-outset p-4 flex items-center gap-4 transition-all break-inside-avoid ${item.done ? 'opacity-60 bg-gray-50' : 'bg-white'}`}>
-                            <div className="flex flex-col items-center justify-center bg-gray-100 p-2 rounded-lg min-w-[80px]">
+                        <div key={item.id} className={`neumorphic-outset p-4 flex items-center gap-4 transition-all break-inside-avoid ${item.done ? 'opacity-60 bg-gray-50 dark:bg-gray-900' : 'bg-white dark:bg-gray-800'}`}>
+                            <div className="flex flex-col items-center justify-center bg-gray-100 dark:bg-gray-700 p-2 rounded-lg min-w-[80px]">
                                 <span className="text-xs text-gray-500">{item.date.split('-')[0]}</span>
                                 <span className="font-bold text-lg text-primary">
                                     {item.date.split('-')[2]}/{item.date.split('-')[1]}
@@ -131,13 +131,13 @@ const ImportantDates: React.FC<{ onBack: () => void }> = ({ onBack }) => {
                             </div>
                             
                             <div className="flex-grow">
-                                <h4 className={`text-lg font-bold ${item.done ? 'line-through text-gray-400' : 'text-gray-800'}`}>
+                                <h4 className={`text-lg font-bold ${item.done ? 'line-through text-gray-400' : 'text-gray-800 dark:text-gray-100'}`}>
                                     {String(item.title)}
                                 </h4>
                                 {item.date === today && !item.done && <span className="text-xs text-red-500 font-bold animate-pulse">مستحق اليوم!</span>}
                             </div>
 
-                            <button onClick={() => toggleDone(item.id)} className={`w-10 h-10 rounded-full flex items-center justify-center transition-colors no-print ${item.done ? 'bg-green-500 text-white' : 'bg-gray-200 text-gray-400 hover:bg-green-200'}`}>
+                            <button onClick={() => toggleDone(item.id)} className={`w-10 h-10 rounded-full flex items-center justify-center transition-colors no-print ${item.done ? 'bg-green-500 text-white' : 'bg-gray-200 dark:bg-gray-800 text-gray-400 hover:bg-green-200'}`}>
                                 <i className="fas fa-check"></i>
                             </button>
                             

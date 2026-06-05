@@ -82,13 +82,13 @@ const ClassSchedule: React.FC<{ onBack: () => void }> = ({ onBack }) => {
             <div className="flex gap-4 mb-6 justify-center no-print">
                 <button 
                     onClick={() => setView('weekly')}
-                    className={`px-6 py-2 rounded-full font-bold transition-all ${view === 'weekly' ? 'bg-primary text-white shadow-lg' : 'bg-gray-200 text-gray-700'}`}
+                    className={`px-6 py-2 rounded-full font-bold transition-all ${view === 'weekly' ? 'bg-primary text-white shadow-lg' : 'bg-gray-200 dark:bg-gray-800 text-gray-700 dark:text-gray-200'}`}
                 >
                     الجدول الأسبوعي
                 </button>
                 <button 
                     onClick={() => setView('daily')}
-                    className={`px-6 py-2 rounded-full font-bold transition-all ${view === 'daily' ? 'bg-primary text-white shadow-lg' : 'bg-gray-200 text-gray-700'}`}
+                    className={`px-6 py-2 rounded-full font-bold transition-all ${view === 'daily' ? 'bg-primary text-white shadow-lg' : 'bg-gray-200 dark:bg-gray-800 text-gray-700 dark:text-gray-200'}`}
                 >
                     جدول اليوم
                 </button>
@@ -99,28 +99,28 @@ const ClassSchedule: React.FC<{ onBack: () => void }> = ({ onBack }) => {
                 <div className="flex justify-end mb-4 no-print">
                      <ActionButtons textToCopy="" elementIdToPrint="schedule-table" />
                 </div>
-                <div id="schedule-table" className="neumorphic-outset p-4 overflow-x-auto bg-white/90">
-                    <h3 className="text-center font-bold text-xl mb-4 text-black">جدول الحصص الأسبوعي</h3>
+                <div id="schedule-table" className="neumorphic-outset p-4 overflow-x-auto bg-white dark:bg-gray-800/90">
+                    <h3 className="text-center font-bold text-xl mb-4 text-black dark:text-white">جدول الحصص الأسبوعي</h3>
                     <table className="w-full min-w-[800px] border-collapse text-center">
                         <thead>
                             <tr>
-                                <th className="p-3 border border-gray-300 bg-primary/10 text-primary font-bold">اليوم / الحصة</th>
+                                <th className="p-3 border border-gray-300 dark:border-gray-600 bg-primary/10 text-primary font-bold">اليوم / الحصة</th>
                                 {Array.from({length: periods}).map((_, i) => (
-                                    <th key={i} className="p-3 border border-gray-300 bg-primary/10 text-primary font-bold">{i + 1}</th>
+                                    <th key={i} className="p-3 border border-gray-300 dark:border-gray-600 bg-primary/10 text-primary font-bold">{i + 1}</th>
                                 ))}
                             </tr>
                         </thead>
                         <tbody>
                             {days.map(day => (
                                 <tr key={day}>
-                                    <td className="p-3 border border-gray-300 font-bold bg-gray-50 text-black">{day}</td>
+                                    <td className="p-3 border border-gray-300 dark:border-gray-600 font-bold bg-gray-50 dark:bg-gray-900 text-black dark:text-white">{day}</td>
                                     {schedule[day]?.map((subject, i) => (
-                                        <td key={i} className="p-1 border border-gray-300 bg-white">
+                                        <td key={i} className="p-1 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800">
                                             <input 
                                                 type="text"
                                                 value={String(subject || '')}
                                                 onChange={(e) => handleCellChange(day, i, e.target.value)}
-                                                className="w-full h-full p-2 text-center bg-white focus:bg-yellow-50 focus:outline-none text-black font-semibold"
+                                                className="w-full h-full p-2 text-center bg-white dark:bg-gray-800 focus:bg-yellow-50 focus:outline-none text-black dark:text-white font-semibold"
                                                 placeholder="---"
                                                 style={{ color: 'black', backgroundColor: 'white' }}
                                             />
@@ -144,9 +144,9 @@ const ClassSchedule: React.FC<{ onBack: () => void }> = ({ onBack }) => {
                         <div className="space-y-3">
                             {todayData.periods.map((subj, i) => (
                                 (typeof subj === 'string' && subj.trim()) ? (
-                                    <div key={i} className="flex items-center justify-between p-4 bg-white rounded-xl shadow-sm border border-gray-200">
-                                        <span className="font-bold text-gray-600 bg-gray-100 w-8 h-8 flex items-center justify-center rounded-full">{i + 1}</span>
-                                        <span className="text-xl font-bold text-black flex-grow">{String(subj)}</span>
+                                    <div key={i} className="flex items-center justify-between p-4 bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700">
+                                        <span className="font-bold text-gray-600 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 w-8 h-8 flex items-center justify-center rounded-full">{i + 1}</span>
+                                        <span className="text-xl font-bold text-black dark:text-white flex-grow">{String(subj)}</span>
                                         <i className="fas fa-book text-primary/50"></i>
                                     </div>
                                 ) : null

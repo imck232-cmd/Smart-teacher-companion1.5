@@ -233,7 +233,7 @@ const FlashcardsCreator: React.FC<{ onBack: () => void }> = ({ onBack }) => {
         <>
             <div className="absolute inset-4 border border-black"></div>
             <div className="absolute inset-5 border-4 border-double border-black"></div>
-            <div className="absolute top-2 left-2 text-black text-2xl"><i className="fas fa-scroll"></i></div>
+            <div className="absolute top-2 left-2 text-black dark:text-white text-2xl"><i className="fas fa-scroll"></i></div>
         </>
     ), containerStyle: { backgroundColor: 'white' } },
     { id: 'formal_blue', name: 'رسمي أزرق', previewColor: '#f0f4ff', render: () => (
@@ -264,17 +264,17 @@ const FlashcardsCreator: React.FC<{ onBack: () => void }> = ({ onBack }) => {
   ];
 
   const renderStylePanel = (style: CardStyle, onUpdate: (u: Partial<CardStyle>) => void, isGlobal: boolean = false) => (
-    <div className="p-4 bg-gray-50 rounded-xl space-y-4 text-sm animate-fadeIn">
+    <div className="p-4 bg-gray-50 dark:bg-gray-900 rounded-xl space-y-4 text-sm animate-fadeIn">
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
             <div>
                 <label className="block font-bold mb-1">الإطار:</label>
-                <select value={style.frameId} onChange={e => onUpdate({ frameId: e.target.value })} className="w-full p-2 border rounded text-black bg-white">
+                <select value={style.frameId} onChange={e => onUpdate({ frameId: e.target.value })} className="w-full p-2 border rounded text-black dark:text-white bg-white dark:bg-gray-800">
                     {frames.map(f => <option key={f.id} value={f.id}>{f.name}</option>)}
                 </select>
             </div>
             <div>
                 <label className="block font-bold mb-1">الخط:</label>
-                <select value={style.fontFamily} onChange={e => onUpdate({ fontFamily: e.target.value })} className="w-full p-2 border rounded text-black bg-white">
+                <select value={style.fontFamily} onChange={e => onUpdate({ fontFamily: e.target.value })} className="w-full p-2 border rounded text-black dark:text-white bg-white dark:bg-gray-800">
                     {fontOptions.map(f => <option key={f.value} value={f.value}>{f.name}</option>)}
                 </select>
             </div>
@@ -311,13 +311,13 @@ const FlashcardsCreator: React.FC<{ onBack: () => void }> = ({ onBack }) => {
           value={inputText}
           onChange={(e) => setInputText(e.target.value)}
           placeholder="اكتب هنا... مثال:&#10;سبحان الله&#10;الحمد لله&#10;الله أكبر"
-          className="w-full p-4 neumorphic-inset h-32 bg-white text-black focus:outline-none rounded-xl mb-4"
+          className="w-full p-4 neumorphic-inset h-32 bg-white dark:bg-gray-800 text-black dark:text-white focus:outline-none rounded-xl mb-4"
           dir="auto"
         />
         
         <div className="flex flex-col md:flex-row gap-4">
             <button onClick={handleCreate} className="flex-grow neumorphic-button bg-primary text-white font-bold py-3 px-6 rounded-xl shadow-lg hover:scale-105 transition-transform">أنشئ البطاقات</button>
-            <button onClick={() => setShowGlobalPanel(!showGlobalPanel)} className={`neumorphic-button font-bold py-3 px-6 rounded-xl transition-all ${showGlobalPanel ? 'bg-secondary text-white' : 'bg-gray-100'}`}>
+            <button onClick={() => setShowGlobalPanel(!showGlobalPanel)} className={`neumorphic-button font-bold py-3 px-6 rounded-xl transition-all ${showGlobalPanel ? 'bg-secondary text-white' : 'bg-gray-100 dark:bg-gray-700'}`}>
                 <i className="fas fa-magic ml-2"></i> تنسيق عام للكل
             </button>
         </div>
@@ -334,11 +334,11 @@ const FlashcardsCreator: React.FC<{ onBack: () => void }> = ({ onBack }) => {
         {cards.map((card, idx) => {
           const currentFrame = frames.find(f => f.id === card.style.frameId) || frames[0];
           return (
-            <div key={card.id} className="relative bg-white p-4 rounded-2xl shadow-xl border border-gray-100 group">
+            <div key={card.id} className="relative bg-white dark:bg-gray-800 p-4 rounded-2xl shadow-xl border border-gray-100 group">
                <div className="flex justify-between items-center mb-4 no-print border-b pb-2">
                   <span className="font-black text-gray-400">بطاقة #{idx+1} - {currentFrame.name}</span>
                   <div className="flex gap-2">
-                      <button onClick={() => setEditingCardId(editingCardId === card.id ? null : card.id)} className={`px-4 py-1 rounded-full text-xs font-bold transition-all ${editingCardId === card.id ? 'bg-secondary text-white' : 'bg-gray-200 text-gray-700'}`}>
+                      <button onClick={() => setEditingCardId(editingCardId === card.id ? null : card.id)} className={`px-4 py-1 rounded-full text-xs font-bold transition-all ${editingCardId === card.id ? 'bg-secondary text-white' : 'bg-gray-200 dark:bg-gray-800 text-gray-700 dark:text-gray-200'}`}>
                           <i className="fas fa-cog ml-1"></i> تعديل خاص
                       </button>
                       <button onClick={() => handleExportSingleImage(idx)} disabled={exportAction.type !== null} className="bg-primary text-white px-4 py-1 rounded-full text-xs font-bold">
@@ -355,7 +355,7 @@ const FlashcardsCreator: React.FC<{ onBack: () => void }> = ({ onBack }) => {
 
                <div 
                   id={`card-box-${idx}`}
-                  className="relative w-full aspect-[3/2] overflow-hidden select-none bg-white rounded-lg transition-shadow duration-300"
+                  className="relative w-full aspect-[3/2] overflow-hidden select-none bg-white dark:bg-gray-800 rounded-lg transition-shadow duration-300"
                   style={{ 
                       ...(currentFrame.containerStyle || {}),
                       backgroundImage: card.style.backgroundUrl ? `url(${card.style.backgroundUrl})` : (currentFrame.containerStyle?.backgroundImage || 'none'),
