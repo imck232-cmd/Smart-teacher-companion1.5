@@ -4,34 +4,34 @@ import { ToolKey, tools, externalLinkTools } from './constants';
 import Header from './components/Header';
 import Footer from './components/Footer';
 import Home from './components/tools/Home';
-import GeneralSearch from './components/tools/GeneralSearch';
-import Innovate from './components/tools/Innovate';
-import LiteraryAnalysis from './components/tools/LiteraryAnalysis';
-import SolveBookQuestions from './components/tools/SolveBookQuestions';
-import TaskManager from './components/tools/TaskManager';
-import ExamCreator from './components/tools/ExamCreator';
-import LessonPlanner from './components/tools/LessonPlanner';
-import Archives from './components/tools/Archives';
-import ExternalLinksViewer from './components/tools/ExternalLinksViewer';
-import ComingSoon from './components/tools/ComingSoon';
-import ChatBot from './components/tools/ChatBot';
-import ImageAnalyzer from './components/tools/ImageAnalyzer';
-import TextToSpeechTool from './components/tools/TextToSpeechTool';
-import FlashcardsCreator from './components/tools/FlashcardsCreator';
-import CreativeIdeas from './components/tools/CreativeIdeas';
-import AddNote from './components/tools/AddNote';
-import SummarizeLesson from './components/tools/SummarizeLesson';
-import SemesterPlanner from './components/tools/SemesterPlanner';
-import ClassSchedule from './components/tools/ClassSchedule';
-import ImportantDates from './components/tools/ImportantDates';
+const GeneralSearch = React.lazy(() => import('./components/tools/GeneralSearch'));
+const Innovate = React.lazy(() => import('./components/tools/Innovate'));
+const LiteraryAnalysis = React.lazy(() => import('./components/tools/LiteraryAnalysis'));
+const SolveBookQuestions = React.lazy(() => import('./components/tools/SolveBookQuestions'));
+const TaskManager = React.lazy(() => import('./components/tools/TaskManager'));
+const ExamCreator = React.lazy(() => import('./components/tools/ExamCreator'));
+const LessonPlanner = React.lazy(() => import('./components/tools/LessonPlanner'));
+const Archives = React.lazy(() => import('./components/tools/Archives'));
+const ExternalLinksViewer = React.lazy(() => import('./components/tools/ExternalLinksViewer'));
+const ComingSoon = React.lazy(() => import('./components/tools/ComingSoon'));
+const ChatBot = React.lazy(() => import('./components/tools/ChatBot'));
+const ImageAnalyzer = React.lazy(() => import('./components/tools/ImageAnalyzer'));
+const TextToSpeechTool = React.lazy(() => import('./components/tools/TextToSpeechTool'));
+const FlashcardsCreator = React.lazy(() => import('./components/tools/FlashcardsCreator'));
+const CreativeIdeas = React.lazy(() => import('./components/tools/CreativeIdeas'));
+const AddNote = React.lazy(() => import('./components/tools/AddNote'));
+const SummarizeLesson = React.lazy(() => import('./components/tools/SummarizeLesson'));
+const SemesterPlanner = React.lazy(() => import('./components/tools/SemesterPlanner'));
+const ClassSchedule = React.lazy(() => import('./components/tools/ClassSchedule'));
+const ImportantDates = React.lazy(() => import('./components/tools/ImportantDates'));
 import MostUsedTools from './components/tools/MostUsedTools';
-import ParticipationLog from './components/tools/ParticipationLog';
-import GradeSheet from './components/tools/GradeSheet';
+const ParticipationLog = React.lazy(() => import('./components/tools/ParticipationLog'));
+const GradeSheet = React.lazy(() => import('./components/tools/GradeSheet'));
 import SmartLessonPlanner from './components/tools/SmartLessonPlanner';
-import TranscribeAudio from './components/tools/TranscribeAudio';
-import CurriculumDownloader from './components/tools/CurriculumDownloader';
-import ExamFromContent from './components/tools/ExamFromContent';
-import PauseWithUs from './components/tools/PauseWithUs';
+const TranscribeAudio = React.lazy(() => import('./components/tools/TranscribeAudio'));
+const CurriculumDownloader = React.lazy(() => import('./components/tools/CurriculumDownloader'));
+const ExamFromContent = React.lazy(() => import('./components/tools/ExamFromContent'));
+const PauseWithUs = React.lazy(() => import('./components/tools/PauseWithUs'));
 import { themes, Theme } from './themes';
 import Sidebar from './components/Sidebar';
 import ScrollToTopButton from './components/ScrollToTopButton';
@@ -316,7 +316,9 @@ const App: React.FC = () => {
         className="flex-grow container mx-auto p-4 pt-8 transition-all duration-300"
         onClick={handleMainClick}
       >
-        {renderTool()}
+        <React.Suspense fallback={<div className="flex h-64 items-center justify-center text-primary"><i className="fas fa-spinner fa-spin text-4xl"></i></div>}>
+          {renderTool()}
+        </React.Suspense>
       </main>
       
       <Footer /><ScrollToTopButton isVisible={isScrollButtonVisible} onClick={handleScrollToTop} />
