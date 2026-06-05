@@ -1,12 +1,37 @@
 
 import React, { useState, useRef, useEffect } from 'react';
 import ToolHeader from '../ToolHeader';
-import { generateBulkSemesterContent } from '../../services/geminiService';
 import ActionButtons from '../ActionButtons';
 
 // Declare libraries
 declare const jspdf: any;
 declare const html2canvas: any;
+
+const offlineParseSemesterData = (text: string) => {
+    const lessons = text.split(/###\s*الدرس:/).slice(1);
+    return lessons.map(lesson => {
+        const titleMatch = lesson.match(/^\s*(.*?)(?=\n)/);
+        const title = titleMatch ? titleMatch[1].replace(/[\[\]]/g, '').trim() : "بدون عنوان";
+        
+        const extractField = (fieldName: string) => {
+            const regex = new RegExp(`\\[${fieldName}\\]:\\s*([\\s\\S]*?)(?=\\n\\[|$)`);
+            const m = lesson.match(regex);
+            return m ? m[1].trim() : '';
+        };
+
+        return {
+            title,
+            count: extractField('عدد الحصص') || '1',
+            objectives: extractField('الأهداف'),
+            methods: extractField('الطرائق'),
+            aids: extractField('الالوسائل') || extractField('الوسائل'),
+            activitiesIn: extractField('الأنشطة الصفية'),
+            activitiesOut: extractField('الأنشطة اللاصفية'),
+            values: extractField('القيم'),
+            evaluation: extractField('التقويم')
+        };
+    });
+};
 
 interface SemesterRow {
     id: string;
@@ -64,7 +89,7 @@ const SemesterPlanner: React.FC<{ onBack: () => void }> = ({ onBack }) => {
         schoolAdminName: ''
     });
 
-    const [wizardLessons, setWizardLessons] = useState<{title: string, count: string}[]>([{title: '', count: '1'}]);
+    const [aiInput, setAiInput] = useState('');
     const [showWizard, setShowWizard] = useState(false);
     const [isBulkGenerating, setIsBulkGenerating] = useState(false);
     const [isExporting, setIsExporting] = useState(false);
@@ -87,47 +112,36 @@ const SemesterPlanner: React.FC<{ onBack: () => void }> = ({ onBack }) => {
         } catch(e) { return ''; }
     };
 
-    // --- Wizard Logic ---
-    const updateWizardLesson = (index: number, field: 'title' | 'count', value: string) => {
-        const newL = [...wizardLessons];
-        newL[index][field] = value;
-        if (field === 'title' && index === newL.length - 1 && value.trim() !== '') {
-            newL.push({title: '', count: '1'});
+    const handleBulkGenerate = () => {
+        if (!aiInput.trim()) {
+            alert('الرجاء إدخال نص الخطة أولاً.');
+            return;
         }
-        setWizardLessons(newL);
-    };
-
-    const removeWizardLesson = (index: number) => {
-        if (wizardLessons.length > 1) {
-            setWizardLessons(wizardLessons.filter((_, i) => i !== index));
-        }
-    };
-
-    const handleBulkGenerate = async () => {
-        const validLessons = wizardLessons.filter(l => l.title.trim() !== '');
-        if (validLessons.length === 0) return;
 
         setIsBulkGenerating(true);
         setShowWizard(false);
 
         try {
-            const aiData = await generateBulkSemesterContent(validLessons, meta.subject);
-            let currentDate = new Date(meta.startDate);
-            const finalRows: SemesterRow[] = validLessons.map((l, idx) => {
+            const aiData = offlineParseSemesterData(aiInput);
+            let currentDate = new Date(meta.startDate || new Date().toISOString().split('T')[0]);
+            
+            const finalRows: SemesterRow[] = aiData.map((lessonAi) => {
                 while (currentDate.getDay() === 4 || currentDate.getDay() === 5) { 
                     currentDate.setDate(currentDate.getDate() + 1);
                 }
                 const gStr = currentDate.toISOString().split('T')[0];
                 const hStr = getHijriDate(gStr);
-                const lessonAi = aiData[idx] || {};
-                currentDate.setDate(currentDate.getDate() + 1);
+                
+                // Add days based on periodCount (assuming 1 period per day for simplicity)
+                const count = parseInt(lessonAi.count) || 1;
+                currentDate.setDate(currentDate.getDate() + count);
 
                 return {
                     id: Math.random().toString(36).substr(2, 9),
                     gregorianDate: gStr,
                     hijriDate: hStr,
-                    periodCount: l.count,
-                    lessonTitle: l.title,
+                    periodCount: lessonAi.count,
+                    lessonTitle: lessonAi.title,
                     objectives: lessonAi.objectives || '',
                     teachingMethods: lessonAi.methods || '',
                     educationalAids: lessonAi.aids || '',
@@ -140,8 +154,8 @@ const SemesterPlanner: React.FC<{ onBack: () => void }> = ({ onBack }) => {
             });
             setRows(finalRows);
         } catch (e) {
-            const fallbackRows = validLessons.map(l => ({ ...createEmptyRow(), lessonTitle: l.title, periodCount: l.count }));
-            setRows(fallbackRows);
+            console.error(e);
+            alert("حدث خطأ أثناء تفريغ البيانات، يرجى التأكد من التنسيق.");
         } finally {
             setIsBulkGenerating(false);
         }
@@ -299,27 +313,19 @@ const SemesterPlanner: React.FC<{ onBack: () => void }> = ({ onBack }) => {
 
                         <div className="mb-10">
                             <h4 className="font-black text-gray-800 mb-6 flex items-center gap-3 text-xl">
-                                <i className="fas fa-tasks text-indigo-600"></i> عناوين الدروس المقررة
+                                <i className="fas fa-magic text-indigo-600"></i> إعداد الخطة عن طريق الذكاء الاصطناعي
                             </h4>
-                            <div className="space-y-4 bg-gray-50 p-6 rounded-3xl shadow-inner max-h-72 overflow-y-auto">
-                                {wizardLessons.map((l, i) => (
-                                    <div key={i} className="flex gap-4 items-center bg-white p-4 rounded-2xl border border-gray-200 shadow-sm transition-all hover:shadow-md">
-                                        <span className="text-indigo-600 font-black w-10 text-xl">{i+1}</span>
-                                        <input type="text" placeholder="اكتب هنا عنوان الدرس..." value={l.title} onChange={e => updateWizardLesson(i, 'title', e.target.value)} className="flex-grow p-2 outline-none text-black font-bold text-lg" />
-                                        <div className="flex items-center gap-3 border-r pr-5">
-                                            <span className="text-xs text-gray-400 font-bold">الحصص:</span>
-                                            <input type="number" min="1" value={l.count} onChange={e => updateWizardLesson(i, 'count', e.target.value)} className="w-16 text-center font-black text-indigo-600 text-xl bg-indigo-50 rounded-lg p-1" />
-                                        </div>
-                                        {i === wizardLessons.length - 1 && i > 0 && (
-                                            <button onClick={() => removeWizardLesson(i)} className="text-red-400 hover:text-red-600 p-2 text-xl"><i className="fas fa-trash-alt"></i></button>
-                                        )}
-                                    </div>
-                                ))}
-                            </div>
+                            <p className="text-gray-600 mb-4 font-bold">انسخ رد الذكاء الاصطناعي الخاص بتوزيع المقرر والصقه هنا.</p>
+                            <textarea 
+                                value={aiInput}
+                                onChange={e => setAiInput(e.target.value)}
+                                placeholder="الصق الخطة الفصلية هنا..."
+                                className="w-full h-48 border-2 border-indigo-200 rounded-2xl p-4 bg-indigo-50 text-black outline-none focus:border-indigo-600 focus:bg-white transition-all resize-y"
+                            />
                         </div>
 
                         <button onClick={handleBulkGenerate} className="w-full bg-indigo-600 text-white py-6 rounded-3xl font-black text-3xl shadow-2xl hover:bg-indigo-700 transition-all transform active:scale-95">
-                            إنشاء الخطة الفصلية إلكترونياً
+                            تفريغ البيانات وإنشاء الخطة
                         </button>
                     </div>
                 </div>

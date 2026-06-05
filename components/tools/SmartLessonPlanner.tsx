@@ -1,7 +1,6 @@
 
 import React, { useState, useRef, useEffect } from 'react';
 import ToolHeader from '../ToolHeader';
-import { generateSmartLessonPlan, fillLessonPlanFromText } from '../../services/geminiService';
 import ActionButtons from '../ActionButtons';
 
 // Declare libraries for export and file reading
@@ -9,6 +8,84 @@ declare const html2canvas: any;
 declare const jspdf: any;
 declare const pdfjsLib: any;
 declare const mammoth: any;
+
+const offlineParseLessonPlan = (text: string) => {
+    const extractSection = (regex: RegExp) => {
+        const match = text.match(regex);
+        return match ? match[1].trim() : '';
+    };
+
+    const extractList = (regex: RegExp) => {
+        const match = text.match(regex);
+        if (!match) return [];
+        return match[1].split('\n').map(line => line.replace(/^[-*0-9.]+\s*/, '').trim()).filter(Boolean);
+    };
+
+    const lessonTitle = extractSection(/\[عنوان الدرس\]\s*\n(.*?)(?=\n\[|$)/s);
+    
+    const introSection = extractSection(/\[التمهيد\]\s*\n(.*?)(?=\n\[|$)/s);
+    let introText = introSection;
+    let introType = 'نصي';
+    const introTypeMatch = introSection.match(/-\s*النوع:\s*(.*)/);
+    if (introTypeMatch) {
+        introType = introTypeMatch[1].trim();
+        introText = introSection.replace(/-\s*النوع:.*\n/, '').replace(/-\s*النص:\s*/, '').trim();
+    }
+
+    const objectivesSection = extractSection(/\[الأهداف\]\s*\n(.*?)(?=\n\[|$)/s);
+    const objectivesLines = objectivesSection.split('\n').filter(l => l.includes('|'));
+    const objectives = objectivesLines.map(line => {
+        const parts = line.split('|').map(p => p.trim());
+        return {
+            domain: parts[0] || 'معرفي',
+            level: parts[1] || 'تذكر',
+            text: parts[2] || '',
+            evaluation: parts[3] || ''
+        };
+    });
+
+    const methods = extractList(/\[الاستراتيجيات\]\s*\n(.*?)(?=\n\[|$)/s);
+    const aids = extractList(/\[الوسائل\]\s*\n(.*?)(?=\n\[|$)/s);
+    const activities = extractSection(/\[الأنشطة\]\s*\n(.*?)(?=\n\[|$)/s);
+    const teacherRole = extractSection(/\[دور المعلم\]\s*\n(.*?)(?=\n\[|$)/s);
+    const learnerRole = extractSection(/\[دور المتعلم\]\s*\n(.*?)(?=\n\[|$)/s);
+    const content = extractSection(/\[المحتوى\]\s*\n(.*?)(?=\n\[|$)/s);
+    
+    const closureSection = extractSection(/\[الخاتمة\]\s*\n(.*?)(?=\n\[|$)/s);
+    let closureText = closureSection;
+    let closureType = 'تلخيص';
+    const closureTypeMatch = closureSection.match(/-\s*النوع:\s*(.*)/);
+    if (closureTypeMatch) {
+        closureType = closureTypeMatch[1].trim();
+        closureText = closureSection.replace(/-\s*النوع:.*\n/, '').replace(/-\s*النص:\s*/, '').trim();
+    }
+
+    const homeworkSection = extractSection(/\[الواجب\]\s*\n(.*?)(?=\n\[|$)/s);
+    let homeworkText = homeworkSection;
+    let homeworkType = 'منزلي';
+    const homeworkTypeMatch = homeworkSection.match(/-\s*النوع:\s*(.*)/);
+    if (homeworkTypeMatch) {
+        homeworkType = homeworkTypeMatch[1].trim();
+        homeworkText = homeworkSection.replace(/-\s*النوع:.*\n/, '').replace(/-\s*النص:\s*/, '').trim();
+    }
+
+    const reflection = extractSection(/\[التأملات\]\s*\n(.*?)(?=\n\[|$)/s);
+
+    return {
+        lessonTitle,
+        intro: { text: introText, type: introType },
+        objectives,
+        methods,
+        aids,
+        activities,
+        teacherRole,
+        learnerRole,
+        content,
+        closure: { text: closureText, type: closureType },
+        homework: { text: homeworkText, type: homeworkType },
+        reflection
+    };
+};
 
 // --- Types ---
 interface Objective {
@@ -303,7 +380,7 @@ const SmartLessonPlanner: React.FC<{ onBack: () => void }> = ({ onBack }) => {
         }
     };
 
-    const confirmCreation = async () => {
+    const confirmCreation = () => {
         localStorage.setItem('lessonPlannerMeta', JSON.stringify({
             district: modalData.district,
             school: modalData.school,
@@ -313,72 +390,25 @@ const SmartLessonPlanner: React.FC<{ onBack: () => void }> = ({ onBack }) => {
         }));
 
         setShowModal(false);
-        setIsGenerating(true);
-
-        try {
-            let result: any = null;
-            if (aiInput.trim().length > 0) {
-                 const context = {
-                    subject: `${modalData.subject} (${modalData.subjectBranch})`,
-                    grade: modalData.classLevel
-                };
-                result = await generateSmartLessonPlan(aiInput, context);
-            }
-
-            setPlan(prev => ({
-                ...prev,
-                ...modalData,
-                // Prioritize user input for lesson title
-                lessonTitle: (modalData.lessonTitle && modalData.lessonTitle.trim()) 
-                    ? modalData.lessonTitle 
-                    : (result ? safeString(result.lessonTitle) : prev.lessonTitle),
-                introText: result ? safeString(result.intro?.text) : prev.introText,
-                introType: result ? safeString(result.intro?.type) : prev.introType,
-                methods: result && Array.isArray(result.methods) ? [...result.methods.map(safeString), ...Array(5).fill('')].slice(0, 5) : prev.methods,
-                aids: result && Array.isArray(result.aids) ? [...result.aids.map(safeString), ...Array(5).fill('')].slice(0, 5) : prev.aids,
-                activities: result ? safeString(result.activities) : prev.activities,
-                teacherRole: result ? safeString(result.teacherRole) : prev.teacherRole,
-                learnerRole: result ? safeString(result.learnerRole) : prev.learnerRole,
-                content: result ? safeString(result.content) : prev.content,
-                closureText: result ? safeString(result.closure?.text) : prev.closureText,
-                closureType: result ? safeString(result.closure?.type) : prev.closureType,
-                homeworkText: result ? safeString(result.homework?.text) : prev.homeworkText,
-                homeworkType: result ? safeString(result.homework?.type) : prev.homeworkType,
-                reflection: result ? safeString(result.reflection) : prev.reflection,
-                objectives: result && Array.isArray(result.objectives) 
-                    ? [...result.objectives.map((obj: any) => ({
-                        domain: safeString(obj.domain),
-                        level: safeString(obj.level),
-                        text: safeString(obj.text),
-                        evaluation: safeString(obj.evaluation)
-                    })), ...initialObjectives].slice(0, 6)
-                    : prev.objectives
-            }));
-            
-            setTimeout(() => document.getElementById('lesson-plan-export')?.scrollIntoView({ behavior: 'smooth' }), 500);
-
-        } catch (error) {
-            alert('حدث خطأ أثناء الاتصال بالذكاء الاصطناعي، تم تطبيق البيانات اليدوية.');
-            setPlan(prev => ({ ...prev, ...modalData }));
-        } finally {
-            setIsGenerating(false);
-        }
+        setPlan(prev => ({
+            ...prev,
+            ...modalData,
+            lessonTitle: modalData.lessonTitle || prev.lessonTitle
+        }));
     };
 
-    const handleAnalyzePaste = async () => {
-        if (!pasteForAnalysis.trim()) { alert('الرجاء لصق نص التحضير أولاً.'); return; }
+    const handleAnalyzePaste = () => {
+        if (!aiInput.trim()) { alert('الرجاء لصق نص التحضير أولاً.'); return; }
         setIsAnalyzing(true);
         try {
-            const result = await fillLessonPlanFromText(pasteForAnalysis);
+            const result = offlineParseLessonPlan(aiInput);
             setPlan(prev => ({
                 ...prev,
                 lessonTitle: result.lessonTitle ? safeString(result.lessonTitle) : prev.lessonTitle,
-                subject: result.subject ? safeString(result.subject) : prev.subject,
-                classLevel: result.classLevel ? safeString(result.classLevel) : prev.classLevel,
                 introText: result.intro ? safeString(result.intro.text) : prev.introText,
                 introType: result.intro ? safeString(result.intro.type) : prev.introType,
-                methods: result.methods ? result.methods.map(safeString).slice(0, 5) : prev.methods,
-                aids: result.aids ? result.aids.map(safeString).slice(0, 5) : prev.aids,
+                methods: result.methods && result.methods.length > 0 ? result.methods.map(safeString).slice(0, 5) : prev.methods,
+                aids: result.aids && result.aids.length > 0 ? result.aids.map(safeString).slice(0, 5) : prev.aids,
                 activities: result.activities ? safeString(result.activities) : prev.activities,
                 content: result.content ? safeString(result.content) : prev.content,
                 closureText: result.closure ? safeString(result.closure.text) : prev.closureText,
@@ -387,7 +417,7 @@ const SmartLessonPlanner: React.FC<{ onBack: () => void }> = ({ onBack }) => {
                 homeworkType: result.homework ? safeString(result.homework.type) : prev.homeworkType,
                 teacherRole: result.teacherRole ? safeString(result.teacherRole) : prev.teacherRole,
                 learnerRole: result.learnerRole ? safeString(result.learnerRole) : prev.learnerRole,
-                objectives: result.objectives ? [...result.objectives.map((obj: any) => ({
+                objectives: result.objectives && result.objectives.length > 0 ? [...result.objectives.map((obj: any) => ({
                         domain: safeString(obj.domain), level: safeString(obj.level), text: safeString(obj.text), evaluation: safeString(obj.evaluation)
                     })), ...initialObjectives].slice(0, 6) : prev.objectives
             }));
@@ -411,31 +441,27 @@ const SmartLessonPlanner: React.FC<{ onBack: () => void }> = ({ onBack }) => {
             </div>
 
             <div className="neumorphic-outset p-6 mb-8 no-print text-center">
-                 <h3 className="text-2xl font-bold text-indigo-800 mb-6">ماذا تريد أن تفعل اليوم؟</h3>
-                 <div className="mb-8">
-                     <div className="flex flex-col items-center gap-4">
-                        <textarea 
-                            value={aiInput}
-                            onChange={e => setAiInput(e.target.value)}
-                            placeholder="اكتب موضوع الدرس هنا (مثال: أركان الصلاة)..."
-                            className="w-full max-w-2xl h-24 p-3 border rounded-lg bg-white text-black mb-2 focus:ring-2 focus:ring-green-500"
-                        />
-                         <div className="flex flex-wrap gap-4 justify-center">
-                             <button onClick={() => setShowModal(true)} className="neumorphic-button py-4 px-10 bg-green-600 text-white font-bold text-xl shadow-xl hover:scale-105 transition-transform rounded-2xl">
-                                <i className="fas fa-magic ml-2"></i> إنشاء التحضير إلكترونياً
-                            </button>
-                            <button onClick={() => contentFileInputRef.current?.click()} disabled={isReadingFile} className="neumorphic-button bg-gray-200 text-gray-700 px-6 py-4 font-bold hover:bg-gray-300 disabled:opacity-60 rounded-xl">
-                                {isReadingFile ? <i className="fas fa-spinner fa-spin"></i> : <i className="fas fa-file-upload ml-2"></i>} إدراج ملف (PDF/Word)
-                            </button>
-                             <input type="file" ref={contentFileInputRef} accept=".pdf,.docx,.txt" className="hidden" onChange={handleContentFileUpload} />
-                         </div>
+                 <h3 className="text-2xl font-bold text-indigo-800 mb-6">استخلاص وتعبئة التحضير من نص الذكاء الاصطناعي</h3>
+                 <p className="text-gray-600 mb-4">انسخ الرد من ChatGPT أو Gemini والصقه هنا ليتم توزيعه في الجدول فوراً.</p>
+                 <div className="mb-4">
+                     <textarea 
+                        value={aiInput}
+                        onChange={e => setAiInput(e.target.value)}
+                        placeholder="الصق نص التحضير هنا..."
+                        className="w-full h-48 p-4 border rounded-xl bg-white text-black mb-4 focus:ring-2 focus:ring-blue-500 shadow-inner resize-y"
+                    />
+                     <div className="flex flex-wrap gap-4 justify-center">
+                        <button onClick={handleAnalyzePaste} disabled={isAnalyzing} className="neumorphic-button bg-blue-600 text-white px-8 py-4 font-bold text-lg shadow-lg hover:bg-blue-700 disabled:opacity-50 transition-colors rounded-xl">
+                            {isAnalyzing ? 'جاري المعالجة...' : 'تفريغ وتعبئة الجدول'}
+                        </button>
+                        <button onClick={() => setShowModal(true)} className="neumorphic-button bg-gray-500 text-white px-6 py-4 font-bold text-lg hover:bg-gray-600 transition-colors rounded-xl">
+                            تحديث البيانات الأساسية (المدرسة، المادة...)
+                        </button>
+                        <button onClick={() => contentFileInputRef.current?.click()} disabled={isReadingFile} className="neumorphic-button bg-gray-200 text-gray-700 px-6 py-4 font-bold hover:bg-gray-300 disabled:opacity-60 rounded-xl">
+                            {isReadingFile ? <i className="fas fa-spinner fa-spin"></i> : <i className="fas fa-file-upload ml-2"></i>} إدراج ملف (PDF/Word)
+                        </button>
+                         <input type="file" ref={contentFileInputRef} accept=".pdf,.docx,.txt" className="hidden" onChange={handleContentFileUpload} />
                      </div>
-                 </div>
-                 <div className="border-t border-gray-300 my-8 relative"><span className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-[#f3f4f6] px-4 text-gray-500 font-bold">أو</span></div>
-                 <div className="bg-blue-50 p-6 rounded-xl border border-blue-100">
-                     <h4 className="text-lg font-bold text-blue-800 mb-2">استخلاص المعلومات من تحضير جاهز</h4>
-                     <textarea value={pasteForAnalysis} onChange={e => setPasteForAnalysis(e.target.value)} placeholder="الصق نص التحضير هنا..." className="w-full h-32 p-3 border rounded-lg bg-white text-black mb-3" />
-                    <button onClick={handleAnalyzePaste} disabled={isAnalyzing} className="neumorphic-button bg-blue-600 text-white px-6 py-2 font-bold hover:bg-blue-700 disabled:opacity-50">{isAnalyzing ? 'جاري التحليل...' : 'تحليل الدرس وتعبئة الحقول'}</button>
                  </div>
             </div>
 

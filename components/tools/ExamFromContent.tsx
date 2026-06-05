@@ -1,7 +1,6 @@
 
 import React, { useState, useRef } from 'react';
 import ToolHeader from '../ToolHeader';
-import { generateStructuredExam } from '../../services/geminiService';
 import ActionButtons from '../ActionButtons';
 
 // Declare libraries for file reading and export
@@ -9,6 +8,57 @@ declare const pdfjsLib: any;
 declare const mammoth: any;
 declare const html2canvas: any;
 declare const jspdf: any;
+
+const offlineParseExam = (text: string) => {
+    const parsedData: any = {
+        q1: { title: '', content: '', subQuestions: ['', '', ''] },
+        q2: { title: '', content: '', subQuestions: ['', '', ''] },
+        q3: { title: '', content: '', subQuestions: ['', '', ''] },
+        q4: { title: '', content: '', subQuestions: ['', '', ''] },
+        q5: { title: '', content: '', subQuestions: ['', '', ''] },
+        gradingTable: { q1: 10, q2: 10, q3: 10, q4: 10, q5: 10, total: 50 }
+    };
+
+    const qKeys = ['q1', 'q2', 'q3', 'q4', 'q5'];
+    const qNames = ['السؤال الأول', 'السؤال الثاني', 'السؤال الثالث', 'السؤال الرابع', 'السؤال الخامس'];
+
+    qNames.forEach((qName, i) => {
+        const qKey = qKeys[i];
+        const regex = new RegExp(`\\[${qName}\\]\\s*\\n(.*?)(?=\\n\\[|$)`, 's');
+        const sectionMatch = text.match(regex);
+        if (sectionMatch) {
+            const section = sectionMatch[1];
+            
+            const titleMatch = section.match(/-\s*العنوان:\s*(.*)/);
+            if (titleMatch) parsedData[qKey].title = titleMatch[1].trim();
+
+            const textMatch = section.match(/-\s*النص:\s*(.*)/);
+            if (textMatch) parsedData[qKey].content = textMatch[1].trim();
+
+            const subQSection = section.match(/-\s*الأسئلة الفرعية:\s*\n([\s\S]*)/);
+            if (subQSection) {
+                const subQs = subQSection[1].split('\n').filter(l => l.trim() && /^[-*0-9.]+\s*/.test(l)).map(l => l.replace(/^[-*0-9.]+\s*/, '').trim());
+                if (subQs.length > 0) {
+                    parsedData[qKey].subQuestions = subQs;
+                }
+            }
+        }
+    });
+
+    const marksRegex = /\[توزيع الدرجات\]\s*\n(.*?)(?=\n\[|$)/s;
+    const marksMatch = text.match(marksRegex);
+    if (marksMatch) {
+         const marksText = marksMatch[1];
+         qNames.forEach((qName, i) => {
+             const markLine = marksText.match(new RegExp(`${qName}:\\s*(\\d+)`));
+             if (markLine) parsedData.gradingTable[qKeys[i]] = parseInt(markLine[1]);
+         });
+         const totalLine = marksText.match(/المجموع الكلي:\s*(\\d+)/);
+         if (totalLine) parsedData.gradingTable.total = parseInt(totalLine[1]);
+    }
+
+    return parsedData;
+};
 
 const questionTypesList = [
     'صح / خطأ', 'اختيار من متعدد', 'ملء الفراغ', 'المقابلة (المزاوجة)', 'الترتيب',
@@ -157,49 +207,32 @@ const ExamFromContent: React.FC<{ onBack: () => void }> = ({ onBack }) => {
         }));
     };
 
-    // AI Generation
-    const handleStartGeneration = async () => {
+    // Offline parsing
+    const handleStartGeneration = () => {
         if (!contentInput.trim()) {
-            alert('الرجاء إدخال محتوى أو رفع ملف أولاً.');
-            return;
-        }
-        if (Object.keys(selectedQuestionTypes).length === 0) {
-            alert('الرجاء اختيار نوع واحد على الأقل من الأسئلة.');
+            alert('الرجاء إدخال محتوى الاختبار أولاً.');
             return;
         }
 
-        setShowModal(false);
         setIsGenerating(true);
         
         try {
-            const fullConfig = {
-                ...config,
-                detailedTypes: selectedQuestionTypes
-            };
-            const result = await generateStructuredExam(contentInput, fullConfig);
-            setExamData(result);
-        } catch (e) {
-            console.error(e);
-            alert('حدث خطأ أثناء إنشاء الاختبار. تأكد من الاتصال بالإنترنت.');
-        } finally {
-            setIsGenerating(false);
-        }
-    };
-
-    const handleFillFields = () => {
-        if (examData) {
+            const parsedData = offlineParseExam(contentInput);
             setRenderedExam(prev => ({
                 ...prev,
-                q1: examData.q1 || prev.q1,
-                q2: examData.q2 || prev.q2,
-                q3: examData.q3 || prev.q3,
-                q4: examData.q4 || prev.q4,
-                q5: examData.q5 || prev.q5,
-                gradingTable: examData.gradingTable || prev.gradingTable
+                q1: parsedData.q1 || prev.q1,
+                q2: parsedData.q2 || prev.q2,
+                q3: parsedData.q3 || prev.q3,
+                q4: parsedData.q4 || prev.q4,
+                q5: parsedData.q5 || prev.q5,
+                gradingTable: parsedData.gradingTable || prev.gradingTable
             }));
             setTimeout(() => document.getElementById('exam-export-container')?.scrollIntoView({ behavior: 'smooth' }), 500);
-        } else {
-            alert('لم يتم إنشاء بيانات الاختبار بعد.');
+        } catch (e) {
+            console.error(e);
+            alert('حدث خطأ أثناء التفريغ. تأكد من أن النص يطابق الهيكل المطلوب.');
+        } finally {
+            setIsGenerating(false);
         }
     };
 
@@ -254,25 +287,24 @@ const ExamFromContent: React.FC<{ onBack: () => void }> = ({ onBack }) => {
 
     return (
         <div className="pb-20">
-            <ToolHeader title="إنشاء اختبار من ملف" onBack={onBack} />
+            <ToolHeader title="تفريغ الاختبار من الذكاء الاصطناعي" onBack={onBack} />
 
             {/* Input Section */}
             <div className="neumorphic-outset p-6 mb-8 no-print text-center">
                 <div className="flex flex-col items-center gap-4">
+                    <p className="text-gray-600 mb-2">انسخ نص الاختبار من الذكاء الاصطناعي والصقه هنا ليتم تفريغه إلى جدول الاختبار بنجاح.</p>
                     <textarea 
                         value={contentInput}
                         onChange={e => setContentInput(e.target.value)}
-                        placeholder="أدخل نص الدرس، أو الفقرة، أو الموضوع هنا..."
-                        className="w-full max-w-3xl h-32 p-3 border rounded-lg bg-white text-black mb-2 focus:ring-2 focus:ring-blue-500"
+                        placeholder="الصق نص الاختبار هنا..."
+                        className="w-full max-w-3xl h-48 p-4 border rounded-xl bg-white text-black mb-2 focus:ring-2 focus:ring-blue-500 shadow-inner resize-y"
                     />
-                    <div className="flex gap-4">
-                        <button onClick={() => fileInputRef.current?.click()} disabled={isReadingFile} className="neumorphic-button bg-gray-200 text-gray-700 px-6 py-3 font-bold hover:bg-gray-300 disabled:opacity-60 rounded-xl">
-                            {isReadingFile ? <i className="fas fa-spinner fa-spin"></i> : <i className="fas fa-file-upload ml-2"></i>} إدراج ملف
+                    <div className="flex flex-wrap justify-center gap-4">
+                        <button onClick={handleStartGeneration} className="neumorphic-button bg-blue-600 text-white px-8 py-3 font-bold text-lg shadow-lg hover:bg-blue-700 rounded-xl">
+                            تفريغ وتعبئة أسئلة الاختبار
                         </button>
-                        <input type="file" ref={fileInputRef} accept=".pdf,.docx,.txt" className="hidden" onChange={handleFileUpload} />
-                        
-                        <button onClick={() => setShowModal(true)} className="neumorphic-button bg-blue-600 text-white px-8 py-3 font-bold text-lg shadow-lg hover:bg-blue-700 rounded-xl">
-                            إنشاء الاختبار إلكترونياً
+                        <button onClick={() => setShowModal(true)} className="neumorphic-button bg-gray-500 text-white px-6 py-3 font-bold hover:bg-gray-600 rounded-xl">
+                            تحديث البيانات الأساسية للاختبار
                         </button>
                     </div>
                 </div>
@@ -375,14 +407,10 @@ const ExamFromContent: React.FC<{ onBack: () => void }> = ({ onBack }) => {
             {isGenerating ? (
                 <div className="text-center p-10 bg-white rounded-xl shadow-lg border border-gray-200 mb-8 mx-auto max-w-lg">
                     <i className="fas fa-cog fa-spin text-4xl text-blue-600 mb-4"></i>
-                    <p className="text-xl font-bold">جاري إعداد الاختبار وتوزيع الأسئلة...</p>
+                    <p className="text-xl font-bold">جاري تفريغ الاختبار وتوزيع الأسئلة...</p>
                 </div>
             ) : (
                 <div className="flex justify-center gap-4 mb-8 no-print">
-                    <button onClick={handleFillFields} className="neumorphic-button bg-indigo-600 text-white px-6 py-3 font-bold rounded-xl shadow-md hover:bg-indigo-700">
-                        <i className="fas fa-magic ml-2"></i> تعبئة الحقول
-                    </button>
-                    {/* Specialized Export Button that handles Multi-Page */}
                     <button 
                         onClick={handleExportExamPDF} 
                         disabled={isExporting}
