@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <rect width="512" height="512" fill="#4f46e5" rx="100"/>
+  <path fill="#ffffff" d="M256 32c-123.7 0-224 100.3-224 224s100.3 224 224 224 224-100.3 224-224-100.3-224-224-224zm0 64c88.4 0 160 71.6 160 160S344.4 416 256 416 96 344.4 96 256s71.6-160 160-160zm-32 80v32h64v-32h-64zm0 64v112h64v-112h-64z"/>
+  <!-- Brain/Book composite hint: actually a nice simple abstract graduation cap + book can be better, let's use a clear, modern path instead. -->
+  <path fill="#ffffff" d="M128 224l128-64 128 64-128 64-128-64zm0 64v80c0 17.7 14.3 32 32 32h192c17.7 0 32-14.3 32-32v-80l-128 64-128-64z"/>
+</svg>

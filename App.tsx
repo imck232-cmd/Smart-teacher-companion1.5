@@ -121,15 +121,50 @@ const App: React.FC = () => {
             clickSoundRef.current.play().catch(() => {});
         }
     };
+    
+    // Hardware Back Button Support
+    window.history.replaceState({ page: 'home' }, '');
+    window.history.pushState({ page: 'home' }, '');
+
+    const handlePopState = (e: PopStateEvent) => {
+        if (isSidebarOpen || isThemeSwitcherOpen || isAppearanceSettingsOpen) {
+            setIsSidebarOpen(false);
+            setIsThemeSwitcherOpen(false);
+            setIsAppearanceSettingsOpen(false);
+            window.history.pushState({ page: 'state_pushed' }, ''); // Stay in app
+            return;
+        }
+
+        setSelectedTool((currentTool) => {
+            if (currentTool) {
+                // If in tool, close it
+                window.history.replaceState({ page: 'home' }, '');
+                return null;
+            } else {
+                // At Home. Ask confirmation.
+                const confirmExit = window.confirm('هل أنت متأكد أنك تريد الخروج من البرنامج؟');
+                if (!confirmExit) {
+                    window.history.pushState({ page: 'home' }, '');
+                } else {
+                    window.history.back(); // let it exit naturally
+                }
+                return null;
+            }
+        });
+    };
+
+    window.addEventListener('popstate', handlePopState);
     window.addEventListener('storage-update-pause-tool', handleStorageUpdate);
     window.addEventListener('scroll', handleScroll, { passive: true });
     document.addEventListener('click', playSound);
+    
     return () => {
+        window.removeEventListener('popstate', handlePopState);
         window.removeEventListener('storage-update-pause-tool', handleStorageUpdate);
         window.removeEventListener('scroll', handleScroll);
         document.removeEventListener('click', playSound);
     };
-  }, [loadPauseSettings]);
+  }, [loadPauseSettings, isSidebarOpen, isThemeSwitcherOpen, isAppearanceSettingsOpen]); // Added dependencies for popup states
 
   useEffect(() => {
     const root = document.documentElement;
@@ -177,10 +212,11 @@ const App: React.FC = () => {
       return () => clearInterval(flashTimerRef.current);
   }, [flashImagesEnabled, flashSettings]);
 
-  const handleSelectTool = (toolKey: ToolKey) => { 
+  const handleSelectTool = (toolKey: ToolKey | 'mostUsed') => { 
     setLastActiveTool(toolKey); 
     setSelectedTool(toolKey); 
     setIsSidebarOpen(false); // طي القائمة عند اختيار أداة
+    window.history.pushState({ page: 'tool', tool: toolKey }, '', `#${toolKey}`);
   };
 
   const handleMainClick = () => {
@@ -191,6 +227,7 @@ const App: React.FC = () => {
   const handleGoHome = () => {
     setSelectedTool(null);
     setIsSidebarOpen(false);
+    window.history.pushState({ page: 'home' }, '', window.location.pathname);
   };
   const handleResetAppearance = () => setCustomAppearance({ fontFamily: '', textColor: '', fontWeight: '', inputColor: '', cardColor: '' });
 
