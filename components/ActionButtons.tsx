@@ -8,9 +8,10 @@ declare const html2canvas: any;
 interface ActionButtonsProps {
   textToCopy: string;
   elementIdToPrint: string;
+  pdfOrientation?: 'portrait' | 'landscape';
 }
 
-const ActionButtons: React.FC<ActionButtonsProps> = ({ textToCopy, elementIdToPrint }) => {
+const ActionButtons: React.FC<ActionButtonsProps> = ({ textToCopy, elementIdToPrint, pdfOrientation = 'landscape' }) => {
   const [copyStatus, setCopyStatus] = useState('نسخ');
   const [isDownloading, setIsDownloading] = useState(false);
   const isDownloadingRef = useRef(false);
@@ -147,7 +148,7 @@ const ActionButtons: React.FC<ActionButtonsProps> = ({ textToCopy, elementIdToPr
         // Use JPEG with high quality to avoid jsPDF format issues while maintaining clarity
         const imgData = canvas.toDataURL('image/jpeg', 1.0);
         const pdf = new jspdf.jsPDF({
-          orientation: 'landscape', // Landscape is better for wide tables
+          orientation: pdfOrientation,
           unit: 'pt',
           format: 'a4'
         });

@@ -442,13 +442,111 @@ const SmartLessonPlanner: React.FC<{ onBack: () => void }> = ({ onBack }) => {
 
             <div className="neumorphic-outset p-6 mb-8 no-print text-center">
                  <h3 className="text-2xl font-bold text-indigo-800 mb-6">استخلاص وتعبئة التحضير من نص الذكاء الاصطناعي</h3>
-                 <p className="text-gray-600 mb-4">انسخ الرد من ChatGPT أو Gemini والصقه هنا ليتم توزيعه في الجدول فوراً.</p>
+                 
+                 <div className="text-right bg-blue-50 border border-blue-200 p-6 rounded-2xl mb-6 shadow-sm max-w-4xl mx-auto">
+                     <h4 className="font-bold text-blue-800 text-lg mb-3">اتبع الخطوات الآتية بدقة:</h4>
+                     <ol className="list-decimal list-inside space-y-2 text-gray-800 font-medium mb-4">
+                         <li>قم بنسخ الأمر (البرومبت) الموجود في الأسفل وألصقه في Gemini أو ChatGPT.</li>
+                         <li>أرفق الملف (PDF/Word) للدرس الذي تريد تحضيره (اختياري).</li>
+                         <li>قم بإرسال الطلب، ثم انسخ الجواب الذي سيعطيك إياه الذكاء الاصطناعي.</li>
+                         <li>ألصق الجواب في المربع أدناه، ثم اضغط على زر "تفريغ وتعبئة الجدول".</li>
+                         <li>لا تنسَ تحديث البيانات الأساسية (المدرسة، المادة، الصف...) من الزر المخصص.</li>
+                     </ol>
+
+                     <div className="relative group">
+                         <div className="absolute top-3 left-3">
+                             <button
+                                 onClick={() => {
+                                     navigator.clipboard.writeText(`من فضلك حضّر درساً بعنوان (اكتب عنوان الدرس هنا)، واحرص على طباعة المخرجات تماماً بهذا التنسيق وبدون أي نصوص إضافية:
+
+[عنوان الدرس]
+(اسم الدرس هنا)
+[التمهيد]
+- النوع: قصة مشوقة
+- النص: (اكتب التمهيد هنا)
+[الأهداف]
+معرفي | تذكر | أن يتعرف الطالب على... | س: ما هو...؟
+اذكر ثلاثة معرفي ونوع في المستويات
+مهاري | تطبيق | أن يستنتج الطالب... | س: كيف...؟
+اذكر ثلاثة مهاري ونوع في المستويات
+ثم اذكر اثنين وجداني ونوع في المستويات
+
+[الاستراتيجيات]
+- التعلم التعاوني
+- العصف الذهني
+[الوسائل]
+- الكتاب المدرسي
+- جهاز العرض
+[الأنشطة]
+(نص أنشطة المعلم والطالب هنا)
+[دور المعلم]
+(أدوار المعلم)
+[دور المتعلم]
+(أدوار المتعلم)
+[المحتوى]
+(نص محتوى الدرس هنا)
+[الخاتمة]
+- النوع: تلخيص
+- النص: (محتوى الخاتمة)
+[الواجب]
+- النوع: منزلي
+- النص: (نص الواجب والمطلوب)
+[التأملات]
+مستوى تفاعل الطلاب جيد ويحتاجون مزيداً من الوقت في نقطة...`);
+                                     alert('تم نسخ البرومبت بنجاح! يمكنك الآن لصقه في محادثة الذكاء الاصطناعي.');
+                                 }}
+                                 className="bg-primary text-white text-sm px-3 py-1 rounded shadow hover:bg-opacity-90 transition-all font-bold"
+                             >
+                                 <i className="fas fa-copy ml-1"></i> نسخ الأمر
+                             </button>
+                         </div>
+                         <pre className="bg-gray-100 p-4 rounded-xl text-xs md:text-sm text-gray-700 whitespace-pre-wrap font-mono border border-gray-300 text-right text-black mt-2 leading-tight">
+{`من فضلك حضّر درساً بعنوان (اكتب عنوان الدرس هنا)، واحرص على طباعة المخرجات تماماً بهذا التنسيق وبدون أي نصوص إضافية:
+
+[عنوان الدرس]
+(اسم الدرس هنا)
+[التمهيد]
+- النوع: قصة مشوقة
+- النص: (اكتب التمهيد هنا)
+[الأهداف]
+معرفي | تذكر | أن يتعرف الطالب على... | س: ما هو...؟
+اذكر ثلاثة معرفي ونوع في المستويات
+مهاري | تطبيق | أن يستنتج الطالب... | س: كيف...؟
+اذكر ثلاثة مهاري ونوع في المستويات
+ثم اذكر اثنين وجداني ونوع في المستويات
+
+[الاستراتيجيات]
+- التعلم التعاوني
+- العصف الذهني
+[الوسائل]
+- الكتاب المدرسي
+- جهاز العرض
+[الأنشطة]
+(نص أنشطة المعلم والطالب هنا)
+[دور المعلم]
+(أدوار المعلم)
+[دور المتعلم]
+(أدوار المتعلم)
+[المحتوى]
+(نص محتوى الدرس هنا)
+[الخاتمة]
+- النوع: تلخيص
+- النص: (محتوى الخاتمة)
+[الواجب]
+- النوع: منزلي
+- النص: (نص الواجب والمطلوب)
+[التأملات]
+مستوى تفاعل الطلاب جيد ويحتاجون مزيداً من الوقت في نقطة...`}
+                         </pre>
+                     </div>
+                 </div>
+
                  <div className="mb-4">
                      <textarea 
                         value={aiInput}
                         onChange={e => setAiInput(e.target.value)}
-                        placeholder="الصق نص التحضير هنا..."
-                        className="w-full h-48 p-4 border rounded-xl bg-white text-black mb-4 focus:ring-2 focus:ring-blue-500 shadow-inner resize-y"
+                        placeholder="الصق نص التحضير الذي تم نسخه من الذكاء الاصطناعي هنا..."
+                        className="w-full h-48 p-4 border rounded-xl bg-white text-black mb-4 focus:ring-2 focus:ring-blue-500 shadow-inner resize-y leading-tight"
                     />
                      <div className="flex flex-wrap gap-4 justify-center">
                         <button onClick={handleAnalyzePaste} disabled={isAnalyzing} className="neumorphic-button bg-blue-600 text-white px-8 py-4 font-bold text-lg shadow-lg hover:bg-blue-700 disabled:opacity-50 transition-colors rounded-xl">
@@ -619,8 +717,8 @@ const SmartLessonPlanner: React.FC<{ onBack: () => void }> = ({ onBack }) => {
                         <div 
                             contentEditable
                             onBlur={(e) => handleContentEditableChange('content', e)}
-                            className="w-full flex-grow bg-transparent focus:outline-none text-[11px] leading-6 whitespace-pre-wrap break-words min-h-[100px] text-black"
-                            style={{ backgroundImage: 'linear-gradient(transparent 95%, #f5f5f5 95%)', backgroundSize: '100% 1.5em', lineHeight: '1.5em' }}
+                            className="w-full flex-grow bg-transparent focus:outline-none text-[11px] leading-[1.2] whitespace-pre-wrap break-words min-h-[100px] text-black"
+                            style={{ backgroundImage: 'linear-gradient(transparent 95%, #f5f5f5 95%)', backgroundSize: '100% 1.2em', lineHeight: '1.2em' }}
                             dir="rtl"
                             dangerouslySetInnerHTML={{ __html: plan.content }}
                         ></div>
@@ -685,7 +783,7 @@ const SmartLessonPlanner: React.FC<{ onBack: () => void }> = ({ onBack }) => {
             </div>
 
             <div className="mt-8 no-print flex justify-center gap-4">
-                 <ActionButtons textToCopy={JSON.stringify(plan, null, 2)} elementIdToPrint="lesson-plan-export" />
+                 <ActionButtons textToCopy={JSON.stringify(plan, null, 2)} elementIdToPrint="lesson-plan-export" pdfOrientation="portrait" />
             </div>
         </div>
     );
