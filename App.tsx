@@ -137,6 +137,7 @@ const App: React.FC = () => {
     }
     clickSoundRef.current = new Audio(CLICK_SOUND_DATA_URL);
     clickSoundRef.current.volume = 0.5;
+    
     const handleStorageUpdate = () => loadPauseSettings();
     const handleScroll = () => setScrollButtonVisible(window.pageYOffset > 300);
     const playSound = (e: MouseEvent) => {
@@ -147,6 +148,18 @@ const App: React.FC = () => {
         }
     };
     
+    window.addEventListener('storage-update-pause-tool', handleStorageUpdate);
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    document.addEventListener('click', playSound);
+    
+    return () => {
+        window.removeEventListener('storage-update-pause-tool', handleStorageUpdate);
+        window.removeEventListener('scroll', handleScroll);
+        document.removeEventListener('click', playSound);
+    };
+  }, [loadPauseSettings]);
+
+  useEffect(() => {
     // Hardware Back Button Support
     window.history.replaceState({ page: 'home' }, '');
     window.history.pushState({ page: 'home' }, '');
@@ -179,17 +192,10 @@ const App: React.FC = () => {
     };
 
     window.addEventListener('popstate', handlePopState);
-    window.addEventListener('storage-update-pause-tool', handleStorageUpdate);
-    window.addEventListener('scroll', handleScroll, { passive: true });
-    document.addEventListener('click', playSound);
-    
     return () => {
         window.removeEventListener('popstate', handlePopState);
-        window.removeEventListener('storage-update-pause-tool', handleStorageUpdate);
-        window.removeEventListener('scroll', handleScroll);
-        document.removeEventListener('click', playSound);
     };
-  }, [loadPauseSettings, isSidebarOpen, isThemeSwitcherOpen, isAppearanceSettingsOpen]); // Added dependencies for popup states
+  }, [isSidebarOpen, isThemeSwitcherOpen, isAppearanceSettingsOpen]); // Added dependencies for popup states
 
   useEffect(() => {
     const root = document.documentElement;
@@ -290,7 +296,7 @@ const App: React.FC = () => {
   };
 
   return (
-    <div className="flex flex-col min-h-screen font-sans relative">
+    <div className="flex flex-col min-h-screen font-sans relative bg-base-bg text-base-text transition-colors duration-300">
       <Header 
         onToggleThemeSwitcher={() => { setIsThemeSwitcherOpen(true); setIsSidebarOpen(false); }} 
         onToggleAppearance={() => { setIsAppearanceSettingsOpen(true); setIsSidebarOpen(false); }}

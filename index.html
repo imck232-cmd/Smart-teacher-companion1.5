@@ -37,14 +37,14 @@
               heading: ['var(--font-heading)', 'serif'],
             },
             colors: {
-              primary: 'rgb(var(--color-primary))',
-              secondary: 'rgb(var(--color-secondary))',
-              icon: 'rgb(var(--color-icon))',
-              'base-text': 'rgb(var(--color-base-text))',
-              'heading-text': 'rgb(var(--color-heading-text))',
-              'component-bg': 'rgb(var(--color-component-bg))',
-              'border': 'rgb(var(--color-border))',
-              'base-bg': 'rgb(var(--color-base-bg))',
+              primary: 'rgb(var(--color-primary) / <alpha-value>)',
+              secondary: 'rgb(var(--color-secondary) / <alpha-value>)',
+              icon: 'rgb(var(--color-icon) / <alpha-value>)',
+              'base-text': 'rgb(var(--color-base-text) / <alpha-value>)',
+              'heading-text': 'rgb(var(--color-heading-text) / <alpha-value>)',
+              'component-bg': 'rgb(var(--color-component-bg) / <alpha-value>)',
+              'border': 'rgb(var(--color-border) / <alpha-value>)',
+              'base-bg': 'rgb(var(--color-base-bg) / <alpha-value>)',
             }
           }
         }
@@ -82,7 +82,7 @@
         .neumorphic-inset {
             background-color: rgb(var(--color-component-bg)) !important; 
             border-radius: 0.75rem;
-            border: 1px solid rgba(var(--color-primary), 0.2);
+            border: 1px solid rgb(var(--color-primary) / 0.2);
             box-shadow: inset 1px 1px 4px rgba(0, 0, 0, 0.15);
             color: rgb(var(--color-base-text)) !important;
         }
@@ -91,8 +91,29 @@
             background-color: rgb(var(--color-component-bg));
             backdrop-filter: blur(8px);
             border-radius: 1rem;
-            box-shadow: 0 4px 6px -1px rgba(var(--color-shadow-dark), 0.15), 0 2px 4px -1px rgba(var(--color-shadow-light), 0.1);
-            border: 1px solid rgba(var(--color-border), 0.2);
+            box-shadow: 0 4px 6px -1px rgb(var(--color-shadow-dark) / 0.15), 0 2px 4px -1px rgb(var(--color-shadow-light) / 0.1);
+            border: 1px solid rgb(var(--color-border) / 0.2);
+        }
+
+        .neumorphic-button {
+            background-color: rgb(var(--color-component-bg));
+            border: 1px solid rgb(var(--color-border) / 0.2);
+            box-shadow: 2px 2px 5px rgb(var(--color-shadow-dark) / 0.15), -2px -2px 5px rgb(var(--color-shadow-light) / 0.05);
+            border-radius: 0.5rem;
+            transition: all 0.2s ease;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+        }
+        .neumorphic-button:hover {
+            transform: translateY(-1px);
+            box-shadow: 3px 3px 6px rgb(var(--color-shadow-dark) / 0.2), -3px -3px 6px rgb(var(--color-shadow-light) / 0.08);
+            border-color: rgb(var(--color-primary) / 0.4);
+        }
+        .neumorphic-button:active {
+            transform: translateY(1px);
+            box-shadow: inset 1px 1px 3px rgba(0, 0, 0, 0.2);
         }
         
         .animate-ticker {

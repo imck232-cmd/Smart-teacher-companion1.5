@@ -60,8 +60,8 @@ const ThemeSwitcher: React.FC<ThemeSwitcherProps> = ({ currentTheme, onSetTheme,
  onClick={() => handleThemeSelect(theme)}
  className={`w-16 h-16 rounded-full transition-all duration-200 transform hover:scale-110 focus:outline-none border-4 ${isActive ? 'shadow-lg scale-110' : 'shadow-sm'}`}
  style={{ 
- backgroundImage: `linear-gradient(45deg, rgb(${theme.colors['--color-primary']}), rgb(${theme.colors['--color-secondary']}))`,
- borderColor: isActive ? `rgba(${theme.colors['--color-primary']}, 0.8)` : 'transparent'
+ backgroundImage: `linear-gradient(45deg, rgb(${theme.colors['--color-primary'].trim().replace(/\s+/g, ', ')}), rgb(${theme.colors['--color-secondary'].trim().replace(/\s+/g, ', ')}))`,
+ borderColor: isActive ? `rgba(${theme.colors['--color-primary'].trim().replace(/\s+/g, ', ')}, 0.8)` : 'transparent'
  }}
  aria-label={`تطبيق سمة ${theme.name}`}
  >
