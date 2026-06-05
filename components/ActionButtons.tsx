@@ -58,7 +58,7 @@ const ActionButtons: React.FC<ActionButtonsProps> = ({ textToCopy, elementIdToPr
 
  const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
  // Reduce scale on mobile to prevent crashes and speed up generation
- const scale = isMobile ? 1.0 : 1.5;
+ const scale = isMobile ? 1.0 : 1.25;
  
  const canvas = await html2canvas(input, {
  scale: scale,
@@ -121,7 +121,7 @@ const ActionButtons: React.FC<ActionButtonsProps> = ({ textToCopy, elementIdToPr
 
  const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
  // Conservative scale for mobile PDF to avoid OOM errors
- const scale = isMobile ? 1.0 : 1.5;
+ const scale = isMobile ? 1.0 : 1.25;
 
  const canvas = await html2canvas(input, {
  scale: scale, 

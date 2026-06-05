@@ -342,7 +342,7 @@ export const themes: Theme[] = [
     colors: {
       '--color-primary': '16 185 129',
       '--color-secondary': '52 211 153',
-      '--color-icon': '5 46 25',
+      '--color-icon': '167 243 208',
       '--color-border': '4 120 87',
       '--color-base-text': '209 250 229',
       '--color-heading-text': '255 255 255',
@@ -475,7 +475,7 @@ export const themes: Theme[] = [
     colors: {
       '--color-primary': '132 204 22',
       '--color-secondary': '34 197 94',
-      '--color-icon': '17 24 39',
+      '--color-icon': '209 250 229',
       '--color-border': '55 65 81',
       '--color-base-text': '229 231 235',
       '--color-heading-text': '255 255 255',

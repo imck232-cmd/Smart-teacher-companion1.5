@@ -80,17 +80,25 @@ const Home: React.FC<HomeProps> = ({ onSelectTool, lastActiveTool, onOpenMostUse
  const filteredTools = useMemo(() => {
  if (!searchQuery.trim()) return tools;
  
- // Normalize string to ignore 'ال' prefix and some common Arabic letters
+ // Normalize string to ignore 'ال' prefix and some common Arabic letters from all words
  const normalize = (str: string) => {
- let s = str.toLowerCase();
+ let s = str.trim().toLowerCase();
  s = s.replace(/[أإآ]/g, 'ا');
  s = s.replace(/ة/g, 'ه');
- if (s.startsWith('ال')) s = s.substring(2);
+ 
+ // Remove 'ال' from the beginning of any word
+ s = s.split(' ').map(word => word.startsWith('ال') ? word.substring(2) : word).join(' ');
+ 
  return s;
  };
 
- const query = normalize(searchQuery);
- return tools.filter(t => normalize(t.label || '').includes(query) || (t.label || '').includes(searchQuery));
+ const queryWords = normalize(searchQuery).split(' ').filter(w => w.length > 0);
+ 
+ return tools.filter(t => {
+     const nLabel = normalize(t.label || '');
+     // Check if EVERY word in the search query is found in the tool's label
+     return queryWords.every(qw => nLabel.includes(qw)) || (t.label || '').includes(searchQuery);
+ });
  }, [searchQuery]);
 
  const renderToolButton = (tool: any) => (
@@ -214,7 +222,7 @@ const Home: React.FC<HomeProps> = ({ onSelectTool, lastActiveTool, onOpenMostUse
  if (catTools.length === 0) return null;
 
  return (
- <div key={category.id} className="bg-component-bg border-opacity-50 /50 rounded-[2rem] p-6 lg:p-8 border border-border/20 /50 /50 shadow-inner">
+ <div key={category.id} className="bg-component-bg rounded-[2rem] p-6 lg:p-8 border border-border/20 shadow-inner">
  <div className="flex items-center gap-4 mb-6 px-2">
  <div className={`w-12 h-12 rounded-2xl bg-gradient-to-br ${category.color} text-white flex items-center justify-center shadow-md`}>
  <i className={`${category.icon} text-xl`}></i>
