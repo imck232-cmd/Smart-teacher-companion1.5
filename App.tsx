@@ -193,25 +193,23 @@ const App: React.FC = () => {
 
   useEffect(() => {
     const root = document.documentElement;
-    requestAnimationFrame(() => {
-        for (const [key, value] of Object.entries(theme.colors)) {
-            root.style.setProperty(key, value as string);
+    for (const [key, value] of Object.entries(theme.colors)) {
+        root.style.setProperty(key, value as string);
+    }
+    root.style.setProperty('--font-body', customAppearance.fontFamily || theme.fonts.body);
+    root.style.setProperty('--font-heading', customAppearance.fontFamily || theme.fonts.heading);
+    if (customAppearance.textColor) {
+        const rgb = hexToRgb(customAppearance.textColor);
+        if (rgb) {
+            root.style.setProperty('--color-base-text', rgb);
+            root.style.setProperty('--color-heading-text', rgb);
         }
-        root.style.setProperty('--font-body', customAppearance.fontFamily || theme.fonts.body);
-        root.style.setProperty('--font-heading', customAppearance.fontFamily || theme.fonts.heading);
-        if (customAppearance.textColor) {
-            const rgb = hexToRgb(customAppearance.textColor);
-            if (rgb) {
-                root.style.setProperty('--color-base-text', rgb);
-                root.style.setProperty('--color-heading-text', rgb);
-            }
-        }
-        if (customAppearance.fontWeight) root.style.setProperty('--font-weight-base', customAppearance.fontWeight);
-        else root.style.removeProperty('--font-weight-base');
-        root.classList.toggle('dark', theme.dark);
-        localStorage.setItem('app-theme-name', theme.name);
-        localStorage.setItem('app-custom-appearance', JSON.stringify(customAppearance));
-    });
+    }
+    if (customAppearance.fontWeight) root.style.setProperty('--font-weight-base', customAppearance.fontWeight);
+    else root.style.removeProperty('--font-weight-base');
+    root.classList.toggle('dark', theme.dark);
+    localStorage.setItem('app-theme-name', theme.name);
+    localStorage.setItem('app-custom-appearance', JSON.stringify(customAppearance));
   }, [theme, customAppearance]);
 
   useEffect(() => {

@@ -23,7 +23,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onSelectTool, onClose }) => {
  style={{ backgroundColor: 'rgb(var(--color-component-bg))' }}
  >
  {/* Sidebar Header */}
- <div className="sticky top-0 z-10 flex justify-between items-center p-6 border-b border-gray-200 bg-inherit">
+ <div className="sticky top-0 z-10 flex justify-between items-center p-6 border-b border-border/20 bg-inherit">
  <h2 className="text-2xl font-bold font-heading text-heading-text">قائمة البرامج</h2>
  <button 
  onClick={onClose} 
@@ -42,7 +42,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onSelectTool, onClose }) => {
  onClick={() => onSelectTool(tool.key)}
  className="w-full text-right flex items-center p-4 rounded-xl hover:bg-primary hover:text-white group transition-all duration-200 shadow-sm border border-transparent hover:border-white/20"
  >
- <div className="w-10 h-10 flex items-center justify-center bg-primary/10 rounded-lg ml-4 group-hover:bg-white /20 transition-colors">
+ <div className="w-10 h-10 flex items-center justify-center bg-primary/10 rounded-lg ml-4 group-hover:bg-primary/20 transition-colors">
  <i className={`${tool.icon} text-lg text-primary group-hover:text-white`}></i>
  </div>
  <span className="font-bold text-base-text group-hover:text-white flex-grow">{tool.label}</span>
@@ -56,7 +56,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onSelectTool, onClose }) => {
  </nav>
 
  {/* Sidebar Footer */}
- <div className="p-6 mt-4 border-t border-gray-100 text-center opacity-50">
+ <div className="p-6 mt-4 border-t border-border/20 text-center opacity-50">
  <p className="text-xs text-base-text">رفيق المعلم الذكي v1.5.9</p>
  </div>
  </div>

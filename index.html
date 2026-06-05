@@ -8,21 +8,10 @@
     <link rel="icon" type="image/svg+xml" href="/icon.svg" />
     <title>رفيق المعلم الذكي</title>
     
-    <!-- Optimized Google Fonts - Non-Blocking -->
+    <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Cairo:wght@200..1000&family=Tajawal:wght@200..900&family=Almarai:wght@300..800&family=Amiri:ital,wght@0,400;0,700;1,400;1,700&family=Aref+Ruqaa:wght@400;700&family=Noto+Kufi+Arabic:wght@100..900&family=Noto+Naskh+Arabic:wght@400..700&family=Reem+Kufi:wght@400..700&family=Lalezar&family=Changa:wght@200..800&family=El+Messiri:wght@400..700&family=Readex+Pro:wght@200..700&display=swap">
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cairo:wght@200..1000&family=Tajawal:wght@200..900&family=Almarai:wght@300..800&family=Amiri:ital,wght@0,400;0,700;1,400;1,700&family=Aref+Ruqaa:wght@400;700&family=Noto+Kufi+Arabic:wght@100..900&family=Noto+Naskh+Arabic:wght@400..700&family=Reem+Kufi:wght@400..700&family=Lalezar&family=Changa:wght@200..800&family=El+Messiri:wght@400..700&family=Readex+Pro:wght@200..700&display=swap" media="print" onload="this.media='all'">
-    <noscript>
-      <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cairo:wght@200..1000&family=Tajawal:wght@200..900&family=Almarai:wght@300..800&family=Amiri:ital,wght@0,400;0,700;1,400;1,700&family=Aref+Ruqaa:wght@400;700&family=Noto+Kufi+Arabic:wght@100..900&family=Noto+Naskh+Arabic:wght@400..700&family=Reem+Kufi:wght@400..700&family=Lalezar&family=Changa:wght@200..800&family=El+Messiri:wght@400..700&family=Readex+Pro:wght@200..700&display=swap">
-    </noscript>
-
-    <!-- Font Awesome - Non-Blocking -->
-    <link rel="preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" referrerpolicy="no-referrer">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" referrerpolicy="no-referrer" media="print" onload="this.media='all'">
-    <noscript>
-      <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" referrerpolicy="no-referrer">
-    </noscript>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@200..1000&family=Tajawal:wght@200..900&family=Almarai:wght@300..800&family=Amiri:ital,wght@0,400;0,700;1,400;1,700&family=Aref+Ruqaa:wght@400;700&family=Noto+Kufi+Arabic:wght@100..900&family=Noto+Naskh+Arabic:wght@400..700&family=Reem+Kufi:wght@400..700&family=Lalezar&family=Changa:wght@200..800&family=El+Messiri:wght@400..700&family=Readex+Pro:wght@200..700&display=swap" rel="stylesheet">
 
     <!-- Core Libraries -->
     <script defer src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
@@ -48,13 +37,14 @@
               heading: ['var(--font-heading)', 'serif'],
             },
             colors: {
-              primary: 'rgb(var(--color-primary) / <alpha-value>)',
-              secondary: 'rgb(var(--color-secondary) / <alpha-value>)',
-              icon: 'rgb(var(--color-icon) / <alpha-value>)',
-              'base-text': 'rgb(var(--color-base-text) / <alpha-value>)',
-              'heading-text': 'rgb(var(--color-heading-text) / <alpha-value>)',
-              'component-bg': 'rgb(var(--color-component-bg) / <alpha-value>)',
-              'border': 'rgb(var(--color-border) / <alpha-value>)',
+              primary: 'rgb(var(--color-primary))',
+              secondary: 'rgb(var(--color-secondary))',
+              icon: 'rgb(var(--color-icon))',
+              'base-text': 'rgb(var(--color-base-text))',
+              'heading-text': 'rgb(var(--color-heading-text))',
+              'component-bg': 'rgb(var(--color-component-bg))',
+              'border': 'rgb(var(--color-border))',
+              'base-bg': 'rgb(var(--color-base-bg))',
             }
           }
         }
@@ -65,6 +55,17 @@
         :root {
             --font-body: 'Cairo', sans-serif;
             --font-heading: 'Reem Kufi', serif;
+            --color-primary: 132 204 22;
+            --color-secondary: 34 197 94;
+            --color-icon: 209 250 229;
+            --color-border: 55 65 81;
+            --color-base-text: 229 231 235;
+            --color-heading-text: 255 255 255;
+            --color-base-bg: 17 24 39;
+            --color-component-bg: 31 41 55;
+            --color-shadow-light: 36 59 85;
+            --color-shadow-dark: 8 12 19;
+            --font-weight-base: 400;
         }
 
         body {
@@ -79,18 +80,19 @@
         }
         
         .neumorphic-inset {
-            background-color: #ffffff !important; 
+            background-color: rgb(var(--color-component-bg)) !important; 
             border-radius: 0.75rem;
-            border: 1px solid rgba(var(--color-primary), 0.1);
-            box-shadow: inset 1px 1px 3px rgba(0, 0, 0, 0.05);
-            color: #000 !important;
+            border: 1px solid rgba(var(--color-primary), 0.2);
+            box-shadow: inset 1px 1px 4px rgba(0, 0, 0, 0.15);
+            color: rgb(var(--color-base-text)) !important;
         }
 
         .neumorphic-outset {
-            background-color: rgba(255, 255, 255, 0.96);
+            background-color: rgb(var(--color-component-bg));
             backdrop-filter: blur(8px);
             border-radius: 1rem;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+            box-shadow: 0 4px 6px -1px rgba(var(--color-shadow-dark), 0.15), 0 2px 4px -1px rgba(var(--color-shadow-light), 0.1);
+            border: 1px solid rgba(var(--color-border), 0.2);
         }
         
         .animate-ticker {

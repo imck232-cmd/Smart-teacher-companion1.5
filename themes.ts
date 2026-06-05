@@ -32,12 +32,12 @@ export const themes: Theme[] = [
     colors: {
       '--color-primary': '77 46 27',      // Dark Brown
       '--color-secondary': '161 103 74',   // Lighter Brown
-      '--color-icon': '243 233 214',      // Cream on dark bg
-      '--color-border': '243 233 214',
+      '--color-icon': '77 46 27',      // Dark Brown on light bg
+      '--color-border': '210 190 170',
       '--color-base-text': '77 46 27',      // Dark Brown on light bg
       '--color-heading-text': '77 46 27',
       '--color-base-bg': '243 233 214',
-      '--color-component-bg': '77 46 27',
+      '--color-component-bg': '250 243 230',
       '--color-shadow-light': '100 60 40',
       '--color-shadow-dark': '50 30 20',
     },
@@ -51,7 +51,7 @@ export const themes: Theme[] = [
     colors: {
       '--color-primary': '37 99 235', // Blue-600
       '--color-secondary': '21 128 61', // Green-700
-      '--color-icon': '255 255 255',
+      '--color-icon': '37 99 235',
       '--color-border': '209 213 219', // Gray-300
       '--color-base-text': '55 65 81', // Gray-700
       '--color-heading-text': '17 24 39', // Gray-900
@@ -70,7 +70,7 @@ export const themes: Theme[] = [
     colors: {
       '--color-primary': '202 138 4', 
       '--color-secondary': '252 211 77',
-      '--color-icon': '28 25 23',
+      '--color-icon': '252 211 77',
       '--color-border': '120 53 15', 
       '--color-base-text': '254 249 195',
       '--color-heading-text': '254 252 232',
@@ -110,7 +110,7 @@ export const themes: Theme[] = [
     colors: {
       '--color-primary': '139 92 246',
       '--color-secondary': '167 139 250',
-      '--color-icon': '255 255 255',
+      '--color-icon': '139 92 246',
       '--color-border': '221 214 254',
       '--color-base-text': '88 83 93',
       '--color-heading-text': '59 55 64',
@@ -129,7 +129,7 @@ export const themes: Theme[] = [
     colors: {
       '--color-primary': '13 148 136',
       '--color-secondary': '20 184 166',
-      '--color-icon': '255 255 255',
+      '--color-icon': '13 148 136',
       '--color-border': '153 246 228',
       '--color-base-text': '51 65 85',
       '--color-heading-text': '15 23 42',
@@ -167,7 +167,7 @@ export const themes: Theme[] = [
     colors: {
       '--color-primary': '192 132 252',
       '--color-secondary': '216 180 254',
-      '--color-icon': '255 255 255',
+      '--color-icon': '192 132 252',
       '--color-border': '233 213 255',
       '--color-base-text': '107 33 168',
       '--color-heading-text': '92 34 153',
@@ -207,7 +207,7 @@ export const themes: Theme[] = [
     colors: {
       '--color-primary': '239 68 68',
       '--color-secondary': '249 115 22',
-      '--color-icon': '255 255 255',
+      '--color-icon': '239 68 68',
       '--color-border': '254 202 202',
       '--color-base-text': '124 58 237',
       '--color-heading-text': '88 28 131',
@@ -226,7 +226,7 @@ export const themes: Theme[] = [
     colors: {
       '--color-primary': '251 113 133',
       '--color-secondary': '251 146 60',
-      '--color-icon': '255 255 255',
+      '--color-icon': '251 113 133',
       '--color-border': '255 228 230',
       '--color-base-text': '115 115 115',
       '--color-heading-text': '64 64 64',
@@ -245,7 +245,7 @@ export const themes: Theme[] = [
     colors: {
       '--color-primary': '20 184 166',
       '--color-secondary': '45 212 191',
-      '--color-icon': '255 255 255',
+      '--color-icon': '20 184 166',
       '--color-border': '153 246 228',
       '--color-base-text': '15 118 110',
       '--color-heading-text': '4 78 68',
@@ -264,7 +264,7 @@ export const themes: Theme[] = [
     colors: {
       '--color-primary': '14 165 233',
       '--color-secondary': '56 189 248',
-      '--color-icon': '255 255 255',
+      '--color-icon': '14 165 233',
       '--color-border': '186 230 253',
       '--color-base-text': '71 85 105',
       '--color-heading-text': '30 41 59',
@@ -283,7 +283,7 @@ export const themes: Theme[] = [
     colors: {
       '--color-primary': '219 39 119',
       '--color-secondary': '236 72 153',
-      '--color-icon': '255 255 255',
+      '--color-icon': '219 39 119',
       '--color-border': '252 231 243',
       '--color-base-text': '131 24 67',
       '--color-heading-text': '131 24 67',
@@ -302,7 +302,7 @@ export const themes: Theme[] = [
     colors: {
       '--color-primary': '217 70 239',
       '--color-secondary': '192 38 211',
-      '--color-icon': '255 255 255',
+      '--color-icon': '217 70 239',
       '--color-border': '245 208 254',
       '--color-base-text': '112 26 117',
       '--color-heading-text': '86 16 100',
