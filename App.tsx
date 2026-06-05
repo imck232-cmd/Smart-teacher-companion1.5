@@ -124,19 +124,24 @@ const App: React.FC = () => {
   }, []);
 
   useEffect(() => {
-    loadPauseSettings();
+    // 1. فوري: استنساخ وتطبيق السمة فوراً لمنع توهج أو وميض الواجهة
     const savedThemeName = localStorage.getItem('app-theme-name');
     const savedTheme = themes.find(t => t.name === savedThemeName) || themes.find(t => t.name === 'غابة عميقة') || themes[0];
     setTheme(savedTheme);
-    const savedAppearance = localStorage.getItem('app-custom-appearance');
-    if (savedAppearance) {
-        try {
-            const parsed = JSON.parse(savedAppearance);
-            if (parsed && typeof parsed === 'object') setCustomAppearance(parsed);
-        } catch (e) {}
-    }
-    clickSoundRef.current = new Audio(CLICK_SOUND_DATA_URL);
-    clickSoundRef.current.volume = 0.5;
+
+    // 2. مؤجل: تأجيل تفريغ وتحليل الإعدادات الثقيلة والصوتيات لخلفية الإقلاع لمنع الجمود على الهواتف
+    const deferTimer = setTimeout(() => {
+        loadPauseSettings();
+        const savedAppearance = localStorage.getItem('app-custom-appearance');
+        if (savedAppearance) {
+            try {
+                const parsed = JSON.parse(savedAppearance);
+                if (parsed && typeof parsed === 'object') setCustomAppearance(parsed);
+            } catch (e) {}
+        }
+        clickSoundRef.current = new Audio(CLICK_SOUND_DATA_URL);
+        clickSoundRef.current.volume = 0.5;
+    }, 40);
     
     const handleStorageUpdate = () => loadPauseSettings();
     const handleScroll = () => setScrollButtonVisible(window.pageYOffset > 300);
@@ -153,6 +158,7 @@ const App: React.FC = () => {
     document.addEventListener('click', playSound);
     
     return () => {
+        clearTimeout(deferTimer);
         window.removeEventListener('storage-update-pause-tool', handleStorageUpdate);
         window.removeEventListener('scroll', handleScroll);
         document.removeEventListener('click', playSound);

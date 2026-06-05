@@ -159,7 +159,133 @@
 </script>
 </head>
 <body>
-    <div id="root"></div>
+    <div id="root">
+        <!-- غلاف التطبيق السريع (Themed CSS-Only App Shell & Splash Screen) -->
+        <style>
+            #initial-loading-container {
+                position: fixed;
+                inset: 0;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                justify-content: center;
+                background-color: #0f172a; /* Slate 900 base for beautiful dark look */
+                color: #f8fafc;
+                font-family: 'Cairo', 'Tajawal', sans-serif;
+                z-index: 99999;
+                direction: rtl;
+                padding: 1.5rem;
+                text-align: center;
+            }
+            .splash-avatar-container {
+                position: relative;
+                width: 110px;
+                height: 110px;
+                margin-bottom: 2rem;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+            }
+            .splash-avatar-pulse {
+                position: absolute;
+                inset: -6px;
+                border-radius: 50%;
+                background: radial-gradient(circle, rgba(132, 204, 22, 0.25) 0%, transparent 70%);
+                animation: splash-pulse 2s infinite ease-in-out;
+            }
+            .splash-icon {
+                width: 90px;
+                height: 90px;
+                border-radius: 28px;
+                background: linear-gradient(135deg, #84cc16 0%, #22c55e 100%);
+                box-shadow: 0 10px 25px rgba(132, 204, 22, 0.4);
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                color: #ffffff;
+                font-size: 2.5rem;
+                z-index: 2;
+                animation: splash-float 3s infinite ease-in-out;
+            }
+            .splash-title {
+                font-size: 2rem;
+                font-weight: 800;
+                color: #f8fafc;
+                margin-bottom: 0.5rem;
+                letter-spacing: -0.025em;
+                text-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+            }
+            .splash-subtitle {
+                font-size: 1rem;
+                color: #94a3b8;
+                max-width: 380px;
+                margin-bottom: 3rem;
+                line-height: 1.7;
+            }
+            .splash-loader-bar {
+                width: 200px;
+                height: 5px;
+                border-radius: 10px;
+                background-color: #334155;
+                position: relative;
+                overflow: hidden;
+                box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.4);
+            }
+            .splash-loader-progress {
+                position: absolute;
+                top: 0;
+                left: 0;
+                height: 100%;
+                width: 45%;
+                background: linear-gradient(90deg, #84cc16, #22c55e);
+                border-radius: 10px;
+                box-shadow: 0 0 10px rgba(132, 204, 22, 0.6);
+                animation: splash-loading 1.8s infinite ease-in-out;
+            }
+            .splash-footer {
+                position: absolute;
+                bottom: 2rem;
+                font-size: 0.8rem;
+                color: #64748b;
+                display: flex;
+                align-items: center;
+                gap: 0.5rem;
+            }
+            .splash-footer i {
+                color: #84cc16;
+            }
+            @keyframes splash-pulse {
+                0%, 100% { transform: scale(0.95); opacity: 0.5; }
+                50% { transform: scale(1.15); opacity: 0.9; }
+            }
+            @keyframes splash-float {
+                0%, 100% { transform: translateY(0); }
+                50% { transform: translateY(-8px); }
+            }
+            @keyframes splash-loading {
+                0% { left: -40%; width: 30%; }
+                50% { width: 45%; }
+                100% { left: 110%; width: 25%; }
+            }
+        </style>
+        <div id="initial-loading-container">
+            <div class="splash-avatar-container">
+                <div class="splash-avatar-pulse"></div>
+                <div class="splash-icon">
+                    <i class="fas fa-graduation-cap"></i>
+                </div>
+            </div>
+            <div class="splash-title">رفيق المعلم الذكي</div>
+            <div class="splash-subtitle">كل ما تحتاجه لإدارة مهامك وتصميم دروسك الإبداعية في ثوانٍ معدودة...</div>
+            <div class="splash-loader-bar">
+                <div class="splash-loader-progress"></div>
+            </div>
+            <div class="splash-footer">
+                <i class="fas fa-bolt"></i>
+                <span>تهيئة البيئة السحابية والذكاء الاصطناعي...</span>
+            </div>
+        </div>
+    </div>
     <script type="module" src="/index.tsx"></script>
     <script>
       // Load secondary/tertiary Arabic fonts after the page is fully loaded and interactive

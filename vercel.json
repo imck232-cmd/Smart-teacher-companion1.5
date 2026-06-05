@@ -3,27 +3,52 @@
   "cleanUrls": true,
   "trailingSlash": false,
   "framework": "vite",
+  "headers": [
+    {
+      "source": "/assets/(.*)",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=31536000, s-maxage=31536000, immutable"
+        },
+        {
+          "key": "Access-Control-Allow-Origin",
+          "value": "*"
+        }
+      ]
+    },
+    {
+      "source": "/(.*).(woff|woff2|eot|ttf|otf)",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=31536000, s-maxage=31536000, immutable"
+        }
+      ]
+    },
+    {
+      "source": "/(.*).(svg|png|jpg|jpeg|gif|webp|ico)",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=604800, s-maxage=31536000"
+        }
+      ]
+    },
+    {
+      "source": "/manifest.json",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=3600, s-maxage=86400"
+        }
+      ]
+    }
+  ],
   "routes": [
     {
       "src": "/assets/(.*)",
-      "headers": {
-        "cache-control": "public, max-age=31536000, immutable"
-      },
       "dest": "/assets/$1"
-    },
-    {
-      "src": "/favicon.ico",
-      "headers": {
-        "cache-control": "public, max-age=86400"
-      },
-      "dest": "/favicon.ico"
-    },
-    {
-      "src": "/icon.svg",
-      "headers": {
-        "cache-control": "public, max-age=86400"
-      },
-      "dest": "/icon.svg"
     },
     {
       "src": "/(.*)",
