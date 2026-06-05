@@ -1,0 +1,33 @@
+{
+  "version": 2,
+  "cleanUrls": true,
+  "trailingSlash": false,
+  "framework": "vite",
+  "routes": [
+    {
+      "src": "/assets/(.*)",
+      "headers": {
+        "cache-control": "public, max-age=31536000, immutable"
+      },
+      "dest": "/assets/$1"
+    },
+    {
+      "src": "/favicon.ico",
+      "headers": {
+        "cache-control": "public, max-age=86400"
+      },
+      "dest": "/favicon.ico"
+    },
+    {
+      "src": "/icon.svg",
+      "headers": {
+        "cache-control": "public, max-age=86400"
+      },
+      "dest": "/icon.svg"
+    },
+    {
+      "src": "/(.*)",
+      "dest": "/index.html"
+    }
+  ]
+}

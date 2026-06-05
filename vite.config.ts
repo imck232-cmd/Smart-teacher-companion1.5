@@ -11,6 +11,31 @@ export default defineConfig(({ mode }) => {
     plugins: [react()],
     define: {
       'process.env.API_KEY': JSON.stringify(env.GEMINI_API_KEY)
+    },
+    build: {
+      target: 'esnext',
+      minify: 'esbuild',
+      cssMinify: true,
+      sourcemap: false,
+      chunkSizeWarningLimit: 1200,
+      rollupOptions: {
+        output: {
+          manualChunks(id) {
+            if (id.includes('node_modules')) {
+              if (id.includes('react') || id.includes('react-dom')) {
+                return 'vendor-react';
+              }
+              if (id.includes('@google/genai')) {
+                return 'vendor-genai';
+              }
+              if (id.includes('react-markdown')) {
+                return 'vendor-markdown';
+              }
+              return 'vendor-others';
+            }
+          }
+        }
+      }
     }
   }
 })
