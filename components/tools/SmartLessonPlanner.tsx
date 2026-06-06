@@ -621,8 +621,8 @@ const SmartLessonPlanner: React.FC<{ onBack: () => void }> = ({ onBack }) => {
  </div>
  {/* REPLACED INPUT WITH DIV FOR TITLE - Auto width for long titles */}
  <div className="relative mt-1">
- <div className="border-2 border-black px-4 py-2 font-black text-lg rounded-lg shadow-[2px_2px_0px_rgba(0,0,0,0.1)] inline-block min-w-[150px] whitespace-nowrap">
- <div contentEditable onBlur={(e) => handleContentEditableChange('lessonTitle', e)} className="bg-transparent text-center focus:outline-none text-black " dangerouslySetInnerHTML={{ __html: plan.lessonTitle || 'عنوان الدرس' }}></div>
+ <div className="border border-black px-3 py-1.5 bg-neutral-50 rounded-lg inline-block max-w-[210px] break-words">
+ <div contentEditable onBlur={(e) => handleContentEditableChange('lessonTitle', e)} className="bg-transparent text-center focus:outline-none text-black text-[13px] font-black leading-snug" dangerouslySetInnerHTML={{ __html: plan.lessonTitle || 'عنوان الدرس' }}></div>
  </div>
  </div>
  </div>
@@ -680,22 +680,22 @@ const SmartLessonPlanner: React.FC<{ onBack: () => void }> = ({ onBack }) => {
 
  {/* Row 4: Objectives Table - Increased Eval Width */}
  <div className="mb-2">
- <table className="w-full border-collapse border border-black text-[10px] table-fixed text-black ">
+ <table className="w-full border-collapse border border-black text-[10px] text-black">
  <thead>
- <tr className="bg-gray-200 ">
- <th className="border border-black p-1 w-16">المجال</th>
- <th className="border border-black p-1 w-16">المستوى</th>
- <th className="border border-black p-1">الأهداف السلوكية (صياغة الهدف)</th>
- <th className="border border-black p-1 w-48">التقويم</th>
+ <tr className="bg-gray-200">
+ <th className="border border-black p-1 text-center font-bold text-[10px]" style={{ width: '12%' }}>المجال</th>
+ <th className="border border-black p-1 text-center font-bold text-[10px]" style={{ width: '13%' }}>المستوى</th>
+ <th className="border border-black p-1 text-center font-bold text-[10px]" style={{ width: '48%' }}>الأهداف السلوكية (صياغة الهدف)</th>
+ <th className="border border-black p-1 text-center font-bold text-[10px]" style={{ width: '27%' }}>التقويم</th>
  </tr>
  </thead>
  <tbody>
  {plan.objectives.map((obj, i) => (
  <tr key={i}>
- <td className="border border-black p-1 font-bold text-center bg-gray-50 text-black ">{obj.domain}</td>
- <td className="border border-black p-0 align-middle"><div contentEditable onBlur={(e) => { const v = e.currentTarget.innerText; handleObjectiveChange(i, 'level', v); }} className="w-full h-full min-h-[20px] text-center bg-transparent focus:outline-none font-medium flex items-center justify-center whitespace-pre-wrap text-black " dangerouslySetInnerHTML={{__html: obj.level}}></div></td>
- <td className="border border-black p-0 align-middle"><div contentEditable onBlur={(e) => { const v = e.currentTarget.innerText; handleObjectiveChange(i, 'text', v); }} className="w-full h-full min-h-[20px] px-1 bg-transparent focus:outline-none font-medium text-right flex items-center whitespace-pre-wrap text-black " dangerouslySetInnerHTML={{__html: obj.text}}></div></td>
- <td className="border border-black p-0 align-middle"><div contentEditable onBlur={(e) => { const v = e.currentTarget.innerText; handleObjectiveChange(i, 'evaluation', v); }} className="w-full h-full min-h-[20px] px-1 bg-transparent focus:outline-none text-center font-medium flex items-center justify-center whitespace-pre-wrap text-black " dangerouslySetInnerHTML={{__html: obj.evaluation}}></div></td>
+ <td className="border border-black p-1 font-bold text-center bg-gray-50 text-black text-[9.5px] align-middle">{obj.domain}</td>
+ <td className="border border-black p-1 align-middle text-center"><div contentEditable onBlur={(e) => { const v = e.currentTarget.innerText; handleObjectiveChange(i, 'level', v); }} className="w-full bg-transparent focus:outline-none font-semibold text-center whitespace-normal break-words leading-tight text-black text-[9px]" dangerouslySetInnerHTML={{__html: obj.level}}></div></td>
+ <td className="border border-black p-1.5 align-middle text-right"><div contentEditable onBlur={(e) => { const v = e.currentTarget.innerText; handleObjectiveChange(i, 'text', v); }} className="w-full bg-transparent focus:outline-none font-semibold text-right whitespace-normal break-words leading-tight text-black text-[9px]" dangerouslySetInnerHTML={{__html: obj.text}}></div></td>
+ <td className="border border-black p-1.5 align-middle text-right"><div contentEditable onBlur={(e) => { const v = e.currentTarget.innerText; handleObjectiveChange(i, 'evaluation', v); }} className="w-full bg-transparent focus:outline-none font-semibold text-right whitespace-normal break-words leading-tight text-black text-[9px]" dangerouslySetInnerHTML={{__html: obj.evaluation}}></div></td>
  </tr>
  ))}
  </tbody>
@@ -764,14 +764,14 @@ const SmartLessonPlanner: React.FC<{ onBack: () => void }> = ({ onBack }) => {
  {/* Footer */}
  <div className="flex justify-between items-end mt-auto text-[12px] pt-1 border-t-2 border-black text-black ">
  <div className="text-right">
- <p className="font-bold mb-3">اسم المعلم/ة: <span className="font-normal text-black ">{plan.teacherName}</span></p>
+ <p className="font-bold mb-1">اسم المعلم/ة:</p><p className="font-bold text-black border-b border-dotted border-black pb-1 mb-2 text-center min-w-[124px] min-h-[18px]">{plan.teacherName}</p>
  <p className="font-bold">التوقيع: ..........................</p>
  </div>
  <div className="font-black italic text-base opacity-80 text-center">
  دفتر المعلم الاحترافي
  </div>
  <div className="text-left">
- <p className="font-bold mb-3">يعتمد / مدير المدرسة</p>
+ <p className="font-bold mb-1">يعتمد / مدير المدرسة:</p><p className="font-bold text-black border-b border-dotted border-black pb-1 mb-2 text-center min-w-[124px] min-h-[18px]">&nbsp;</p>
  <p className="font-bold">التوقيع: ..........................</p>
  </div>
  </div>

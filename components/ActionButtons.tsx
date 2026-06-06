@@ -36,6 +36,29 @@ const ActionButtons: React.FC<ActionButtonsProps> = ({ textToCopy, elementIdToPr
     clonedDoc.documentElement.classList.remove('dark', 'dark-theme');
     clonedDoc.body.classList.remove('dark', 'dark-theme');
     
+    // Inject a pristine high-contrast style override block to prevent any dark mode color/filter leaks
+    const styleOverride = clonedDoc.createElement('style');
+    styleOverride.innerHTML = `
+      #${elementId}, #${elementId} * {
+        color: #000000 !important;
+        -webkit-text-fill-color: #000000 !important;
+        filter: none !important;
+        -webkit-filter: none !important;
+        mix-blend-mode: normal !important;
+        box-shadow: none !important;
+        text-shadow: none !important;
+        background-color: transparent !important;
+      }
+      #${elementId} {
+        background-color: #ffffff !important;
+        background: #ffffff !important;
+      }
+      #${elementId} .bg-gray-200, #${elementId} .bg-gray-100, #${elementId} .bg-gray-50, #${elementId} .bg-neutral-50 {
+        background-color: #e2e8f0 !important; /* Proper high-contrast light gray sections */
+      }
+    `;
+    clonedDoc.head?.appendChild(styleOverride);
+    
     // 2. Clear any browser background filters or night shift effects in clone
     clonedDoc.documentElement.style.filter = 'none';
     clonedDoc.documentElement.style.webkitFilter = 'none';
