@@ -1,14 +1,15 @@
 
 import React from 'react';
-import { tools, ToolKey } from '../constants';
+import { tools, ToolKey, UNDER_CONSTRUCTION_KEYS } from '../constants';
 
 interface SidebarProps {
  isOpen: boolean;
  onSelectTool: (toolKey: ToolKey) => void;
  onClose: () => void;
+ isUnlocked?: boolean;
 }
 
-const Sidebar: React.FC<SidebarProps> = ({ isOpen, onSelectTool, onClose }) => {
+const Sidebar: React.FC<SidebarProps> = ({ isOpen, onSelectTool, onClose, isUnlocked }) => {
  return (
  <>
  {/* Overlay - تغلق القائمة عند الضغط عليها */}
@@ -36,7 +37,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onSelectTool, onClose }) => {
  {/* Tools Navigation */}
  <nav className="p-4">
  <ul className="space-y-2">
- {tools.map((tool) => (
+ {tools.filter((tool) => !UNDER_CONSTRUCTION_KEYS.includes(tool.key) || isUnlocked).map((tool) => (
  <li key={tool.key}>
  <button
  onClick={() => onSelectTool(tool.key)}

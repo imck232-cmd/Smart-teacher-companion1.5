@@ -224,3 +224,19 @@ export const externalLinkTools: Record<ToolKey, { title: string; links: External
         ]
     }
 } as any;
+
+export const UNDER_CONSTRUCTION_KEYS: ToolKey[] = [
+  'chatBot',
+  'participationLog',
+  'gradeSheet',
+  'createLessonPlan',
+  'summarizeLesson',
+  'solveBookQuestions',
+  'analyzeLiterary',
+  'createExam',
+  'periodicTests',
+  'imageAnalyzer',
+  'textToSpeechInternal',
+  'transcribeAudio'
+];
+

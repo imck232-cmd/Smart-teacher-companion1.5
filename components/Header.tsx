@@ -16,7 +16,7 @@ const Header: React.FC<HeaderProps> = ({ onToggleThemeSwitcher, onToggleAppearan
 
  return (
  <header 
- className={`relative shadow-lg sticky top-0 z-50 transition-all duration-300 ${isCollapsed ? 'py-1' : 'py-4'}`} 
+ className={`relative shadow-md transition-all duration-300 ${isCollapsed ? 'py-1' : 'py-4'}`} 
  style={{ backgroundColor: 'rgb(var(--color-component-bg))' }}
  >
  

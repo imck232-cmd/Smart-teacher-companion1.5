@@ -53,6 +53,7 @@ const App: React.FC = () => {
   const [isScrollButtonVisible, setScrollButtonVisible] = useState(false);
   const [isThemeSwitcherOpen, setIsThemeSwitcherOpen] = useState(false);
   const [isAppearanceSettingsOpen, setIsAppearanceSettingsOpen] = useState(false);
+  const [isUnlocked, setIsUnlocked] = useState(() => localStorage.getItem('under_construction_unlocked') === 'true');
   
   const [customAppearance, setCustomAppearance] = useState({
       fontFamily: '', textColor: '', fontWeight: '', inputColor: '', cardColor: '',
@@ -267,7 +268,7 @@ const App: React.FC = () => {
   const handleResetAppearance = () => setCustomAppearance({ fontFamily: '', textColor: '', fontWeight: '', inputColor: '', cardColor: '' });
 
   const renderTool = () => {
-    if (!selectedTool) return <Home onSelectTool={handleSelectTool} lastActiveTool={lastActiveTool} onOpenMostUsed={() => { setSelectedTool('mostUsed'); setIsSidebarOpen(false); }} />;
+    if (!selectedTool) return <Home onSelectTool={handleSelectTool} lastActiveTool={lastActiveTool} onOpenMostUsed={() => { setSelectedTool('mostUsed'); setIsSidebarOpen(false); }} isUnlocked={isUnlocked} onUnlock={() => setIsUnlocked(true)} />;
     if (selectedTool === 'mostUsed') return <MostUsedTools onBack={handleGoHome} onSelectTool={handleSelectTool} />;
     if (Object.keys(externalLinkTools).includes(selectedTool)) return <ExternalLinksViewer toolKey={selectedTool} onBack={handleGoHome} title={tools.find(t => t.key === selectedTool)?.label || ''} />;
 
@@ -320,6 +321,7 @@ const App: React.FC = () => {
         isOpen={isSidebarOpen} 
         onSelectTool={handleSelectTool} 
         onClose={() => setIsSidebarOpen(false)} 
+        isUnlocked={isUnlocked}
       />
       
       <main 
