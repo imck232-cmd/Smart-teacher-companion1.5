@@ -8,6 +8,22 @@ declare const mammoth: any;
 declare const html2canvas: any;
 declare const jspdf: any;
 
+const normalizeArabic = (str: string) => {
+  if (!str) return "";
+  return str
+    .replace(/[أإآا]/g, "ا")
+    .replace(/ة/g, "ه")
+    .replace(/ى/g, "ي")
+    .trim();
+};
+
+const cleanValue = (val: string) => {
+  return val
+    .replace(/^[*-\s_：:：]+/, "") // leading symbols/spaces/colons
+    .replace(/[*_\s]+$/, "")       // trailing formatting
+    .trim();
+};
+
 const offlineParseExam = (text: string) => {
   const parsedData: any = {
     q1: { title: "", content: "", subQuestions: ["", "", ""] },
@@ -27,43 +43,158 @@ const offlineParseExam = (text: string) => {
     "السؤال الخامس",
   ];
 
-  qNames.forEach((qName, i) => {
-    const qKey = qKeys[i];
-    const regex = new RegExp(`\\[${qName}\\]\\s*\\n(.*?)(?=\\n\\[|$)`, "s");
-    const sectionMatch = text.match(regex);
-    if (sectionMatch) {
-      const section = sectionMatch[1];
+  const sectionsText: Record<string, string[]> = {
+    q1: [],
+    q2: [],
+    q3: [],
+    q4: [],
+    q5: [],
+    grading: [],
+  };
 
-      const titleMatch = section.match(/-\s*العنوان:\s*(.*)/);
-      if (titleMatch) parsedData[qKey].title = titleMatch[1].trim();
+  let currentSection: string | null = null;
+  const lines = text.split(/\r?\n/);
 
-      const textMatch = section.match(/-\s*النص:\s*(.*)/);
-      if (textMatch) parsedData[qKey].content = textMatch[1].trim();
+  lines.forEach((line) => {
+    const trimmed = line.trim();
+    if (!trimmed) return;
 
-      const subQSection = section.match(/-\s*الأسئلة الفرعية:\s*\n([\s\S]*)/);
-      if (subQSection) {
-        const subQs = subQSection[1]
-          .split("\n")
-          .filter((l) => l.trim() && /^[-*0-9.]+\s*/.test(l))
-          .map((l) => l.replace(/^[-*0-9.]+\s*/, "").trim());
-        if (subQs.length > 0) {
-          parsedData[qKey].subQuestions = subQs;
-        }
-      }
+    const normalizedLine = normalizeArabic(trimmed);
+    
+    // Detect start of standard questions sections
+    if (normalizedLine.includes("السؤال الاول")) {
+      currentSection = "q1";
+    } else if (normalizedLine.includes("السؤال الثاني")) {
+      currentSection = "q2";
+    } else if (normalizedLine.includes("السؤال الثالث")) {
+      currentSection = "q3";
+    } else if (normalizedLine.includes("السؤال الرابع")) {
+      currentSection = "q4";
+    } else if (normalizedLine.includes("السؤال الخامس")) {
+      currentSection = "q5";
+    } else if (
+      normalizedLine.includes("توزيع الدرجات") || 
+      normalizedLine.includes("توزيع درجات")
+    ) {
+      currentSection = "grading";
+    } else if (currentSection) {
+      sectionsText[currentSection].push(line);
     }
   });
 
-  const marksRegex = /\[توزيع الدرجات\]\s*\n(.*?)(?=\n\[|$)/s;
-  const marksMatch = text.match(marksRegex);
-  if (marksMatch) {
-    const marksText = marksMatch[1];
-    qNames.forEach((qName, i) => {
-      const markLine = marksText.match(new RegExp(`${qName}:\\s*(\\d+)`));
-      if (markLine) parsedData.gradingTable[qKeys[i]] = parseInt(markLine[1]);
+  qNames.forEach((qName, i) => {
+    const qKey = qKeys[i];
+    const sLines = sectionsText[qKey];
+    if (sLines.length === 0) return;
+
+    // 1. Parse Title (العنوان)
+    const titleLine = sLines.find((l) =>
+      normalizeArabic(l).includes("العنوان")
+    );
+    if (titleLine) {
+      const parts = titleLine.split(/[:：]/);
+      if (parts.length > 1) {
+        parsedData[qKey].title = cleanValue(parts.slice(1).join(":"));
+      }
+    }
+
+    // 2. Parse Content/Instructions (النص)
+    const contentLine = sLines.find((l) => {
+      const n = normalizeArabic(l);
+      return n.includes("النص") && !n.includes("الاسئله الفرعيه");
     });
-    const totalLine = marksText.match(/المجموع الكلي:\s*(\\d+)/);
-    if (totalLine) parsedData.gradingTable.total = parseInt(totalLine[1]);
-  }
+    if (contentLine) {
+      const parts = contentLine.split(/[:：]/);
+      if (parts.length > 1) {
+        parsedData[qKey].content = cleanValue(parts.slice(1).join(":"));
+      }
+    }
+
+    // 3. Parse SubQuestions (الأسئلة الفرعية)
+    const subQuestions: string[] = [];
+    let isSubQZone = false;
+
+    sLines.forEach((line) => {
+      const norm = normalizeArabic(line);
+      if (norm.includes("الاسئله الفرعيه") || norm.includes("الاسئلة الفرعية")) {
+        isSubQZone = true;
+        return;
+      }
+      if (isSubQZone) {
+        const trimmed = line.trim();
+        if (
+          trimmed &&
+          !norm.includes("العنوان") &&
+          !norm.includes("النص")
+        ) {
+          // Clean the numbering from the start of the question
+          const cleanedSubQ = trimmed
+            .replace(/^[\s*-]*(?:\d+|[١٢٣٤٥٦٧٨٩٠]+|[\u0660-\u0669]+)(?:\s*[\.\-\)]|\s+)/, "")
+            .replace(/^[\s*-]+/, "")
+            .trim();
+          if (cleanedSubQ) {
+            subQuestions.push(cleanedSubQ);
+          }
+        }
+      }
+    });
+
+    // Fallback if zone header is missing or not detected correctly
+    if (subQuestions.length === 0) {
+      sLines.forEach((line) => {
+        const norm = normalizeArabic(line);
+        if (norm.includes("العنوان") || norm.includes("النص") || norm.includes("توزيع")) return;
+        const trimmed = line.trim();
+        // Check if starts with sequence standard or Arabic digits
+        if (/^[\s*-]*(?:\d+|[١٢٣٤٥٦٧٨٩٠]+|[\u0660-\u0669]+)/.test(trimmed)) {
+          const cleanedSubQ = trimmed
+            .replace(/^[\s*-]*(?:\d+|[١٢٣٤٥٦٧٨٩٠]+|[\u0660-\u0669]+)(?:\s*[\.\-\)]|\s+)/, "")
+            .replace(/^[\s*-]+/, "")
+            .trim();
+          if (cleanedSubQ) {
+            subQuestions.push(cleanedSubQ);
+          }
+        }
+      });
+    }
+
+    if (subQuestions.length > 0) {
+      parsedData[qKey].subQuestions = subQuestions;
+    }
+  });
+
+  // 4. Parse GradingTable
+  const gradingLines = sectionsText.grading;
+  gradingLines.forEach((line) => {
+    const norm = normalizeArabic(line);
+
+    qNames.forEach((qName, i) => {
+      const normQName = normalizeArabic(qName);
+      if (norm.includes(normQName)) {
+        const match = line.match(/(\d+|[١٢٣٤٥٦٧٨٩٠]+)/);
+        if (match) {
+          const numStr = match[1].replace(/[١٢٣٤٥٦٧٨٩٠]/g, (d) =>
+            String("٠١٢٣٤٥٦٧٨٩".indexOf(d))
+          );
+          parsedData.gradingTable[qKeys[i]] = parseInt(numStr, 10);
+        }
+      }
+    });
+
+    if (
+      norm.includes("المجموع الكلي") ||
+      norm.includes("المجموع") ||
+      norm.includes("الاجمالي")
+    ) {
+      const match = line.match(/(\d+|[١٢٣٤٥٦٧٨٩٠]+)/);
+      if (match) {
+        const numStr = match[1].replace(/[١٢٣٤٥٦٧٨٩٠]/g, (d) =>
+          String("٠١٢٣٤٥٦٧٨٩".indexOf(d))
+        );
+        parsedData.gradingTable.total = parseInt(numStr, 10);
+      }
+    }
+  });
 
   return parsedData;
 };
