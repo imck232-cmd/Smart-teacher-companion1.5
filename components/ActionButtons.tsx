@@ -47,14 +47,20 @@ const ActionButtons: React.FC<ActionButtonsProps> = ({ textToCopy, elementIdToPr
         mix-blend-mode: normal !important;
         box-shadow: none !important;
         text-shadow: none !important;
-        background-color: transparent !important;
+        -webkit-font-smoothing: antialiased !important;
+        -moz-osx-font-smoothing: grayscale !important;
       }
       #${elementId} {
         background-color: #ffffff !important;
         background: #ffffff !important;
       }
       #${elementId} .bg-gray-200, #${elementId} .bg-gray-100, #${elementId} .bg-gray-50, #${elementId} .bg-neutral-50 {
-        background-color: #e2e8f0 !important; /* Proper high-contrast light gray sections */
+        background-color: #f1f5f9 !important; /* Proper high-contrast light gray sections */
+      }
+      #export-lessonTitle {
+        font-weight: bold !important;
+        display: block !important;
+        text-align: center !important;
       }
     `;
     clonedDoc.head?.appendChild(styleOverride);
@@ -70,18 +76,19 @@ const ActionButtons: React.FC<ActionButtonsProps> = ({ textToCopy, elementIdToPr
 
     const el = clonedDoc.getElementById(elementId);
     if (el) {
-      // 3. Set standard single-page A4 dimensions (794px width x 1123px height at 96 DPI aspect ratio)
+      // 3. Set standard single-page A4 dimensions (794px width at 96 DPI aspect ratio)
       el.style.width = '794px';
       el.style.minWidth = '794px';
       el.style.maxWidth = '794px';
-      el.style.height = '1123px';
+      // Allow natural content-driven expanding height to ensure no clipping or text-overlap
+      el.style.height = 'auto';
       el.style.minHeight = '1123px';
-      el.style.maxHeight = '1123px';
+      el.style.maxHeight = 'none';
       
       // 4. Force ultra crisp printing layout attributes
       el.style.boxSizing = 'border-box';
       el.style.margin = '0 auto';
-      el.style.padding = '8mm';
+      el.style.padding = '10mm';
       el.style.display = 'flex';
       el.style.flexDirection = 'column';
       el.style.justifyContent = 'space-between';
@@ -90,7 +97,7 @@ const ActionButtons: React.FC<ActionButtonsProps> = ({ textToCopy, elementIdToPr
       el.style.filter = 'none';
       el.style.mixBlendMode = 'normal';
       el.style.boxShadow = 'none';
-      el.style.overflow = 'hidden';
+      el.style.overflow = 'visible';
 
       // 5. Ensure scrollable wrappers are visible
       const scrollables = el.querySelectorAll('.overflow-x-auto, .overflow-y-auto, .overflow-hidden, .overflow-auto');
@@ -100,6 +107,32 @@ const ActionButtons: React.FC<ActionButtonsProps> = ({ textToCopy, elementIdToPr
         scrollable.style.maxHeight = 'none';
       });
 
+      // Synchronize contentEditable fields from plan JSON to avoid empty titles or un-synced text
+      if (elementId === 'lesson-plan-export') {
+        try {
+          const plan = JSON.parse(textToCopy);
+          const fields = [
+            'lessonTitle', 'district', 'school', 'behavior', 'introText',
+            'teacherRole', 'learnerRole', 'content', 'activities',
+            'closureText', 'homeworkText', 'adminNotes', 'reflection'
+          ];
+          fields.forEach(field => {
+            const elField = clonedDoc.getElementById(`export-${field}`);
+            if (elField) {
+              let val = plan[field];
+              if (val !== undefined && val !== null) {
+                if (field === 'lessonTitle' && !val) {
+                  val = 'عنوان الدرس';
+                }
+                elField.innerHTML = val;
+              }
+            }
+          });
+        } catch (e) {
+          console.warn("Failed to parse textToCopy for lessonTitle synchronization:", e);
+        }
+      }
+
       // 6. Walk the layout tree and make elements tight, black-on-white, and single-page safe
       const children = el.querySelectorAll('*');
       children.forEach((child: any) => {
@@ -107,8 +140,28 @@ const ActionButtons: React.FC<ActionButtonsProps> = ({ textToCopy, elementIdToPr
         child.style.color = '#000000';
         child.style.webkitTextFillColor = '#000000';
         
+        // Remove contenteditable attribute on clone to prevent html2canvas baseline shift and rendering glitches
+        if (child.hasAttribute('contenteditable')) {
+          child.removeAttribute('contenteditable');
+        }
+
+        // Force bold weights to be extra clear and bold on export
+        if (child.classList?.contains('font-bold') || child.tagName === 'STRONG') {
+          child.style.fontWeight = 'bold';
+        }
+
+        if (child.id === 'export-lessonTitle') {
+          child.style.fontWeight = 'bold';
+          child.style.display = 'block';
+          child.style.width = '100%';
+          child.style.textAlign = 'center';
+          child.style.lineHeight = '1.2';
+          child.style.marginTop = '0px';
+          child.style.marginBottom = '0px';
+        }
+        
         // Ensure white/transparent backgrounds
-        const hasGrayBg = child.classList?.contains('bg-gray-200') || child.classList?.contains('bg-gray-100') || child.classList?.contains('bg-gray-50');
+        const hasGrayBg = child.classList?.contains('bg-gray-200') || child.classList?.contains('bg-gray-100') || child.classList?.contains('bg-gray-50') || child.classList?.contains('bg-neutral-50');
         if (hasGrayBg) {
           child.style.backgroundColor = '#f1f5f9';
         } else {
@@ -158,22 +211,81 @@ const ActionButtons: React.FC<ActionButtonsProps> = ({ textToCopy, elementIdToPr
         }
       });
 
-      // 7. Adjust specific lesson planner components dynamically
-      // Reduce minimum heights of the main content area to fit everything within one page
-      const contentArea = el.querySelector('[style*="min-height"], [style*="minHeight"]');
-      if (contentArea) {
-        const htmlArea = contentArea as HTMLElement;
-        htmlArea.style.minHeight = '100px';
-        htmlArea.style.flexGrow = '1';
+      // 7. Dynamic Font Size Adjustment loop (requested: font 13, scale down if it overflows 1123px)
+      if (elementId === 'lesson-plan-export') {
+        const allElements = el.querySelectorAll('*');
+        allElements.forEach((child: any) => {
+          let origSizePx = 11; // default
+          
+          if (child.className && typeof child.className === 'string') {
+            const match = child.className.match(/text-\[(\d+(\.\d+)?)px\]/);
+            if (match) {
+              origSizePx = parseFloat(match[1]);
+            } else if (child.className.includes('text-xs')) {
+              origSizePx = 12;
+            } else if (child.className.includes('text-sm')) {
+              origSizePx = 14;
+            } else if (child.className.includes('text-base')) {
+              origSizePx = 16;
+            } else if (child.className.includes('text-lg')) {
+              origSizePx = 18;
+            }
+          }
+          
+          if (child.tagName === 'TD' || child.tagName === 'TH') {
+            origSizePx = 9.5;
+          }
+          if (child.id === 'export-lessonTitle') {
+            origSizePx = 14;
+          }
+          
+          child.setAttribute('data-orig-font-size', origSizePx.toString());
+        });
+
+        let currentPt = 13.0; // Start at target font size 13pt
+        const minPt = 7.5;    // Lower limit to prevent illegible tiny text
+        const dpiScale = 96 / 72; // Convert pt to pixels
+
+        for (let i = 0; i < 20; i++) {
+          // If body default text was 11px, we want it to be currentPt (e.g. 13pt).
+          // Ratio of scale = (currentPt * dpiScale) / 11
+          const targetBodyPx = currentPt * dpiScale;
+          const ratio = targetBodyPx / 11;
+
+          allElements.forEach((child: any) => {
+            const origSizePxStr = child.getAttribute('data-orig-font-size');
+            if (origSizePxStr) {
+              const origSizePx = parseFloat(origSizePxStr);
+              const newSizePx = origSizePx * ratio;
+              child.style.fontSize = `${newSizePx}px`;
+              child.style.lineHeight = '1.2';
+            }
+          });
+
+          // Measure height of the container in the iframe
+          const height = el.getBoundingClientRect().height;
+          
+          // A4 page height boundary is 1123px.
+          if (height <= 1123) {
+            break; // Fits perfectly!
+          }
+
+          currentPt -= 0.3; // Scale down slightly and try again
+          if (currentPt < minPt) {
+            currentPt = minPt;
+            break;
+          }
+        }
       }
 
-      // Shrink content planner text helper lines to be highly compact
+      // Adjust specific lesson planner components dynamically
+      // Remove any notebook lined gradient during export so text is perfectly clean and aligned
       const contentPlan = el.querySelector('[style*="linear-gradient"]');
       if (contentPlan) {
         const htmlContent = contentPlan as HTMLElement;
-        htmlContent.style.minHeight = '80px';
-        htmlContent.style.backgroundSize = '100% 1.1em';
-        htmlContent.style.lineHeight = '1.1em';
+        htmlContent.style.backgroundImage = 'none';
+        htmlContent.style.background = 'transparent';
+        htmlContent.style.lineHeight = '1.3';
       }
     }
   };
@@ -182,6 +294,11 @@ const ActionButtons: React.FC<ActionButtonsProps> = ({ textToCopy, elementIdToPr
     e.preventDefault(); e.stopPropagation();
     
     if (isDownloadingRef.current) return;
+
+    // Force blur on the active element to save any in-progress contentEditable text to state and DOM
+    if (document.activeElement instanceof HTMLElement) {
+      document.activeElement.blur();
+    }
 
     const input = document.getElementById(elementIdToPrint);
     if (!input) return;
@@ -196,8 +313,8 @@ const ActionButtons: React.FC<ActionButtonsProps> = ({ textToCopy, elementIdToPr
       ]);
 
       const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-      // Reduce scale on mobile to prevent crashes and speed up generation
-      const scale = isMobile ? 1.0 : 1.25;
+      // High resolution scale for perfectly crisp text
+      const scale = isMobile ? 1.8 : 2.5;
       
       const canvas = await html2canvas(input, {
         scale: scale,
@@ -211,19 +328,29 @@ const ActionButtons: React.FC<ActionButtonsProps> = ({ textToCopy, elementIdToPr
         }
       });
       
-      // Use Blob and JPEG for mobile stability (avoiding large base64 strings)
+      let filename = 'التحضير_الإلكتروني';
+      try {
+        const plan = JSON.parse(textToCopy);
+        if (plan && plan.lessonTitle) {
+          filename = `تحضير_درس_${plan.lessonTitle.trim().replace(/[\s/\\?%*:|"<>]+/g, '_')}`;
+        }
+      } catch (err) {
+        // Safe fallback
+      }
+
+      // Use lossless PNG for crystal clear text
       canvas.toBlob((blob: Blob | null) => {
         if (blob) {
           const url = URL.createObjectURL(blob);
           const link = document.createElement('a');
           link.href = url;
-          link.download = 'التحضير_الإلكتروني.jpg';
+          link.download = `${filename}.png`;
           document.body.appendChild(link);
           link.click();
           document.body.removeChild(link);
           URL.revokeObjectURL(url);
         }
-      }, 'image/jpeg', 0.85); // 85% quality JPEG
+      }, 'image/png');
     } catch (error) {
       console.error("Image generation failed", error);
       alert("حدث خطأ أثناء تحميل الصورة. قد يكون المحتوى كبيراً جداً.");
@@ -237,6 +364,11 @@ const ActionButtons: React.FC<ActionButtonsProps> = ({ textToCopy, elementIdToPr
     
     if (isDownloadingRef.current) return;
 
+    // Force blur on the active element to save any in-progress contentEditable text to state and DOM
+    if (document.activeElement instanceof HTMLElement) {
+      document.activeElement.blur();
+    }
+
     const input = document.getElementById(elementIdToPrint);
     if (!input) return;
     
@@ -249,7 +381,7 @@ const ActionButtons: React.FC<ActionButtonsProps> = ({ textToCopy, elementIdToPr
       ]);
 
       const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-      const scale = isMobile ? 1.0 : 1.25;
+      const scale = isMobile ? 1.8 : 2.5;
 
       const canvas = await html2canvas(input, {
         scale: scale, 
@@ -262,8 +394,8 @@ const ActionButtons: React.FC<ActionButtonsProps> = ({ textToCopy, elementIdToPr
         }
       });
 
-      // Use JPEG with lower quality for speed and mobile browser stability
-      const imgData = canvas.toDataURL('image/jpeg', 0.85);
+      // Lossless PNG data URL for perfect crispness inside the PDF
+      const imgData = canvas.toDataURL('image/png');
       const pdf = new jspdf.jsPDF({
         orientation: pdfOrientation,
         unit: 'pt',
@@ -294,8 +426,18 @@ const ActionButtons: React.FC<ActionButtonsProps> = ({ textToCopy, elementIdToPr
       const xOffset = margin + (usableWidth - finalWidth) / 2;
       const yOffset = margin + (usableHeight - finalHeight) / 2;
       
-      pdf.addImage(imgData, 'JPEG', xOffset, yOffset, finalWidth, finalHeight, undefined, 'FAST');
-      pdf.save('التحضير_الإلكتروني.pdf');
+      let filename = 'التحضير_الإلكتروني';
+      try {
+        const plan = JSON.parse(textToCopy);
+        if (plan && plan.lessonTitle) {
+          filename = `تحضير_درس_${plan.lessonTitle.trim().replace(/[\s/\\?%*:|"<>]+/g, '_')}`;
+        }
+      } catch (err) {
+        // Safe fallback
+      }
+
+      pdf.addImage(imgData, 'PNG', xOffset, yOffset, finalWidth, finalHeight, undefined, 'FAST');
+      pdf.save(`${filename}.pdf`);
     } catch (error) {
       console.error("PDF generation failed", error);
       alert("حدث خطأ أثناء تحميل ملف PDF. يرجى المحاولة مرة أخرى.");
