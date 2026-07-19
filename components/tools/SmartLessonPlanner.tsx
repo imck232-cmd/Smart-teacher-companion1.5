@@ -140,12 +140,19 @@ const initialObjectives: Objective[] = [
  { domain: 'وجداني', level: '', text: '', evaluation: '' },
 ];
 
+const getLocalDateString = (d: Date = new Date()) => {
+ const year = d.getFullYear();
+ const month = String(d.getMonth() + 1).padStart(2, '0');
+ const day = String(d.getDate()).padStart(2, '0');
+ return `${year}-${month}-${day}`;
+};
+
 const initialState: LessonPlanState = {
  ministry: 'وزارة التربية والتعليم والبحث العلمي',
  district: '',
  school: '',
  day: '',
- date: new Date().toISOString().split('T')[0],
+ date: getLocalDateString(),
  subject: '',
  subjectBranch: '',
  lessonTitle: '',
@@ -237,6 +244,8 @@ const SmartLessonPlanner: React.FC<{ onBack: () => void }> = ({ onBack }) => {
  // --- Effects ---
  useEffect(() => {
  const savedMeta = localStorage.getItem('lessonPlannerMeta');
+ const todayStr = getLocalDateString();
+ const todayDayName = new Date().toLocaleDateString('ar-EG', { weekday: 'long' });
  if (savedMeta) {
  try {
  const parsed = JSON.parse(savedMeta);
@@ -245,15 +254,15 @@ const SmartLessonPlanner: React.FC<{ onBack: () => void }> = ({ onBack }) => {
  district: safeString(parsed.district),
  school: safeString(parsed.school),
  teacherName: safeString(parsed.teacherName),
- date: new Date().toISOString().split('T')[0],
- day: new Date().toLocaleDateString('ar-EG', { weekday: 'long' })
+ date: todayStr,
+ day: todayDayName
  }));
  } catch(e) { console.error(e); }
  } else {
  setModalData(prev => ({
  ...prev,
- date: new Date().toISOString().split('T')[0],
- day: new Date().toLocaleDateString('ar-EG', { weekday: 'long' })
+ date: todayStr,
+ day: todayDayName
  }));
  }
 
@@ -277,7 +286,9 @@ const SmartLessonPlanner: React.FC<{ onBack: () => void }> = ({ onBack }) => {
 
  const handleModalDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
  const dateVal = e.target.value;
- const dateObj = new Date(dateVal);
+ if (!dateVal) return;
+ const [year, month, day] = dateVal.split('-').map(Number);
+ const dateObj = new Date(year, month - 1, day);
  const dayName = dateObj.toLocaleDateString('ar-EG', { weekday: 'long' });
  setModalData(prev => ({ ...prev, date: dateVal, day: dayName }));
  };
@@ -548,7 +559,7 @@ const SmartLessonPlanner: React.FC<{ onBack: () => void }> = ({ onBack }) => {
  <button onClick={handleAnalyzePaste} disabled={isAnalyzing} className="neumorphic-button bg-blue-600 text-white px-8 py-4 font-bold text-lg shadow-lg hover:bg-blue-700 disabled:opacity-50 transition-colors rounded-xl">
  {isAnalyzing ? 'جاري المعالجة...' : 'تفريغ وتعبئة الجدول'}
  </button>
- <button onClick={() => { setModalData(plan); setShowModal(true); }} className="neumorphic-button bg-gray-50 text-white px-6 py-4 font-bold text-lg hover:bg-gray-600 transition-colors rounded-xl">
+ <button onClick={() => { setModalData(plan); setShowModal(true); }} className="neumorphic-button bg-sky-600 text-white px-6 py-4 font-bold text-lg hover:bg-sky-700 shadow-lg transition-colors rounded-xl">
  تحديث البيانات الأساسية (المدرسة، المادة...)
  </button>
  <button onClick={() => contentFileInputRef.current?.click()} disabled={isReadingFile} className="neumorphic-button bg-gray-200 text-gray-700 px-6 py-4 font-bold hover:bg-gray-300 disabled:opacity-60 rounded-xl">
@@ -644,21 +655,21 @@ const SmartLessonPlanner: React.FC<{ onBack: () => void }> = ({ onBack }) => {
  <div className="p-1 flex items-center justify-center gap-1"><span>الصف:</span> <span>{plan.classLevel}</span></div>
  <div className="p-1 flex items-center justify-center gap-1"><span>الشعبة:</span> <span>{plan.division}</span></div>
  <div className="p-1 flex items-center justify-center gap-1"><span>الحصة:</span> <span>{plan.period}</span></div>
- <div className="p-1 flex items-center justify-center gap-1"><span>السلوك:</span> <div id="export-behavior" contentEditable onBlur={(e) => handleContentEditableChange('behavior', e)} className="bg-transparent min-w-[40px] border-b border-dotted border-black text-center focus:outline-none inline-block text-black " dangerouslySetInnerHTML={{ __html: plan.behavior }}></div></div>
+ <div className="p-1 flex items-center justify-center gap-1"><span>السلوك:</span> <div id="export-behavior" contentEditable onBlur={(e) => handleContentEditableChange('behavior', e)} className="bg-transparent min-w-[40px] border-b border-dotted border-black text-center focus:outline-none inline-block text-black font-semibold" dangerouslySetInnerHTML={{ __html: plan.behavior }}></div></div>
  </div>
 
  {/* Row 2: Methods & Aids */}
  <div className="grid grid-cols-2 gap-0 mb-2 text-[11px] border border-black text-black ">
  <div className="border-l border-black p-1">
  <span className="font-bold underline block mb-1">طرق وأساليب التدريس:</span>
- <div className="flex flex-wrap gap-2 text-[10px] pr-2">
+ <div className="flex flex-wrap gap-2 text-[10px] pr-2 font-semibold">
  {plan.methods.filter(m => m.trim()).map((m, i) => <span key={i}>• {m}</span>)}
  {plan.methods.every(m => !m.trim()) && <span className="text-gray-400">..................................................</span>}
  </div>
  </div>
  <div className="p-1">
  <span className="font-bold underline block mb-1">الوسائل التعليمية:</span>
- <div className="flex flex-wrap gap-2 text-[10px] pr-2">
+ <div className="flex flex-wrap gap-2 text-[10px] pr-2 font-semibold">
  {plan.aids.filter(a => a.trim()).map((a, i) => <span key={i}>• {a}</span>)}
  {plan.aids.every(a => !a.trim()) && <span className="text-gray-400">..................................................</span>}
  </div>
@@ -673,7 +684,7 @@ const SmartLessonPlanner: React.FC<{ onBack: () => void }> = ({ onBack }) => {
  id="export-introText"
  contentEditable
  onBlur={(e) => handleContentEditableChange('introText', e)}
- className="w-full bg-transparent focus:outline-none leading-relaxed min-h-[40px] whitespace-pre-wrap break-words text-black "
+ className="w-full bg-transparent focus:outline-none leading-relaxed min-h-[40px] whitespace-pre-wrap break-words text-black font-semibold"
  dir="rtl"
  dangerouslySetInnerHTML={{ __html: plan.introText }}
  ></div>
@@ -706,8 +717,8 @@ const SmartLessonPlanner: React.FC<{ onBack: () => void }> = ({ onBack }) => {
  {/* Row 5: Content Area */}
  <div className="border border-black p-1 mb-2 flex-grow flex flex-col text-black " style={{ minHeight: '180px' }}>
  <div className="flex border-b border-black pb-1 mb-1 text-[11px] font-bold">
- <div className="w-1/2 border-l border-black pl-2 flex items-center">دور المعلم: <div id="export-teacherRole" contentEditable onBlur={(e) => handleContentEditableChange('teacherRole', e)} className="font-normal flex-grow bg-transparent border-b border-dotted border-gray-400 focus:outline-none inline-block ml-1 text-black " dangerouslySetInnerHTML={{__html: plan.teacherRole}}></div></div>
- <div className="w-1/2 pr-2 flex items-center">دور المتعلم: <div id="export-learnerRole" contentEditable onBlur={(e) => handleContentEditableChange('learnerRole', e)} className="font-normal flex-grow bg-transparent border-b border-dotted border-gray-400 focus:outline-none inline-block ml-1 text-black " dangerouslySetInnerHTML={{__html: plan.learnerRole}}></div></div>
+ <div className="w-1/2 border-l border-black pl-2 flex items-center">دور المعلم: <div id="export-teacherRole" contentEditable onBlur={(e) => handleContentEditableChange('teacherRole', e)} className="font-semibold flex-grow bg-transparent border-b border-dotted border-gray-400 focus:outline-none inline-block ml-1 text-black " dangerouslySetInnerHTML={{__html: plan.teacherRole}}></div></div>
+ <div className="w-1/2 pr-2 flex items-center">دور المتعلم: <div id="export-learnerRole" contentEditable onBlur={(e) => handleContentEditableChange('learnerRole', e)} className="font-semibold flex-grow bg-transparent border-b border-dotted border-gray-400 focus:outline-none inline-block ml-1 text-black " dangerouslySetInnerHTML={{__html: plan.learnerRole}}></div></div>
  </div>
  
  <h5 className="font-bold underline mb-1 text-[11px] text-black ">محتوى الدرس:</h5>
@@ -715,7 +726,7 @@ const SmartLessonPlanner: React.FC<{ onBack: () => void }> = ({ onBack }) => {
  id="export-content"
  contentEditable
  onBlur={(e) => handleContentEditableChange('content', e)}
- className="w-full flex-grow bg-transparent focus:outline-none text-[11px] leading-[1.2] whitespace-pre-wrap break-words min-h-[100px] text-black "
+ className="w-full flex-grow bg-transparent focus:outline-none text-[11px] leading-[1.2] whitespace-pre-wrap break-words min-h-[100px] text-black font-semibold"
  style={{ backgroundImage: 'linear-gradient(transparent 95%, #f5f5f5 95%)', backgroundSize: '100% 1.2em', lineHeight: '1.2em' }}
  dir="rtl"
  dangerouslySetInnerHTML={{ __html: plan.content }}
@@ -723,30 +734,30 @@ const SmartLessonPlanner: React.FC<{ onBack: () => void }> = ({ onBack }) => {
  
  <div className="border-t border-black pt-1 mt-1 flex gap-2 text-[11px] items-center">
  <span className="font-bold whitespace-nowrap text-black ">الأنشطة المصاحبة:</span>
- <div id="export-activities" contentEditable onBlur={(e) => handleContentEditableChange('activities', e)} className="flex-grow bg-transparent border-b border-dotted border-black focus:outline-none text-black " dangerouslySetInnerHTML={{ __html: plan.activities }}></div>
+ <div id="export-activities" contentEditable onBlur={(e) => handleContentEditableChange('activities', e)} className="flex-grow bg-transparent border-b border-dotted border-black focus:outline-none text-black font-semibold" dangerouslySetInnerHTML={{ __html: plan.activities }}></div>
  </div>
  </div>
 
  {/* Row 6: Closure & Homework */}
  <div className="grid grid-cols-2 border border-black mb-2 text-[11px] text-black ">
  <div className="border-l border-black p-1">
- <div className="flex justify-between mb-1"><span className="font-bold underline">غلق الدرس:</span> <span className="text-[9px] border border-black px-1 rounded">نوعه: {plan.closureType}</span></div>
+ <div className="flex justify-between mb-1"><span className="font-bold underline">غلق الدرس:</span> <span className="text-[9px] border border-black px-1 rounded font-bold">نوعه: {plan.closureType}</span></div>
  <div 
  id="export-closureText"
  contentEditable
  onBlur={(e) => handleContentEditableChange('closureText', e)}
- className="w-full bg-transparent focus:outline-none whitespace-pre-wrap break-words min-h-[40px] text-black "
+ className="w-full bg-transparent focus:outline-none whitespace-pre-wrap break-words min-h-[40px] text-black font-semibold"
  dir="rtl"
  dangerouslySetInnerHTML={{ __html: plan.closureText }}
  ></div>
  </div>
  <div className="p-1">
- <div className="flex justify-between mb-1"><span className="font-bold underline">الواجب المنزلي:</span> <span className="text-[9px] border border-black px-1 rounded">نوعه: {plan.homeworkType}</span></div>
+ <div className="flex justify-between mb-1"><span className="font-bold underline">الواجب المنزلي:</span> <span className="text-[9px] border border-black px-1 rounded font-bold">نوعه: {plan.homeworkType}</span></div>
  <div 
  id="export-homeworkText"
  contentEditable
  onBlur={(e) => handleContentEditableChange('homeworkText', e)}
- className="w-full bg-transparent focus:outline-none whitespace-pre-wrap break-words min-h-[40px] text-black "
+ className="w-full bg-transparent focus:outline-none whitespace-pre-wrap break-words min-h-[40px] text-black font-semibold"
  dir="rtl"
  dangerouslySetInnerHTML={{ __html: plan.homeworkText }}
  ></div>
@@ -757,11 +768,11 @@ const SmartLessonPlanner: React.FC<{ onBack: () => void }> = ({ onBack }) => {
  <div className="border border-black p-1 mb-2 text-[10px] flex flex-col gap-1 text-black ">
  <div className="flex gap-1 items-start w-full">
  <span className="font-bold whitespace-nowrap pt-1">ملاحظات إدارية:</span>
- <div id="export-adminNotes" contentEditable onBlur={(e) => handleContentEditableChange('adminNotes', e)} className="flex-grow border-b border-dotted border-black bg-transparent focus:outline-none min-h-[20px] whitespace-pre-wrap text-black " dangerouslySetInnerHTML={{__html: plan.adminNotes}}></div>
+ <div id="export-adminNotes" contentEditable onBlur={(e) => handleContentEditableChange('adminNotes', e)} className="flex-grow border-b border-dotted border-black bg-transparent focus:outline-none min-h-[20px] whitespace-pre-wrap text-black font-semibold" dangerouslySetInnerHTML={{__html: plan.adminNotes}}></div>
  </div>
  <div className="flex gap-1 items-start w-full">
  <span className="font-bold whitespace-nowrap pt-1">ترنيمة قلم:</span>
- <div id="export-reflection" contentEditable onBlur={(e) => handleContentEditableChange('reflection', e)} className="flex-grow border-b border-dotted border-black bg-transparent focus:outline-none min-h-[20px] whitespace-pre-wrap text-black " dangerouslySetInnerHTML={{__html: plan.reflection}}></div>
+ <div id="export-reflection" contentEditable onBlur={(e) => handleContentEditableChange('reflection', e)} className="flex-grow border-b border-dotted border-black bg-transparent focus:outline-none min-h-[20px] whitespace-pre-wrap text-black font-semibold" dangerouslySetInnerHTML={{__html: plan.reflection}}></div>
  </div>
  </div>
 

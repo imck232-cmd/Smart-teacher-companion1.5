@@ -148,6 +148,8 @@ const ActionButtons: React.FC<ActionButtonsProps> = ({ textToCopy, elementIdToPr
         // Force bold weights to be extra clear and bold on export
         if (child.classList?.contains('font-bold') || child.tagName === 'STRONG') {
           child.style.fontWeight = 'bold';
+        } else if (child.classList?.contains('font-semibold')) {
+          child.style.fontWeight = '600';
         }
 
         if (child.id === 'export-lessonTitle') {
