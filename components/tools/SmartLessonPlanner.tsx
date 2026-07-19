@@ -246,16 +246,27 @@ const SmartLessonPlanner: React.FC<{ onBack: () => void }> = ({ onBack }) => {
  const savedMeta = localStorage.getItem('lessonPlannerMeta');
  const todayStr = getLocalDateString();
  const todayDayName = new Date().toLocaleDateString('ar-EG', { weekday: 'long' });
+ let metaObj: any = {};
+
  if (savedMeta) {
  try {
  const parsed = JSON.parse(savedMeta);
- setModalData(prev => ({
- ...prev,
+ metaObj = {
  district: safeString(parsed.district),
  school: safeString(parsed.school),
  teacherName: safeString(parsed.teacherName),
- date: todayStr,
- day: todayDayName
+ subject: safeString(parsed.subject),
+ subjectBranch: safeString(parsed.subjectBranch),
+ lessonTitle: safeString(parsed.lessonTitle),
+ classLevel: safeString(parsed.classLevel),
+ division: safeString(parsed.division),
+ period: safeString(parsed.period),
+ date: parsed.date ? safeString(parsed.date) : todayStr,
+ day: parsed.day ? safeString(parsed.day) : todayDayName
+ };
+ setModalData(prev => ({
+ ...prev,
+ ...metaObj
  }));
  } catch(e) { console.error(e); }
  } else {
@@ -281,6 +292,10 @@ const SmartLessonPlanner: React.FC<{ onBack: () => void }> = ({ onBack }) => {
  const parsedWork = JSON.parse(savedWork);
  setPlan({ ...initialState, ...parsedWork });
  } catch(e) { console.error(e); }
+ } else if (Object.keys(metaObj).length > 0) {
+ setPlan(prev => ({ ...prev, ...metaObj }));
+ } else {
+ setPlan(prev => ({ ...prev, date: todayStr, day: todayDayName }));
  }
  }, []);
 
@@ -375,7 +390,27 @@ const SmartLessonPlanner: React.FC<{ onBack: () => void }> = ({ onBack }) => {
 
  const handleNewLesson = () => {
  if (window.confirm('هل أنت متأكد من إنشاء درس جديد؟ سيتم فقدان البيانات غير المحفوظة.')) {
- setPlan(initialState);
+ const savedMeta = localStorage.getItem('lessonPlannerMeta');
+ let metaObj: any = {};
+ if (savedMeta) {
+ try {
+ const parsed = JSON.parse(savedMeta);
+ metaObj = {
+ district: safeString(parsed.district),
+ school: safeString(parsed.school),
+ teacherName: safeString(parsed.teacherName),
+ subject: safeString(parsed.subject),
+ subjectBranch: safeString(parsed.subjectBranch),
+ lessonTitle: safeString(parsed.lessonTitle),
+ classLevel: safeString(parsed.classLevel),
+ division: safeString(parsed.division),
+ period: safeString(parsed.period),
+ date: parsed.date ? safeString(parsed.date) : getLocalDateString(),
+ day: parsed.day ? safeString(parsed.day) : new Date().toLocaleDateString('ar-EG', { weekday: 'long' })
+ };
+ } catch(e) { console.error(e); }
+ }
+ setPlan({ ...initialState, ...metaObj });
  setAiInput('');
  setPasteForAnalysis('');
  localStorage.removeItem('currentLessonPlan');
@@ -385,6 +420,19 @@ const SmartLessonPlanner: React.FC<{ onBack: () => void }> = ({ onBack }) => {
  const handleSaveLesson = () => {
  try {
  localStorage.setItem('currentLessonPlan', JSON.stringify(plan));
+ localStorage.setItem('lessonPlannerMeta', JSON.stringify({
+ district: plan.district,
+ school: plan.school,
+ teacherName: plan.teacherName,
+ subject: plan.subject,
+ subjectBranch: plan.subjectBranch,
+ lessonTitle: plan.lessonTitle,
+ classLevel: plan.classLevel,
+ division: plan.division,
+ period: plan.period,
+ date: plan.date,
+ day: plan.day
+ }));
  alert('تم حفظ التحضير الحالي بنجاح.');
  } catch (e) {
  alert('تعذر الحفظ.');
@@ -397,7 +445,13 @@ const SmartLessonPlanner: React.FC<{ onBack: () => void }> = ({ onBack }) => {
  school: modalData.school,
  teacherName: modalData.teacherName,
  subject: modalData.subject,
- classLevel: modalData.classLevel
+ subjectBranch: modalData.subjectBranch,
+ lessonTitle: modalData.lessonTitle,
+ classLevel: modalData.classLevel,
+ division: modalData.division,
+ period: modalData.period,
+ date: modalData.date,
+ day: modalData.day
  }));
 
  setShowModal(false);
