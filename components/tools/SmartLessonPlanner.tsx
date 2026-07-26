@@ -685,7 +685,7 @@ const SmartLessonPlanner: React.FC<{ onBack: () => void }> = ({ onBack }) => {
  <input type="file" ref={eagleInputRef} className="hidden" onChange={e => handleImageUpload(e, setEagleImage)} />
  </div>
  {/* REPLACED INPUT WITH DIV FOR TITLE - Auto width for long titles */}
- <div className="relative mt-1">
+ <div className="mt-1">
  <div className="border border-black px-4 py-2 bg-neutral-50 rounded-lg inline-block w-full max-w-[260px] break-words">
  <div id="export-lessonTitle" contentEditable onBlur={(e) => handleContentEditableChange('lessonTitle', e)} className="bg-transparent text-center focus:outline-none text-black text-[14px] font-bold leading-snug" dangerouslySetInnerHTML={{ __html: plan.lessonTitle || 'عنوان الدرس' }}></div>
  </div>

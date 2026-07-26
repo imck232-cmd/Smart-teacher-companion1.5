@@ -49,17 +49,19 @@ const ActionButtons: React.FC<ActionButtonsProps> = ({ textToCopy, elementIdToPr
         text-shadow: none !important;
         -webkit-font-smoothing: antialiased !important;
         -moz-osx-font-smoothing: grayscale !important;
+        text-rendering: optimizeLegibility !important;
       }
       #${elementId} {
         background-color: #ffffff !important;
         background: #ffffff !important;
       }
       #${elementId} .bg-gray-200, #${elementId} .bg-gray-100, #${elementId} .bg-gray-50, #${elementId} .bg-neutral-50 {
-        background-color: #f1f5f9 !important; /* Proper high-contrast light gray sections */
+        background-color: #e2e8f0 !important; /* High contrast box background */
+        print-color-adjust: exact !important;
+        -webkit-print-color-adjust: exact !important;
       }
       #export-lessonTitle {
         font-weight: bold !important;
-        display: block !important;
         text-align: center !important;
       }
     `;
@@ -141,8 +143,11 @@ const ActionButtons: React.FC<ActionButtonsProps> = ({ textToCopy, elementIdToPr
         child.style.webkitTextFillColor = '#000000';
         
         // Remove contenteditable attribute on clone to prevent html2canvas baseline shift and rendering glitches
-        if (child.hasAttribute('contenteditable')) {
+        if (child.hasAttribute('contenteditable') || child.contentEditable === 'true') {
+          child.contentEditable = 'false';
           child.removeAttribute('contenteditable');
+          child.style.userSelect = 'none';
+          child.style.pointerEvents = 'none';
         }
 
         // Force bold weights to be extra clear and bold on export
@@ -154,18 +159,13 @@ const ActionButtons: React.FC<ActionButtonsProps> = ({ textToCopy, elementIdToPr
 
         if (child.id === 'export-lessonTitle') {
           child.style.fontWeight = 'bold';
-          child.style.display = 'block';
-          child.style.width = '100%';
-          child.style.textAlign = 'center';
-          child.style.lineHeight = '1.2';
-          child.style.marginTop = '0px';
-          child.style.marginBottom = '0px';
+          // DO NOT aggressively override display and line-height as it causes text displacement out of the box
         }
         
         // Ensure white/transparent backgrounds
         const hasGrayBg = child.classList?.contains('bg-gray-200') || child.classList?.contains('bg-gray-100') || child.classList?.contains('bg-gray-50') || child.classList?.contains('bg-neutral-50');
         if (hasGrayBg) {
-          child.style.backgroundColor = '#f1f5f9';
+          child.style.backgroundColor = '#e2e8f0'; // High contrast gray
         } else {
           child.style.backgroundColor = 'transparent';
         }
@@ -260,7 +260,8 @@ const ActionButtons: React.FC<ActionButtonsProps> = ({ textToCopy, elementIdToPr
               const origSizePx = parseFloat(origSizePxStr);
               const newSizePx = origSizePx * ratio;
               child.style.fontSize = `${newSizePx}px`;
-              child.style.lineHeight = '1.2';
+              // Use line-height normal or 1.5 for Arabic fonts to prevent downward text shift in html2canvas
+              child.style.lineHeight = '1.5';
             }
           });
 
@@ -287,7 +288,7 @@ const ActionButtons: React.FC<ActionButtonsProps> = ({ textToCopy, elementIdToPr
         const htmlContent = contentPlan as HTMLElement;
         htmlContent.style.backgroundImage = 'none';
         htmlContent.style.background = 'transparent';
-        htmlContent.style.lineHeight = '1.3';
+        htmlContent.style.lineHeight = '1.5';
       }
     }
   };
