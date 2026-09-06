@@ -49,7 +49,10 @@ const ActionButtons: React.FC<ActionButtonsProps> = ({ textToCopy, elementIdToPr
         text-shadow: none !important;
         -webkit-font-smoothing: antialiased !important;
         -moz-osx-font-smoothing: grayscale !important;
-        text-rendering: optimizeLegibility !important;
+      }
+      #${elementId} img {
+        display: inline-block !important;
+        vertical-align: middle !important;
       }
       #${elementId} {
         background-color: #ffffff !important;
@@ -61,8 +64,16 @@ const ActionButtons: React.FC<ActionButtonsProps> = ({ textToCopy, elementIdToPr
         -webkit-print-color-adjust: exact !important;
       }
       #export-lessonTitle {
+        display: inline-block !important;
         font-weight: bold !important;
         text-align: center !important;
+        line-height: 1.25 !important;
+        background-color: #e2e8f0 !important;
+        color: #000000 !important;
+        -webkit-text-fill-color: #000000 !important;
+        vertical-align: middle !important;
+        box-sizing: border-box !important;
+        overflow: visible !important;
       }
     `;
     clonedDoc.head?.appendChild(styleOverride);
@@ -109,30 +120,38 @@ const ActionButtons: React.FC<ActionButtonsProps> = ({ textToCopy, elementIdToPr
         scrollable.style.maxHeight = 'none';
       });
 
-      // Synchronize contentEditable fields from plan JSON to avoid empty titles or un-synced text
+      // Synchronize contentEditable fields from plan JSON and live DOM to avoid empty titles or un-synced text
       if (elementId === 'lesson-plan-export') {
+        let plan: any = {};
         try {
-          const plan = JSON.parse(textToCopy);
-          const fields = [
-            'lessonTitle', 'district', 'school', 'behavior', 'introText',
-            'teacherRole', 'learnerRole', 'content', 'activities',
-            'closureText', 'homeworkText', 'adminNotes', 'reflection'
-          ];
-          fields.forEach(field => {
-            const elField = clonedDoc.getElementById(`export-${field}`);
-            if (elField) {
-              let val = plan[field];
-              if (val !== undefined && val !== null) {
-                if (field === 'lessonTitle' && !val) {
-                  val = 'عنوان الدرس';
-                }
-                elField.innerHTML = val;
-              }
-            }
-          });
+          plan = JSON.parse(textToCopy);
         } catch (e) {
-          console.warn("Failed to parse textToCopy for lessonTitle synchronization:", e);
+          console.warn("Failed to parse textToCopy for synchronization:", e);
         }
+
+        const fields = [
+          'lessonTitle', 'district', 'school', 'behavior', 'introText',
+          'teacherRole', 'learnerRole', 'content', 'activities',
+          'closureText', 'homeworkText', 'adminNotes', 'reflection'
+        ];
+        fields.forEach(field => {
+          const elField = el.querySelector(`#export-${field}`) as HTMLElement;
+          const liveEl = document.getElementById(`export-${field}`);
+          if (elField) {
+            let val = liveEl ? (liveEl.innerText.trim() || liveEl.innerHTML.trim()) : '';
+            if (!val && plan && plan[field] !== undefined && plan[field] !== null) {
+              val = String(plan[field]).trim();
+            }
+            if (field === 'lessonTitle') {
+              if (!val || val === 'undefined') {
+                val = (plan && plan.lessonTitle) ? plan.lessonTitle.trim() : 'عنوان الدرس';
+              }
+              elField.innerText = val;
+            } else if (val) {
+              elField.innerHTML = val;
+            }
+          }
+        });
       }
 
       // 6. Walk the layout tree and make elements tight, black-on-white, and single-page safe
@@ -150,6 +169,12 @@ const ActionButtons: React.FC<ActionButtonsProps> = ({ textToCopy, elementIdToPr
           child.style.pointerEvents = 'none';
         }
 
+        // Force images to inline-block to prevent Tailwind preflight display:block ghost line break
+        if (child.tagName === 'IMG') {
+          child.style.display = 'inline-block';
+          child.style.verticalAlign = 'middle';
+        }
+
         // Force bold weights to be extra clear and bold on export
         if (child.classList?.contains('font-bold') || child.tagName === 'STRONG') {
           child.style.fontWeight = 'bold';
@@ -159,7 +184,21 @@ const ActionButtons: React.FC<ActionButtonsProps> = ({ textToCopy, elementIdToPr
 
         if (child.id === 'export-lessonTitle') {
           child.style.fontWeight = 'bold';
-          // DO NOT aggressively override display and line-height as it causes text displacement out of the box
+          child.style.display = 'inline-block';
+          child.style.textAlign = 'center';
+          child.style.lineHeight = '1.25';
+          child.style.backgroundColor = '#e2e8f0';
+          child.style.verticalAlign = 'middle';
+          child.style.boxSizing = 'border-box';
+          child.style.overflow = 'visible';
+        }
+
+        // Ensure table cells are vertically centered and have tight line height
+        if (child.tagName === 'TD' || child.tagName === 'TH') {
+          child.style.verticalAlign = 'middle';
+          child.style.lineHeight = '1.2';
+          child.style.padding = '3px 4px';
+          child.style.boxSizing = 'border-box';
         }
         
         // Ensure white/transparent backgrounds
@@ -193,19 +232,20 @@ const ActionButtons: React.FC<ActionButtonsProps> = ({ textToCopy, elementIdToPr
           child.style.marginBottom = '4px';
         }
         if (child.classList?.contains('py-2')) {
-          child.style.paddingTop = '2px';
-          child.style.paddingBottom = '2px';
+          child.style.paddingTop = '3px';
+          child.style.paddingBottom = '3px';
         }
         if (child.classList?.contains('py-3')) {
           child.style.paddingTop = '4px';
           child.style.paddingBottom = '4px';
         }
         if (child.classList?.contains('p-2')) {
-          child.style.padding = '3px';
+          child.style.padding = '3px 4px';
         }
         if (child.classList?.contains('p-1')) {
-          child.style.padding = '2px';
+          child.style.padding = '2px 4px';
         }
+        child.style.boxSizing = 'border-box';
         
         // Dark high-contrast borders for printing tables
         if (child.tagName === 'TABLE' || child.tagName === 'TR' || child.tagName === 'TD' || child.tagName === 'TH') {
@@ -260,8 +300,17 @@ const ActionButtons: React.FC<ActionButtonsProps> = ({ textToCopy, elementIdToPr
               const origSizePx = parseFloat(origSizePxStr);
               const newSizePx = origSizePx * ratio;
               child.style.fontSize = `${newSizePx}px`;
-              // Use line-height normal or 1.5 for Arabic fonts to prevent downward text shift in html2canvas
-              child.style.lineHeight = '1.5';
+              
+              // Apply precise line-height to prevent baseline shifts and overflow in html2canvas
+              if (child.tagName === 'TD' || child.tagName === 'TH') {
+                child.style.lineHeight = '1.2';
+              } else if (child.id === 'export-lessonTitle') {
+                child.style.lineHeight = '1.25';
+              } else if (child.id === 'export-content' || child.id === 'export-introText' || child.id === 'export-closureText' || child.id === 'export-homeworkText') {
+                child.style.lineHeight = '1.3';
+              } else {
+                child.style.lineHeight = '1.25';
+              }
             }
           });
 
@@ -288,7 +337,7 @@ const ActionButtons: React.FC<ActionButtonsProps> = ({ textToCopy, elementIdToPr
         const htmlContent = contentPlan as HTMLElement;
         htmlContent.style.backgroundImage = 'none';
         htmlContent.style.background = 'transparent';
-        htmlContent.style.lineHeight = '1.5';
+        htmlContent.style.lineHeight = '1.3';
       }
     }
   };
@@ -316,8 +365,8 @@ const ActionButtons: React.FC<ActionButtonsProps> = ({ textToCopy, elementIdToPr
       ]);
 
       const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-      // High resolution scale for perfectly crisp text
-      const scale = isMobile ? 1.8 : 2.5;
+      // High resolution scale for perfectly crisp text (300 DPI equivalent)
+      const scale = isMobile ? 2.5 : 3.0;
       
       const canvas = await html2canvas(input, {
         scale: scale,
@@ -333,9 +382,11 @@ const ActionButtons: React.FC<ActionButtonsProps> = ({ textToCopy, elementIdToPr
       
       let filename = 'التحضير_الإلكتروني';
       try {
+        const liveTitle = document.getElementById('export-lessonTitle')?.innerText?.trim();
         const plan = JSON.parse(textToCopy);
-        if (plan && plan.lessonTitle) {
-          filename = `تحضير_درس_${plan.lessonTitle.trim().replace(/[\s/\\?%*:|"<>]+/g, '_')}`;
+        const title = (liveTitle && liveTitle !== 'عنوان الدرس') ? liveTitle : (plan && plan.lessonTitle ? plan.lessonTitle.trim() : '');
+        if (title) {
+          filename = `تحضير_درس_${title.replace(/[\s/\\?%*:|"<>]+/g, '_')}`;
         }
       } catch (err) {
         // Safe fallback
@@ -384,7 +435,8 @@ const ActionButtons: React.FC<ActionButtonsProps> = ({ textToCopy, elementIdToPr
       ]);
 
       const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-      const scale = isMobile ? 1.8 : 2.5;
+      // High resolution scale for perfectly crisp text (300 DPI equivalent)
+      const scale = isMobile ? 2.5 : 3.0;
 
       const canvas = await html2canvas(input, {
         scale: scale, 
@@ -431,15 +483,17 @@ const ActionButtons: React.FC<ActionButtonsProps> = ({ textToCopy, elementIdToPr
       
       let filename = 'التحضير_الإلكتروني';
       try {
+        const liveTitle = document.getElementById('export-lessonTitle')?.innerText?.trim();
         const plan = JSON.parse(textToCopy);
-        if (plan && plan.lessonTitle) {
-          filename = `تحضير_درس_${plan.lessonTitle.trim().replace(/[\s/\\?%*:|"<>]+/g, '_')}`;
+        const title = (liveTitle && liveTitle !== 'عنوان الدرس') ? liveTitle : (plan && plan.lessonTitle ? plan.lessonTitle.trim() : '');
+        if (title) {
+          filename = `تحضير_درس_${title.replace(/[\s/\\?%*:|"<>]+/g, '_')}`;
         }
       } catch (err) {
         // Safe fallback
       }
 
-      pdf.addImage(imgData, 'PNG', xOffset, yOffset, finalWidth, finalHeight, undefined, 'FAST');
+      pdf.addImage(imgData, 'PNG', xOffset, yOffset, finalWidth, finalHeight, undefined, 'SLOW');
       pdf.save(`${filename}.pdf`);
     } catch (error) {
       console.error("PDF generation failed", error);

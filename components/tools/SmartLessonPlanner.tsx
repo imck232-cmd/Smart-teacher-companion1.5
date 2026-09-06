@@ -659,7 +659,7 @@ const SmartLessonPlanner: React.FC<{ onBack: () => void }> = ({ onBack }) => {
  minHeight: '297mm',
  padding: '5mm',
  border: '1px solid #ccc',
- fontFamily: "'Times New Roman', serif",
+ fontFamily: "'Times New Roman', 'Amiri', 'Cairo', serif",
  fontSize: '11pt',
  direction: 'rtl',
  textAlign: 'right',
@@ -679,16 +679,20 @@ const SmartLessonPlanner: React.FC<{ onBack: () => void }> = ({ onBack }) => {
  {/* Center: Logos & Title */}
  <div className="text-center w-1/3 flex flex-col items-center">
  <div className="flex justify-center gap-6 mb-2">
- <img src={schoolLogo} className="w-12 h-12 object-contain cursor-pointer" onClick={() => logoInputRef.current?.click()} title="تغيير الشعار" />
- <img src={eagleImage} className="w-14 h-14 object-contain cursor-pointer" onClick={() => eagleInputRef.current?.click()} title="تغيير الشعار" />
+ <img src={schoolLogo} className="w-12 h-12 inline-block object-contain cursor-pointer" onClick={() => logoInputRef.current?.click()} title="تغيير الشعار" />
+ <img src={eagleImage} className="w-14 h-14 inline-block object-contain cursor-pointer" onClick={() => eagleInputRef.current?.click()} title="تغيير الشعار" />
  <input type="file" ref={logoInputRef} className="hidden" onChange={e => handleImageUpload(e, setSchoolLogo)} />
  <input type="file" ref={eagleInputRef} className="hidden" onChange={e => handleImageUpload(e, setEagleImage)} />
  </div>
- {/* REPLACED INPUT WITH DIV FOR TITLE - Auto width for long titles */}
- <div className="mt-1">
- <div className="border border-black px-4 py-2 bg-neutral-50 rounded-lg inline-block w-full max-w-[260px] break-words">
- <div id="export-lessonTitle" contentEditable onBlur={(e) => handleContentEditableChange('lessonTitle', e)} className="bg-transparent text-center focus:outline-none text-black text-[14px] font-bold leading-snug" dangerouslySetInnerHTML={{ __html: plan.lessonTitle || 'عنوان الدرس' }}></div>
- </div>
+ {/* TITLE BOX - Direct single element to guarantee perfect visibility without clipping or hiding */}
+ <div className="mt-1 w-full flex justify-center">
+ <div 
+   id="export-lessonTitle" 
+   contentEditable 
+   onBlur={(e) => handleContentEditableChange('lessonTitle', e)} 
+   className="border border-black px-4 py-1.5 bg-neutral-50 rounded-lg inline-block w-full max-w-[260px] break-words text-center focus:outline-none text-black text-[14px] font-bold leading-normal" 
+   dangerouslySetInnerHTML={{ __html: plan.lessonTitle || 'عنوان الدرس' }}
+ ></div>
  </div>
  </div>
  
